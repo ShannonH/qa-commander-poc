@@ -22,6 +22,7 @@ import {
   Construction,
   Dashboard,
   School,
+  SmartToy,
 } from '@mui/icons-material';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import RiskAnalysisView from '../views/RiskAnalysisView';
@@ -29,6 +30,7 @@ import TestPlansView from '../views/TestPlansView';
 import UnderConstructionView from '../views/UnderConstructionView';
 import DashboardView from '../views/DashboardView';
 import BlackboardContentView from '../views/BlackboardContentView';
+import AIChatbotView from '../views/AIChatbotView';
 
 const drawerWidth = 240;
 
@@ -48,6 +50,7 @@ const Layout: React.FC = () => {
     { text: 'Risk Analysis', icon: <Assessment />, path: '/risk-analysis' },
     { text: 'Test Plans', icon: <Assignment />, path: '/test-plans' },
     { text: 'Blackboard Content', icon: <School />, path: '/blackboard-content' },
+    { text: 'AI Assistant', icon: <SmartToy />, path: '/ai-assistant' },
     { text: 'Jenkins Analysis', icon: <Construction />, path: '/jenkins-analysis' },
   ];
 
@@ -149,6 +152,7 @@ const Layout: React.FC = () => {
           <Route path="/risk-analysis" element={<RiskAnalysisView />} />
           <Route path="/test-plans" element={<TestPlansView />} />
           <Route path="/blackboard-content" element={<BlackboardContentView />} />
+          <Route path="/ai-assistant" element={<AIChatbotView />} />
           <Route path="/jenkins-analysis" element={<UnderConstructionView />} />
         </Routes>
       </Box>

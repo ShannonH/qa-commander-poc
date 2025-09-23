@@ -173,3 +173,34 @@ export interface BlackboardSession {
   authenticated: boolean;
   availableActions: string[];
 }
+
+// AI Chatbot Types
+export interface ChatMessage {
+  id: string;
+  content: string;
+  isUser: boolean;
+  timestamp: Date;
+  type?: 'text' | 'test-plan' | 'help-article';
+  metadata?: {
+    testPlan?: Partial<TestPlan>;
+    helpUrl?: string;
+    blackboardFeature?: BlackboardFeature;
+  };
+}
+
+export interface ChatbotContext {
+  currentView?: string;
+  selectedFeature?: BlackboardFeature;
+  userGoal?: 'general-help' | 'test-planning' | 'troubleshooting';
+  sessionData?: any;
+}
+
+export interface BlackboardHelpArticle {
+  id: string;
+  title: string;
+  url: string;
+  content: string;
+  feature: BlackboardFeature;
+  category: string;
+  tags: string[];
+}
