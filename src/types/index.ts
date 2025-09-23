@@ -93,3 +93,83 @@ export type BlackboardFeature =
   | 'Integration Tools'
   | 'Reports'
   | 'System Administration';
+
+// Blackboard Learn API Integration Types
+export interface BlackboardCredentials {
+  learnUrl: string;
+  username: string;
+  password: string;
+  token?: string;
+  tokenExpiry?: Date;
+  authenticated?: boolean;
+}
+
+export interface BlackboardCourse {
+  courseId?: string;
+  externalId: string;
+  name: string;
+  description?: string;
+  allowGuests?: boolean;
+  readOnly?: boolean;
+  termId?: string;
+  availability?: {
+    available: 'Yes' | 'No' | 'Disabled';
+    duration?: {
+      type: 'Continuous' | 'DateRange' | 'FixedNumDays' | 'Term';
+      start?: string;
+      end?: string;
+      daysOfUse?: number;
+    };
+  };
+}
+
+export interface BlackboardUser {
+  userId?: string;
+  externalId: string;
+  userName: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  password?: string;
+  systemRoleIds?: string[];
+  availability?: {
+    available: 'Yes' | 'No' | 'Disabled';
+  };
+}
+
+export interface BlackboardAssignment {
+  id?: string;
+  title: string;
+  description?: string;
+  instructions?: string;
+  position?: number;
+  grading?: {
+    due?: string;
+    attemptsAllowed?: number;
+    scoringModel?: 'Last' | 'Highest' | 'First' | 'Average';
+    schema?: 'Percent' | 'Points' | 'CompleteIncomplete' | 'LetterGrade';
+    points?: number;
+  };
+  availability?: {
+    available: 'Yes' | 'No' | 'Disabled';
+    allowGuests?: boolean;
+  };
+}
+
+export interface ContentCreationRequest {
+  type: 'course' | 'user' | 'assignment' | 'enrollment';
+  course?: BlackboardCourse;
+  user?: BlackboardUser;
+  assignment?: BlackboardAssignment;
+  enrollment?: {
+    courseId: string;
+    userId: string;
+    roleId: 'Student' | 'Instructor' | 'TeachingAssistant' | 'CourseBuilder' | 'Grader';
+  };
+}
+
+export interface BlackboardSession {
+  credentials: BlackboardCredentials;
+  authenticated: boolean;
+  availableActions: string[];
+}
