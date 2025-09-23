@@ -43,8 +43,8 @@ A comprehensive Quality Assurance Management Platform built with React and Mater
 ## Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
-- npm 8+
+- Node.js 22+ 
+- npm 10+
 
 ### Installation
 
