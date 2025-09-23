@@ -9,9 +9,9 @@ Object.defineProperty(Element.prototype, 'scrollIntoView', {
   writable: true
 });
 
-// Mock the chatbot service
-jest.mock('../utils/chatbotService', () => ({
-  ChatbotService: {
+// Mock the enhanced chatbot service
+jest.mock('../utils/enhancedChatbotService', () => ({
+  EnhancedChatbotService: {
     getChatHistory: jest.fn(() => []),
     saveChatHistory: jest.fn(),
     clearChatHistory: jest.fn(),
@@ -24,7 +24,7 @@ jest.mock('../utils/chatbotService', () => ({
     })),
     processMessage: jest.fn(() => Promise.resolve({
       id: 'test-ai-msg',
-      content: 'Test AI response',
+      content: 'Enhanced AI response with detailed guidance',
       isUser: false,
       timestamp: new Date(),
       type: 'text'
@@ -41,7 +41,7 @@ describe('AIChatbotView', () => {
     render(<AIChatbotView />);
     
     expect(screen.getByText('AI Assistant')).toBeInTheDocument();
-    expect(screen.getByText('Blackboard Learn Expert & Test Plan Generator')).toBeInTheDocument();
+    expect(screen.getByText('Enhanced AI Expert with Comprehensive Knowledge Base')).toBeInTheDocument();
     expect(screen.getByText('Quick Actions:')).toBeInTheDocument();
   });
 
@@ -49,21 +49,21 @@ describe('AIChatbotView', () => {
     render(<AIChatbotView />);
     
     expect(screen.getByText(/Welcome to QA Commander AI Assistant/)).toBeInTheDocument();
-    expect(screen.getByText(/I'm here to help you with Blackboard Learn/)).toBeInTheDocument();
+    expect(screen.getByText(/I'm your enhanced Blackboard Learn expert/)).toBeInTheDocument();
   });
 
   it('has quick action buttons', () => {
     render(<AIChatbotView />);
     
-    expect(screen.getByText('Assessment Help')).toBeInTheDocument();
+    expect(screen.getByText('Assessment Creation')).toBeInTheDocument();
     expect(screen.getByText('Gradebook Test Plan')).toBeInTheDocument();
-    expect(screen.getByText('Discussion Forums')).toBeInTheDocument();
+    expect(screen.getByText('Discussion Setup')).toBeInTheDocument();
   });
 
   it('has input field', () => {
     render(<AIChatbotView />);
     
-    const inputField = screen.getByPlaceholderText(/Ask me about Blackboard Learn features/);
+    const inputField = screen.getByPlaceholderText(/Ask me about Blackboard Learn procedures/);
     expect(inputField).toBeInTheDocument();
   });
 
@@ -85,12 +85,12 @@ describe('AIChatbotView', () => {
   it('fills input when quick action button is clicked', () => {
     render(<AIChatbotView />);
     
-    const assessmentHelpButton = screen.getByText('Assessment Help');
-    const inputField = screen.getByPlaceholderText(/Ask me about Blackboard Learn features/);
+    const assessmentButton = screen.getByText('Assessment Creation');
+    const inputField = screen.getByPlaceholderText(/Ask me about Blackboard Learn procedures/);
     
-    fireEvent.click(assessmentHelpButton);
+    fireEvent.click(assessmentButton);
     
-    expect(inputField).toHaveValue('How do I create an assessment in Blackboard?');
+    expect(inputField).toHaveValue('How do I create an assessment with different question types in Blackboard?');
   });
 
   it('displays usage instructions', () => {

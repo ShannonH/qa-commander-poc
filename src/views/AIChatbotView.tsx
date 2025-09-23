@@ -29,7 +29,7 @@ import {
   Clear as ClearIcon,
 } from '@mui/icons-material';
 import { ChatMessage, ChatbotContext } from '../types';
-import { ChatbotService } from '../utils/chatbotService';
+import { EnhancedChatbotService } from '../utils/enhancedChatbotService';
 
 const AIChatbotView: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -46,7 +46,7 @@ const AIChatbotView: React.FC = () => {
 
   useEffect(() => {
     // Load chat history on component mount
-    const history = ChatbotService.getChatHistory();
+    const history = EnhancedChatbotService.getChatHistory();
     setMessages(history || []);
     
     // Add welcome message if no history
@@ -55,19 +55,27 @@ const AIChatbotView: React.FC = () => {
         id: 'welcome',
         content: `Welcome to QA Commander AI Assistant! 🤖
 
-I'm here to help you with Blackboard Learn testing and documentation. I have access to comprehensive information from help.blackboard.com and can assist with:
+I'm your enhanced Blackboard Learn expert with access to comprehensive documentation and real-world testing strategies. I can provide:
 
-🔍 **Finding Documentation** - Get help articles and guides
-🧪 **Test Plan Generation** - Create comprehensive test plans  
-📋 **Feature Explanations** - Understand Blackboard functionality
-🎯 **Testing Strategies** - Best practices and approaches
+🔍 **Expert Documentation** - Detailed guidance from help.blackboard.com
+🧪 **Advanced Test Planning** - Real-world testing scenarios with specific steps
+📋 **Step-by-Step Procedures** - Detailed instructions for any Blackboard feature
+🎯 **Best Practices** - Industry-standard approaches and professional tips
+⚠️ **Common Issues** - Solutions to frequently encountered problems
 
-Try asking me something like:
-- "How do I create an assessment in Blackboard?"
-- "Generate a test plan for gradebook functionality"
-- "Help with discussion forum setup"
+**I know about:**
+• Assessment Tools & Testing Strategies
+• Advanced Gradebook Management  
+• Discussion Forum Setup & Moderation
+• Content Organization Best Practices
+• Ultra Course Experience Features
 
-What would you like to know?`,
+Try asking me:
+- "How do I create an assessment with different question types?"
+- "Generate a comprehensive test plan for gradebook functionality"
+- "What are the step-by-step procedures for discussion forum setup?"
+
+What would you like help with today?`,
         isUser: false,
         timestamp: new Date(),
         type: 'text'
@@ -84,7 +92,7 @@ What would you like to know?`,
   useEffect(() => {
     // Save messages to localStorage whenever they change
     if (messages.length > 0) {
-      ChatbotService.saveChatHistory(messages);
+      EnhancedChatbotService.saveChatHistory(messages);
     }
   }, [messages]);
 
@@ -99,13 +107,13 @@ What would you like to know?`,
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
-    const userMessage = ChatbotService.createUserMessage(inputMessage.trim());
+    const userMessage = EnhancedChatbotService.createUserMessage(inputMessage.trim());
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
 
     try {
-      const response = await ChatbotService.processMessage(inputMessage.trim(), context);
+      const response = await EnhancedChatbotService.processMessage(inputMessage.trim(), context);
       setMessages(prev => [...prev, response]);
     } catch (error) {
       const errorMessage: ChatMessage = {
@@ -130,7 +138,7 @@ What would you like to know?`,
 
   const handleClearChat = () => {
     setMessages([]);
-    ChatbotService.clearChatHistory();
+    EnhancedChatbotService.clearChatHistory();
     setInputMessage('');
   };
 
@@ -277,7 +285,7 @@ What would you like to know?`,
               AI Assistant
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.8 }}>
-              Blackboard Learn Expert & Test Plan Generator
+              Enhanced AI Expert with Comprehensive Knowledge Base
             </Typography>
           </Box>
         </Box>
@@ -304,15 +312,15 @@ What would you like to know?`,
             size="small"
             variant="outlined"
             startIcon={<HelpIcon />}
-            onClick={() => setInputMessage('How do I create an assessment in Blackboard?')}
+            onClick={() => setInputMessage('How do I create an assessment with different question types in Blackboard?')}
           >
-            Assessment Help
+            Assessment Creation
           </Button>
           <Button
             size="small"
             variant="outlined"
             startIcon={<TestPlanIcon />}
-            onClick={() => setInputMessage('Generate a test plan for gradebook functionality')}
+            onClick={() => setInputMessage('Generate a comprehensive test plan for gradebook functionality with detailed scenarios')}
           >
             Gradebook Test Plan
           </Button>
@@ -320,9 +328,9 @@ What would you like to know?`,
             size="small"
             variant="outlined"
             startIcon={<HelpIcon />}
-            onClick={() => setInputMessage('Explain discussion forum features')}
+            onClick={() => setInputMessage('What are the step-by-step procedures for setting up discussion forums?')}
           >
-            Discussion Forums
+            Discussion Setup
           </Button>
         </Box>
       </Box>
@@ -376,7 +384,7 @@ What would you like to know?`,
               fullWidth
               multiline
               maxRows={4}
-              placeholder="Ask me about Blackboard Learn features, testing strategies, or request test plan generation..."
+              placeholder="Ask me about Blackboard Learn procedures, testing strategies, or request detailed guidance..."
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
