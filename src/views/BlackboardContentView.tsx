@@ -167,11 +167,17 @@ const BlackboardContentView: React.FC = () => {
         type: 'course',
         id: result.courseId!,
         name: courseData.name,
-        details: `External ID: ${courseData.externalId}`,
+        details: `External ID: ${courseData.externalId}${result.courseUrl ? ` | Course URL: ${result.courseUrl}` : ''}`,
         timestamp: new Date(),
       };
       setCreatedContent(prev => [...prev, newContent]);
-      setSuccess(`Course "${courseData.name}" created successfully`);
+      
+      // Enhanced success message with course URL
+      const successMessage = result.courseUrl 
+        ? `Course "${courseData.name}" created successfully! Visit: ${result.courseUrl}`
+        : `Course "${courseData.name}" created successfully`;
+      
+      setSuccess(successMessage);
       setActiveStep(3);
     } else {
       setError(result.error || 'Failed to create course');
