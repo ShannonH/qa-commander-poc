@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   AppBar,
   Box,
@@ -23,6 +23,8 @@ import {
   Dashboard,
   School,
   SmartToy,
+  Brightness4,
+  Brightness7,
 } from '@mui/icons-material';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import RiskAnalysisView from '../views/RiskAnalysisView';
@@ -31,6 +33,7 @@ import UnderConstructionView from '../views/UnderConstructionView';
 import DashboardView from '../views/DashboardView';
 import BlackboardContentView from '../views/BlackboardContentView';
 import AIChatbotView from '../views/AIChatbotView';
+import { ColorModeContext } from '../App';
 
 const drawerWidth = 240;
 
@@ -40,6 +43,7 @@ const Layout: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
+  const colorMode = useContext(ColorModeContext);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -104,9 +108,12 @@ const Layout: React.FC = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Quality Assurance Management Platform
           </Typography>
+          <IconButton sx={{ ml: 1 }} color="inherit" onClick={colorMode.toggleColorMode}>
+            {colorMode.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+          </IconButton>
         </Toolbar>
       </AppBar>
       <Box
