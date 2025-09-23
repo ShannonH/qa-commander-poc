@@ -30,12 +30,13 @@ import {
 } from '@mui/icons-material';
 import { ChatMessage, ChatbotContext } from '../types';
 import { EnhancedChatbotService } from '../utils/enhancedChatbotService';
+import { useTheme } from '@mui/material/styles';
 
 const AIChatbotView: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -44,11 +45,13 @@ const AIChatbotView: React.FC = () => {
     userGoal: 'general-help'
   };
 
+  const theme = useTheme();
+
   useEffect(() => {
     // Load chat history on component mount
     const history = EnhancedChatbotService.getChatHistory();
     setMessages(history || []);
-    
+
     // Add welcome message if no history
     if (!history || history.length === 0) {
       const welcomeMessage: ChatMessage = {
@@ -144,7 +147,8 @@ What would you like help with today?`,
 
   const renderMessage = (message: ChatMessage) => {
     const isUser = message.isUser;
-    
+    // Choose a visually distinct background for bot messages
+    const botBg = theme.palette.mode === 'dark' ? theme.palette.grey[800] : theme.palette.grey[200];
     return (
       <ListItem
         key={message.id}
@@ -173,13 +177,15 @@ What would you like help with today?`,
           >
             {isUser ? <PersonIcon /> : <BotIcon />}
           </Avatar>
-          
+
           <Card
             sx={{
-              bgcolor: isUser ? 'primary.light' : 'grey.100',
+              bgcolor: isUser ? 'primary.light' : botBg,
               color: isUser ? 'primary.contrastText' : 'text.primary',
               borderRadius: 2,
               maxWidth: '100%',
+              border: isUser ? undefined : `1px solid ${theme.palette.divider}`,
+              boxShadow: isUser ? undefined : 1,
             }}
           >
             <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
@@ -192,7 +198,7 @@ What would you like help with today?`,
               >
                 {message.content}
               </Typography>
-              
+
               {message.metadata && (
                 <Box sx={{ mt: 2 }}>
                   {message.metadata.helpUrl && (
@@ -207,7 +213,7 @@ What would you like help with today?`,
                       View Full Documentation
                     </Button>
                   )}
-                  
+
                   {message.metadata.testPlan && (
                     <Accordion sx={{ mt: 1 }}>
                       <AccordionSummary expandIcon={<ExpandMore />}>
@@ -238,7 +244,7 @@ What would you like help with today?`,
                       </AccordionDetails>
                     </Accordion>
                   )}
-                  
+
                   {message.metadata.blackboardFeature && (
                     <Chip
                       label={message.metadata.blackboardFeature}
@@ -249,7 +255,7 @@ What would you like help with today?`,
                   )}
                 </Box>
               )}
-              
+
               <Typography
                 variant="caption"
                 color="text.secondary"
@@ -289,7 +295,7 @@ What would you like help with today?`,
             </Typography>
           </Box>
         </Box>
-        
+
         <Button
           variant="outlined"
           color="inherit"
@@ -401,7 +407,7 @@ What would you like help with today?`,
               <SendIcon />
             </IconButton>
           </Box>
-          
+
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
             Press Enter to send, Shift+Enter for new line
           </Typography>
@@ -412,3 +418,4 @@ What would you like help with today?`,
 };
 
 export default AIChatbotView;
+
