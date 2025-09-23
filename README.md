@@ -123,6 +123,37 @@ src/
 - **Quick Actions**: Easy access to common tasks from the dashboard
 - **Form Validation**: Client-side validation for data integrity
 
+## Configuring AI Service Integration
+
+To connect the QA Commander chatbot to a real AI service (such as OpenAI or AWS Bedrock), you need to set the API endpoint in a `.env` file. This allows the frontend to send user questions to your AI backend securely.
+
+### 1. Create a `.env` file in the project root:
+
+```
+REACT_APP_CHATBOT_API_URL=https://your-middleware-domain.com/chatbot
+```
+
+- Replace `https://your-middleware-domain.com/chatbot` with the URL of your deployed AI middleware/proxy server.
+- **Never expose your AI provider's API key directly in the frontend.** Always use a secure backend or middleware.
+
+### 2. Use the [chatbot-middleware](https://github.com/ShannonH/chatbot-middleware) Proxy
+
+For security and flexibility, we recommend using the [chatbot-middleware](https://github.com/ShannonH/chatbot-middleware) project as a proxy between your React app and the AI provider (e.g., OpenAI, AWS Bedrock).
+
+- The middleware handles authentication and securely forwards requests to the AI service.
+- You can run it locally or deploy it to any cloud provider.
+- See the [chatbot-middleware README](https://github.com/ShannonH/chatbot-middleware) for setup and deployment instructions.
+
+### 3. Restart the App
+
+After updating your `.env` file, restart the development server:
+
+```bash
+npm start
+```
+
+Your chatbot will now use the configured AI service for dynamic, realistic responses.
+
 ## Future Enhancements
 
 ### Jenkins Analysis Tool (Q2 2024)
