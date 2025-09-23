@@ -1,11 +1,11 @@
 import Fuse from 'fuse.js';
-import { 
-  ChatMessage, 
-  ChatbotContext, 
-  BlackboardHelpArticle, 
-  BlackboardFeature, 
+import {
+  ChatMessage,
+  ChatbotContext,
+  BlackboardHelpArticle,
+  BlackboardFeature,
   TestPlan,
-  TestCategory 
+  TestCategory
 } from '../types';
 
 interface KnowledgeBase {
@@ -37,6 +37,23 @@ interface TestScenario {
   steps: string[];
   expectedResult: string;
   testData: string[];
+}
+
+// Utility to call an external AI API (OpenAI, mock server, or Bedrock proxy)
+async function callChatbotAPI(userMessage: string, context: ChatbotContext): Promise<string | null> {
+  const endpoint = process.env.REACT_APP_CHATBOT_API_URL || 'https://mock-api-for-demo.example.com/chatbot';
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userMessage, context }),
+    });
+    if (!response.ok) throw new Error('API error');
+    const data = await response.json();
+    return data.reply || null;
+  } catch (err) {
+    return null;
+  }
 }
 
 export class EnhancedChatbotService {
@@ -406,7 +423,7 @@ export class EnhancedChatbotService {
     this.ensureInitialized();
     const stored = localStorage.getItem(this.STORAGE_KEY);
     if (!stored) return [];
-    
+
     try {
       const messages = JSON.parse(stored);
       return messages.map((msg: any) => ({
@@ -427,7 +444,7 @@ export class EnhancedChatbotService {
   }
 
   static async processMessage(
-    message: string, 
+    message: string,
     context: ChatbotContext = {}
   ): Promise<ChatMessage> {
     this.ensureInitialized();
@@ -439,8 +456,20 @@ export class EnhancedChatbotService {
 
     // Search knowledge base for relevant content
     const searchResults = this.fuse.search(message);
-    
+
     let response: Omit<ChatMessage, 'id' | 'isUser' | 'timestamp'>;
+
+    // 1. Try dynamic AI API for a response
+    const aiReply = await callChatbotAPI(message, context);
+    if (aiReply) {
+      return {
+        id: `ai_${Date.now()}`,
+        content: aiReply,
+        isUser: false,
+        timestamp: new Date(),
+        type: 'text',
+      };
+    }
 
     if (this.isTestPlanRequest(message)) {
       response = await this.generateEnhancedTestPlanResponse(message, context, searchResults);
@@ -460,11 +489,11 @@ export class EnhancedChatbotService {
 
   private static isTestPlanRequest(message: string): boolean {
     const testPlanKeywords = [
-      'test plan', 'testing', 'test case', 'assessment test', 
+      'test plan', 'testing', 'test case', 'assessment test',
       'create test', 'generate test', 'test strategy', 'qa plan',
       'test scenario', 'test automation', 'regression test'
     ];
-    return testPlanKeywords.some(keyword => 
+    return testPlanKeywords.some(keyword =>
       message.toLowerCase().includes(keyword.toLowerCase())
     );
   }
@@ -475,7 +504,7 @@ export class EnhancedChatbotService {
       'learn about', 'explain', 'what is', 'how do I', 'steps to',
       'instructions', 'procedure', 'setup', 'configure'
     ];
-    return helpKeywords.some(keyword => 
+    return helpKeywords.some(keyword =>
       message.toLowerCase().includes(keyword.toLowerCase())
     );
   }
@@ -486,10 +515,10 @@ export class EnhancedChatbotService {
     searchResults: any[]
   ): Promise<Omit<ChatMessage, 'id' | 'isUser' | 'timestamp'>> {
     const feature = this.extractBlackboardFeature(message) || context.selectedFeature || 'Assessment Tools';
-    
+
     // Find relevant test strategy from knowledge base
-    const testStrategy = searchResults.find(result => 
-      result.item.type === 'testStrategy' && 
+    const testStrategy = searchResults.find(result =>
+      result.item.type === 'testStrategy' &&
       result.item.feature === feature
     )?.item.data as TestStrategyDocument;
 
@@ -605,10 +634,10 @@ Would you like me to provide more specific test scenarios for this feature?`;
     searchResults: any[]
   ): Promise<Omit<ChatMessage, 'id' | 'isUser' | 'timestamp'>> {
     const bestMatch = searchResults[0];
-    
+
     if (bestMatch && bestMatch.score < 0.5) {
       const matchedItem = bestMatch.item;
-      
+
       if (matchedItem.type === 'article') {
         const article = matchedItem.data as BlackboardHelpArticle;
         return {
@@ -660,9 +689,6 @@ Would you like me to elaborate on any of these steps or help you create a test p
 📁 **Content Organization** - Structuring course materials effectively
 🚀 **Ultra Experience** - Modern interface features and capabilities
 
-Based on your question, you might be interested in:
-${searchResults.slice(0, 3).map(result => `• ${result.item.title}`).join('\n')}
-
 Could you provide more specific details about what you're trying to accomplish? I can then give you detailed, step-by-step guidance.`,
       type: 'text'
     };
@@ -674,7 +700,7 @@ Could you provide more specific details about what you're trying to accomplish? 
     searchResults: any[]
   ): Promise<Omit<ChatMessage, 'id' | 'isUser' | 'timestamp'>> {
     const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon'];
-    const isGreeting = greetings.some(greeting => 
+    const isGreeting = greetings.some(greeting =>
       message.toLowerCase().includes(greeting)
     );
 
@@ -757,7 +783,7 @@ I can provide detailed, step-by-step guidance based on official Blackboard docum
     ];
 
     const messageLower = message.toLowerCase();
-    
+
     // Direct feature name matches
     for (const feature of features) {
       if (messageLower.includes(feature.toLowerCase())) {
