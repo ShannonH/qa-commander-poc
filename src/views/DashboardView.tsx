@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Grid,
   Paper,
@@ -9,37 +9,52 @@ import {
   IconButton,
 } from '@mui/material';
 import {
-  Assessment,
+  AutoAwesome,
   Assignment,
   TrendingUp,
-  BugReport,
+  PlayArrow,
 } from '@mui/icons-material';
+import { DataService } from '../utils/dataService';
 
 const DashboardView: React.FC = () => {
-  const stats = [
+  const [stats, setStats] = useState({
+    totalWorkflows: 0,
+    totalTestPlans: 0,
+    automationCandidates: 0,
+    activeTestPlans: 0,
+  });
+
+  useEffect(() => {
+    // Initialize sample data and load stats
+    DataService.initializeSampleData();
+    const currentStats = DataService.getStats();
+    setStats(currentStats);
+  }, []);
+
+  const dashboardStats = [
     {
-      title: 'Risk Analyses',
-      value: '12',
-      icon: <Assessment />,
+      title: 'User Workflows',
+      value: stats.totalWorkflows.toString(),
+      icon: <TrendingUp />,
       color: '#1976d2',
     },
     {
-      title: 'Test Plans',
-      value: '8',
-      icon: <Assignment />,
+      title: 'Automation Candidates',
+      value: stats.automationCandidates.toString(),
+      icon: <AutoAwesome />,
       color: '#388e3c',
     },
     {
-      title: 'Active Tests',
-      value: '24',
-      icon: <TrendingUp />,
+      title: 'Test Plans',
+      value: stats.totalTestPlans.toString(),
+      icon: <Assignment />,
       color: '#f57c00',
     },
     {
-      title: 'Issues Found',
-      value: '3',
-      icon: <BugReport />,
-      color: '#d32f2f',
+      title: 'Active Tests',
+      value: stats.activeTestPlans.toString(),
+      icon: <PlayArrow />,
+      color: '#9c27b0',
     },
   ];
 
@@ -53,7 +68,7 @@ const DashboardView: React.FC = () => {
       </Typography>
 
       <Grid container spacing={3} sx={{ mt: 2 }}>
-        {stats.map((stat, index) => (
+        {dashboardStats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Card>
               <CardContent>
@@ -84,16 +99,16 @@ const DashboardView: React.FC = () => {
             </Typography>
             <Box sx={{ mt: 2 }}>
               <Typography variant="body2" color="text.secondary">
-                • Risk analysis created for "User Authentication Module"
+                • User workflow analysis for "Student Login" created
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                • Test plan updated for "Gradebook Feature"
+                • "Instructor Creates Assignment" marked for automation
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                • 3 new test cases added to "Discussion Forums"
+                • Risk analysis document updated for Course Management
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                • Bug report filed for "Calendar Integration"
+                • 3 new workflows added to "Discussion Forums" analysis
               </Typography>
             </Box>
           </Paper>
@@ -108,16 +123,16 @@ const DashboardView: React.FC = () => {
                 Get started with common tasks:
               </Typography>
               <Typography variant="body2" color="primary" sx={{ mt: 1, cursor: 'pointer' }}>
-                → Create new risk analysis
+                → Analyze user workflow for automation
+              </Typography>
+              <Typography variant="body2" color="primary" sx={{ mt: 1, cursor: 'pointer' }}>
+                → Create risk analysis document
               </Typography>
               <Typography variant="body2" color="primary" sx={{ mt: 1, cursor: 'pointer' }}>
                 → Add test plan for Blackboard feature
               </Typography>
               <Typography variant="body2" color="primary" sx={{ mt: 1, cursor: 'pointer' }}>
-                → Review pending test cases
-              </Typography>
-              <Typography variant="body2" color="primary" sx={{ mt: 1, cursor: 'pointer' }}>
-                → View Jenkins analysis (coming soon)
+                → Review automation candidates
               </Typography>
             </Box>
           </Paper>

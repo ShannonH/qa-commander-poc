@@ -1,11 +1,27 @@
-export interface RiskAnalysis {
+export interface UserWorkflow {
+  id: string;
+  workflowName: string;
+  description: string;
+  userStory: string;
+  blackboardFeature: BlackboardFeature;
+  likelihood: number; // 1-5 scale (probability of failure)
+  impact: number; // 1-5 scale (impact if failure occurs)
+  riskScore: number; // likelihood * impact
+  automationDecision: 'Automate' | 'Manual' | 'Skip' | 'Pending';
+  automationReason: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface RiskAnalysisDocument {
   id: string;
   title: string;
   description: string;
-  riskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
-  probability: number; // 1-5 scale
-  impact: number; // 1-5 scale
-  mitigation: string;
+  blackboardFeature: BlackboardFeature;
+  workflows: UserWorkflow[];
+  overallRiskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
+  totalRiskScore: number;
+  recommendations: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,33 +1,79 @@
-import { RiskAnalysis, TestPlan } from '../types';
+import { UserWorkflow, RiskAnalysisDocument, TestPlan } from '../types';
 
 const STORAGE_KEYS = {
-  RISK_ANALYSES: 'qa_commander_risk_analyses',
+  WORKFLOWS: 'qa_commander_workflows',
+  RISK_DOCUMENTS: 'qa_commander_risk_documents',
   TEST_PLANS: 'qa_commander_test_plans',
 };
 
 export class DataService {
-  // Risk Analysis methods
-  static getRiskAnalyses(): RiskAnalysis[] {
-    const data = localStorage.getItem(STORAGE_KEYS.RISK_ANALYSES);
-    return data ? JSON.parse(data) : [];
+  // User Workflow methods
+  static getUserWorkflows(): UserWorkflow[] {
+    const data = localStorage.getItem(STORAGE_KEYS.WORKFLOWS);
+    if (data) {
+      const workflows = JSON.parse(data);
+      return workflows.map((workflow: any) => ({
+        ...workflow,
+        createdAt: new Date(workflow.createdAt),
+        updatedAt: new Date(workflow.updatedAt),
+      }));
+    }
+    return [];
   }
 
-  static saveRiskAnalysis(riskAnalysis: RiskAnalysis): void {
-    const analyses = this.getRiskAnalyses();
-    const existingIndex = analyses.findIndex(a => a.id === riskAnalysis.id);
+  static saveUserWorkflow(workflow: UserWorkflow): void {
+    const workflows = this.getUserWorkflows();
+    const existingIndex = workflows.findIndex(w => w.id === workflow.id);
     
     if (existingIndex >= 0) {
-      analyses[existingIndex] = riskAnalysis;
+      workflows[existingIndex] = workflow;
     } else {
-      analyses.push(riskAnalysis);
+      workflows.push(workflow);
     }
     
-    localStorage.setItem(STORAGE_KEYS.RISK_ANALYSES, JSON.stringify(analyses));
+    localStorage.setItem(STORAGE_KEYS.WORKFLOWS, JSON.stringify(workflows));
   }
 
-  static deleteRiskAnalysis(id: string): void {
-    const analyses = this.getRiskAnalyses().filter(a => a.id !== id);
-    localStorage.setItem(STORAGE_KEYS.RISK_ANALYSES, JSON.stringify(analyses));
+  static deleteUserWorkflow(id: string): void {
+    const workflows = this.getUserWorkflows().filter(w => w.id !== id);
+    localStorage.setItem(STORAGE_KEYS.WORKFLOWS, JSON.stringify(workflows));
+  }
+
+  // Risk Analysis Document methods
+  static getRiskDocuments(): RiskAnalysisDocument[] {
+    const data = localStorage.getItem(STORAGE_KEYS.RISK_DOCUMENTS);
+    if (data) {
+      const documents = JSON.parse(data);
+      return documents.map((doc: any) => ({
+        ...doc,
+        workflows: doc.workflows.map((workflow: any) => ({
+          ...workflow,
+          createdAt: new Date(workflow.createdAt),
+          updatedAt: new Date(workflow.updatedAt),
+        })),
+        createdAt: new Date(doc.createdAt),
+        updatedAt: new Date(doc.updatedAt),
+      }));
+    }
+    return [];
+  }
+
+  static saveRiskDocument(document: RiskAnalysisDocument): void {
+    const documents = this.getRiskDocuments();
+    const existingIndex = documents.findIndex(d => d.id === document.id);
+    
+    if (existingIndex >= 0) {
+      documents[existingIndex] = document;
+    } else {
+      documents.push(document);
+    }
+    
+    localStorage.setItem(STORAGE_KEYS.RISK_DOCUMENTS, JSON.stringify(documents));
+  }
+
+  static deleteRiskDocument(id: string): void {
+    const documents = this.getRiskDocuments().filter(d => d.id !== id);
+    localStorage.setItem(STORAGE_KEYS.RISK_DOCUMENTS, JSON.stringify(documents));
   }
 
   // Test Plan methods
@@ -65,13 +111,16 @@ export class DataService {
 
   // Statistics methods
   static getStats() {
-    const riskAnalyses = this.getRiskAnalyses();
+    const workflows = this.getUserWorkflows();
+    const riskDocuments = this.getRiskDocuments();
     const testPlans = this.getTestPlans();
     
     return {
-      totalRiskAnalyses: riskAnalyses.length,
+      totalWorkflows: workflows.length,
+      totalRiskDocuments: riskDocuments.length,
       totalTestPlans: testPlans.length,
-      highRiskItems: riskAnalyses.filter(r => r.riskLevel === 'High' || r.riskLevel === 'Critical').length,
+      highRiskWorkflows: workflows.filter(w => w.riskScore >= 15).length,
+      automationCandidates: workflows.filter(w => w.automationDecision === 'Automate').length,
       activeTestPlans: testPlans.filter(p => p.status === 'In Progress' || p.status === 'Review').length,
       completedTestPlans: testPlans.filter(p => p.status === 'Completed').length,
     };
@@ -79,33 +128,71 @@ export class DataService {
 
   // Initialize with sample data if empty
   static initializeSampleData(): void {
-    if (this.getRiskAnalyses().length === 0) {
-      const sampleRiskAnalyses: RiskAnalysis[] = [
+    if (this.getUserWorkflows().length === 0) {
+      const sampleWorkflows: UserWorkflow[] = [
         {
           id: '1',
-          title: 'User Authentication Security',
-          description: 'Risk analysis for authentication module vulnerabilities',
-          riskLevel: 'High',
-          probability: 3,
+          workflowName: 'Student Login to Course',
+          description: 'Student accesses course through Blackboard login',
+          userStory: 'As a student, I want to log into my course so that I can access course materials',
+          blackboardFeature: 'Course Management',
+          likelihood: 2,
           impact: 5,
-          mitigation: 'Implement multi-factor authentication and regular security audits',
+          riskScore: 10,
+          automationDecision: 'Automate',
+          automationReason: 'High impact, critical path, stable workflow',
           createdAt: new Date('2024-01-15'),
           updatedAt: new Date('2024-01-15'),
         },
         {
           id: '2',
-          title: 'Database Performance Under Load',
-          description: 'Assessment of database performance risks during peak usage',
-          riskLevel: 'Medium',
-          probability: 4,
-          impact: 3,
-          mitigation: 'Implement database optimization and caching strategies',
+          workflowName: 'Instructor Creates Assignment',
+          description: 'Instructor creates and publishes a new assignment',
+          userStory: 'As an instructor, I want to create assignments so that students can submit their work',
+          blackboardFeature: 'Assignments',
+          likelihood: 3,
+          impact: 4,
+          riskScore: 12,
+          automationDecision: 'Automate',
+          automationReason: 'Frequently used feature, medium-high risk',
+          createdAt: new Date('2024-01-18'),
+          updatedAt: new Date('2024-01-18'),
+        },
+        {
+          id: '3',
+          workflowName: 'Student Submits Discussion Post',
+          description: 'Student creates and submits a post in discussion forum',
+          userStory: 'As a student, I want to participate in discussions so that I can engage with course content',
+          blackboardFeature: 'Discussion Forums',
+          likelihood: 4,
+          impact: 2,
+          riskScore: 8,
+          automationDecision: 'Manual',
+          automationReason: 'Low risk, content-dependent, manual testing more effective',
           createdAt: new Date('2024-01-20'),
           updatedAt: new Date('2024-01-20'),
         },
       ];
       
-      sampleRiskAnalyses.forEach(analysis => this.saveRiskAnalysis(analysis));
+      sampleWorkflows.forEach(workflow => this.saveUserWorkflow(workflow));
+    }
+
+    if (this.getRiskDocuments().length === 0) {
+      const workflows = this.getUserWorkflows();
+      const sampleRiskDocument: RiskAnalysisDocument = {
+        id: '1',
+        title: 'Blackboard Course Management Risk Analysis',
+        description: 'Comprehensive risk analysis for core course management workflows',
+        blackboardFeature: 'Course Management',
+        workflows: workflows.filter(w => w.blackboardFeature === 'Course Management'),
+        overallRiskLevel: 'Medium',
+        totalRiskScore: workflows.filter(w => w.blackboardFeature === 'Course Management').reduce((sum, w) => sum + w.riskScore, 0),
+        recommendations: 'Automate high-impact workflows, focus manual testing on content-dependent features',
+        createdAt: new Date('2024-01-15'),
+        updatedAt: new Date('2024-01-15'),
+      };
+      
+      this.saveRiskDocument(sampleRiskDocument);
     }
 
     if (this.getTestPlans().length === 0) {

@@ -43,7 +43,7 @@ const Layout: React.FC = () => {
 
   const menuItems = [
     { text: 'Dashboard', icon: <Dashboard />, path: '/' },
-    { text: 'Risk Analysis', icon: <Assessment />, path: '/risk-analysis' },
+    { text: 'Workflow Analysis', icon: <Assessment />, path: '/risk-analysis' },
     { text: 'Test Plans', icon: <Assignment />, path: '/test-plans' },
     { text: 'Jenkins Analysis', icon: <Construction />, path: '/jenkins-analysis' },
   ];
