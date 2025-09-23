@@ -75,8 +75,8 @@ const RiskAnalysisView: React.FC = () => {
     description: '',
     userStory: '',
     blackboardFeature: 'Course Management' as BlackboardFeature,
-    likelihood: 3,
-    impact: 3,
+    likelihood: 2,
+    impact: 2,
     automationDecision: 'Pending' as UserWorkflow['automationDecision'],
     automationReason: '',
   });
@@ -99,8 +99,8 @@ const RiskAnalysisView: React.FC = () => {
       description: '',
       userStory: '',
       blackboardFeature: 'Course Management',
-      likelihood: 3,
-      impact: 3,
+      likelihood: 2,
+      impact: 2,
       automationDecision: 'Pending',
       automationReason: '',
     });
@@ -159,10 +159,14 @@ const RiskAnalysisView: React.FC = () => {
   };
 
   const getRiskLevelFromScore = (score: number) => {
-    if (score >= 20) return { level: 'Critical', color: 'error' };
-    if (score >= 15) return { level: 'High', color: 'warning' };
-    if (score >= 10) return { level: 'Medium', color: 'info' };
+    if (score <= 2) return { level: 'Critical', color: 'error' };
+    if (score <= 4) return { level: 'High', color: 'warning' };
+    if (score <= 6) return { level: 'Medium', color: 'info' };
     return { level: 'Low', color: 'success' };
+  };
+
+  const getAutomationRecommendation = (score: number) => {
+    return score <= 6 ? 'Recommended for Automation' : 'Consider Manual Testing';
   };
 
   const blackboardFeatures: BlackboardFeature[] = [
@@ -178,7 +182,7 @@ const RiskAnalysisView: React.FC = () => {
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <div>
           <Typography variant="h4" gutterBottom>
-            Risk Analysis - User Workflows
+            Risk Analysis
           </Typography>
           <Typography variant="body1" color="text.secondary">
             Analyze user workflows to determine UI test automation strategy
@@ -244,13 +248,13 @@ const RiskAnalysisView: React.FC = () => {
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                       <Box>
                         <Typography variant="body2" gutterBottom>
-                          <strong>Likelihood:</strong> {workflow.likelihood}/5
+                          <strong>Likelihood:</strong> {workflow.likelihood}/4
                         </Typography>
                         <Typography variant="body2" gutterBottom>
-                          <strong>Impact:</strong> {workflow.impact}/5
+                          <strong>Impact:</strong> {workflow.impact}/4
                         </Typography>
                       </Box>
-                      <Rating value={workflow.riskScore / 5} readOnly size="small" />
+                      <Rating value={workflow.riskScore / 4} readOnly size="small" max={4} />
                     </Box>
                     
                     {workflow.automationReason && (
@@ -405,25 +409,25 @@ const RiskAnalysisView: React.FC = () => {
               </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography gutterBottom>Likelihood of Failure (1-5)</Typography>
+              <Typography gutterBottom>Likelihood of Failure (1-4, 1=Most Critical)</Typography>
               <Rating
                 value={workflowFormData.likelihood}
                 onChange={(_, value) => setWorkflowFormData({ ...workflowFormData, likelihood: value || 1 })}
-                max={5}
+                max={4}
               />
               <Typography variant="caption" color="text.secondary">
-                How likely is this workflow to fail?
+                How likely is this workflow to fail? (1=Almost Certain, 4=Very Unlikely)
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography gutterBottom>Impact if Failure (1-5)</Typography>
+              <Typography gutterBottom>Impact if Failure (1-4, 1=Most Critical)</Typography>
               <Rating
                 value={workflowFormData.impact}
                 onChange={(_, value) => setWorkflowFormData({ ...workflowFormData, impact: value || 1 })}
-                max={5}
+                max={4}
               />
               <Typography variant="caption" color="text.secondary">
-                How severe would a failure be?
+                How severe would a failure be? (1=Critical Impact, 4=Minimal Impact)
               </Typography>
             </Grid>
             <Grid item xs={12}>
@@ -431,8 +435,11 @@ const RiskAnalysisView: React.FC = () => {
                 <Typography variant="h6" gutterBottom>
                   Risk Score: {workflowFormData.likelihood * workflowFormData.impact}
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" gutterBottom>
                   Risk Level: {getRiskLevelFromScore(workflowFormData.likelihood * workflowFormData.impact).level}
+                </Typography>
+                <Typography variant="body2" color={workflowFormData.likelihood * workflowFormData.impact <= 6 ? 'primary' : 'warning'}>
+                  {getAutomationRecommendation(workflowFormData.likelihood * workflowFormData.impact)}
                 </Typography>
               </Box>
             </Grid>
