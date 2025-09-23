@@ -31,8 +31,8 @@ import {
   TableRow,
   Paper,
 } from '@mui/material';
-import { 
-  Add as AddIcon, 
+import {
+  Add as AddIcon,
   ExpandMore,
   AutoAwesome,
   Build,
@@ -77,7 +77,6 @@ const RiskAnalysisView: React.FC = () => {
     blackboardFeature: 'Course Management' as BlackboardFeature,
     likelihood: 2,
     impact: 2,
-    automationDecision: 'Pending' as UserWorkflow['automationDecision'],
     automationReason: '',
   });
 
@@ -101,7 +100,6 @@ const RiskAnalysisView: React.FC = () => {
       blackboardFeature: 'Course Management',
       likelihood: 2,
       impact: 2,
-      automationDecision: 'Pending',
       automationReason: '',
     });
     setOpenWorkflowDialog(true);
@@ -116,7 +114,6 @@ const RiskAnalysisView: React.FC = () => {
       blackboardFeature: workflow.blackboardFeature,
       likelihood: workflow.likelihood,
       impact: workflow.impact,
-      automationDecision: workflow.automationDecision,
       automationReason: workflow.automationReason,
     });
     setOpenWorkflowDialog(true);
@@ -124,7 +121,7 @@ const RiskAnalysisView: React.FC = () => {
 
   const handleSubmitWorkflow = () => {
     const riskScore = workflowFormData.likelihood * workflowFormData.impact;
-    
+
     const workflow: UserWorkflow = {
       id: selectedWorkflow?.id || Date.now().toString(),
       ...workflowFormData,
@@ -138,24 +135,16 @@ const RiskAnalysisView: React.FC = () => {
     setOpenWorkflowDialog(false);
   };
 
-  const getAutomationIcon = (decision: UserWorkflow['automationDecision']) => {
-    switch (decision) {
-      case 'Automate': return <AutoAwesome color="primary" />;
-      case 'Manual': return <Build color="secondary" />;
-      case 'Skip': return <SkipNext color="disabled" />;
-      case 'Pending': return <Schedule color="warning" />;
-      default: return <Schedule />;
-    }
+  const getAutomationRecommendation = (score: number) => {
+    return score >= 1 && score <= 6 ? 'Automate' : 'Manual Only';
   };
 
-  const getAutomationColor = (decision: UserWorkflow['automationDecision']) => {
-    switch (decision) {
-      case 'Automate': return 'primary';
-      case 'Manual': return 'secondary';
-      case 'Skip': return 'default';
-      case 'Pending': return 'warning';
-      default: return 'default';
-    }
+  const getAutomationIcon = (score: number) => {
+    return score >= 1 && score <= 6 ? <AutoAwesome color="primary" /> : <Build color="secondary" />;
+  };
+
+  const getAutomationColor = (score: number) => {
+    return score >= 1 && score <= 6 ? 'primary' : 'secondary';
   };
 
   const getRiskLevelFromScore = (score: number) => {
@@ -163,10 +152,6 @@ const RiskAnalysisView: React.FC = () => {
     if (score <= 4) return { level: 'High', color: 'warning' };
     if (score <= 6) return { level: 'Medium', color: 'info' };
     return { level: 'Low', color: 'success' };
-  };
-
-  const getAutomationRecommendation = (score: number) => {
-    return score <= 6 ? 'Recommended for Automation' : 'Consider Manual Testing';
   };
 
   const blackboardFeatures: BlackboardFeature[] = [
@@ -208,6 +193,7 @@ const RiskAnalysisView: React.FC = () => {
         <Grid container spacing={3}>
           {workflows.map((workflow) => {
             const riskLevel = getRiskLevelFromScore(workflow.riskScore);
+            const automationStatus = getAutomationRecommendation(workflow.riskScore);
             return (
               <Grid item xs={12} md={6} lg={4} key={workflow.id}>
                 <Card>
@@ -217,19 +203,17 @@ const RiskAnalysisView: React.FC = () => {
                         {workflow.workflowName}
                       </Typography>
                       <Box display="flex" alignItems="center" gap={1}>
-                        {getAutomationIcon(workflow.automationDecision)}
+                        {getAutomationIcon(workflow.riskScore)}
                         <Chip
-                          label={workflow.automationDecision}
-                          color={getAutomationColor(workflow.automationDecision) as any}
+                          label={automationStatus}
+                          color={getAutomationColor(workflow.riskScore) as any}
                           size="small"
                         />
                       </Box>
                     </Box>
-                    
                     <Typography variant="body2" color="text.secondary" gutterBottom>
                       {workflow.userStory}
                     </Typography>
-                    
                     <Box mt={2} mb={2}>
                       <Chip
                         label={workflow.blackboardFeature}
@@ -244,25 +228,25 @@ const RiskAnalysisView: React.FC = () => {
                         sx={{ mb: 1 }}
                       />
                     </Box>
-                    
                     <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                       <Box>
                         <Typography variant="body2" gutterBottom>
-                          <strong>Likelihood:</strong> {workflow.likelihood}/4
+                          <strong>Likelihood:</strong> {workflow.likelihood}/4 (1 = Most Likely)
                         </Typography>
                         <Typography variant="body2" gutterBottom>
-                          <strong>Impact:</strong> {workflow.impact}/4
+                          <strong>Impact:</strong> {workflow.impact}/4 (1 = Most Impactful)
                         </Typography>
                       </Box>
                       <Rating value={workflow.riskScore / 4} readOnly size="small" max={4} />
                     </Box>
-                    
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <strong>Automation Rule:</strong> {automationStatus === 'Automate' ? 'Score 1-6: Automate' : 'Score 7-16: Manual Only'}
+                    </Typography>
                     {workflow.automationReason && (
                       <Typography variant="body2" color="text.secondary" gutterBottom>
                         <strong>Reasoning:</strong> {workflow.automationReason}
                       </Typography>
                     )}
-                    
                     <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
                       <Typography variant="caption" color="text.secondary">
                         Updated: {workflow.updatedAt.toLocaleDateString()}
@@ -294,11 +278,11 @@ const RiskAnalysisView: React.FC = () => {
             </AccordionSummary>
             <AccordionDetails>
               <Typography paragraph>{document.description}</Typography>
-              
+
               <Typography variant="h6" gutterBottom>
                 Workflow Analysis ({document.workflows.length} workflows)
               </Typography>
-              
+
               <TableContainer component={Paper} sx={{ mb: 3 }}>
                 <Table size="small">
                   <TableHead>
@@ -325,8 +309,8 @@ const RiskAnalysisView: React.FC = () => {
                         </TableCell>
                         <TableCell align="center">
                           <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-                            {getAutomationIcon(workflow.automationDecision)}
-                            {workflow.automationDecision}
+                            {getAutomationIcon(workflow.riskScore)}
+                            {getAutomationRecommendation(workflow.riskScore)}
                           </Box>
                         </TableCell>
                       </TableRow>
@@ -334,7 +318,7 @@ const RiskAnalysisView: React.FC = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
-              
+
               <Typography variant="h6" gutterBottom>
                 Recommendations
               </Typography>
@@ -394,40 +378,25 @@ const RiskAnalysisView: React.FC = () => {
               </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Automation Decision</InputLabel>
-                <Select
-                  value={workflowFormData.automationDecision}
-                  label="Automation Decision"
-                  onChange={(e) => setWorkflowFormData({ ...workflowFormData, automationDecision: e.target.value as UserWorkflow['automationDecision'] })}
-                >
-                  <MenuItem value="Automate">Automate</MenuItem>
-                  <MenuItem value="Manual">Manual Only</MenuItem>
-                  <MenuItem value="Skip">Skip Testing</MenuItem>
-                  <MenuItem value="Pending">Pending Decision</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Typography gutterBottom>Likelihood of Failure (1-4, 1=Most Critical)</Typography>
+              <Typography gutterBottom>Likelihood of Failure (1-4, 1=Most Likely)</Typography>
               <Rating
                 value={workflowFormData.likelihood}
                 onChange={(_, value) => setWorkflowFormData({ ...workflowFormData, likelihood: value || 1 })}
                 max={4}
               />
               <Typography variant="caption" color="text.secondary">
-                How likely is this workflow to fail? (1=Almost Certain, 4=Very Unlikely)
+                How likely is this workflow to fail? (1=Most Likely, 4=Very Unlikely)
               </Typography>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Typography gutterBottom>Impact if Failure (1-4, 1=Most Critical)</Typography>
+              <Typography gutterBottom>Impact if Failure (1-4, 1=Most Impactful)</Typography>
               <Rating
                 value={workflowFormData.impact}
                 onChange={(_, value) => setWorkflowFormData({ ...workflowFormData, impact: value || 1 })}
                 max={4}
               />
               <Typography variant="caption" color="text.secondary">
-                How severe would a failure be? (1=Critical Impact, 4=Minimal Impact)
+                How severe would a failure be? (1=Most Impactful, 4=Minimal Impact)
               </Typography>
             </Grid>
             <Grid item xs={12}>
@@ -438,8 +407,10 @@ const RiskAnalysisView: React.FC = () => {
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   Risk Level: {getRiskLevelFromScore(workflowFormData.likelihood * workflowFormData.impact).level}
                 </Typography>
-                <Typography variant="body2" color={workflowFormData.likelihood * workflowFormData.impact <= 6 ? 'primary' : 'warning'}>
-                  {getAutomationRecommendation(workflowFormData.likelihood * workflowFormData.impact)}
+                <Typography variant="body2" color={getAutomationColor(workflowFormData.likelihood * workflowFormData.impact)}>
+                  {getAutomationRecommendation(workflowFormData.likelihood * workflowFormData.impact) === 'Automate'
+                    ? 'Score 1-6: Automate'
+                    : 'Score 7-16: Manual Only'}
                 </Typography>
               </Box>
             </Grid>
@@ -451,7 +422,7 @@ const RiskAnalysisView: React.FC = () => {
                 rows={3}
                 value={workflowFormData.automationReason}
                 onChange={(e) => setWorkflowFormData({ ...workflowFormData, automationReason: e.target.value })}
-                placeholder="Explain the rationale for the automation decision"
+                placeholder="Explain the rationale for the automation recommendation (optional)"
               />
             </Grid>
           </Grid>

@@ -7,7 +7,6 @@ export interface UserWorkflow {
   likelihood: number; // 1-5 scale (probability of failure)
   impact: number; // 1-5 scale (impact if failure occurs)
   riskScore: number; // likelihood * impact
-  automationDecision: 'Automate' | 'Manual' | 'Skip' | 'Pending';
   automationReason: string;
   createdAt: Date;
   updatedAt: Date;

@@ -24,13 +24,13 @@ export class DataService {
   static saveUserWorkflow(workflow: UserWorkflow): void {
     const workflows = this.getUserWorkflows();
     const existingIndex = workflows.findIndex(w => w.id === workflow.id);
-    
+
     if (existingIndex >= 0) {
       workflows[existingIndex] = workflow;
     } else {
       workflows.push(workflow);
     }
-    
+
     localStorage.setItem(STORAGE_KEYS.WORKFLOWS, JSON.stringify(workflows));
   }
 
@@ -61,13 +61,13 @@ export class DataService {
   static saveRiskDocument(document: RiskAnalysisDocument): void {
     const documents = this.getRiskDocuments();
     const existingIndex = documents.findIndex(d => d.id === document.id);
-    
+
     if (existingIndex >= 0) {
       documents[existingIndex] = document;
     } else {
       documents.push(document);
     }
-    
+
     localStorage.setItem(STORAGE_KEYS.RISK_DOCUMENTS, JSON.stringify(documents));
   }
 
@@ -94,13 +94,13 @@ export class DataService {
   static saveTestPlan(testPlan: TestPlan): void {
     const plans = this.getTestPlans();
     const existingIndex = plans.findIndex(p => p.id === testPlan.id);
-    
+
     if (existingIndex >= 0) {
       plans[existingIndex] = testPlan;
     } else {
       plans.push(testPlan);
     }
-    
+
     localStorage.setItem(STORAGE_KEYS.TEST_PLANS, JSON.stringify(plans));
   }
 
@@ -114,13 +114,13 @@ export class DataService {
     const workflows = this.getUserWorkflows();
     const riskDocuments = this.getRiskDocuments();
     const testPlans = this.getTestPlans();
-    
+
     return {
       totalWorkflows: workflows.length,
       totalRiskDocuments: riskDocuments.length,
       totalTestPlans: testPlans.length,
       highRiskWorkflows: workflows.filter(w => w.riskScore <= 6).length, // Risk scores 1-6 are considered high priority
-      automationCandidates: workflows.filter(w => w.automationDecision === 'Automate').length,
+      automationCandidates: workflows.filter(w => w.riskScore >= 1 && w.riskScore <= 6).length,
       activeTestPlans: testPlans.filter(p => p.status === 'In Progress' || p.status === 'Review').length,
       completedTestPlans: testPlans.filter(p => p.status === 'Completed').length,
     };
@@ -139,8 +139,7 @@ export class DataService {
           likelihood: 2,
           impact: 2,
           riskScore: 4,
-          automationDecision: 'Automate',
-          automationReason: 'High impact, critical path, stable workflow - Risk score 4 qualifies for automation',
+          automationReason: 'Login is critical and stable, risk score 4 qualifies for automation.',
           createdAt: new Date('2024-01-15'),
           updatedAt: new Date('2024-01-15'),
         },
@@ -153,8 +152,7 @@ export class DataService {
           likelihood: 2,
           impact: 3,
           riskScore: 6,
-          automationDecision: 'Automate',
-          automationReason: 'Frequently used feature, medium risk - Risk score 6 qualifies for automation',
+          automationReason: 'Assignment creation is frequently used, risk score 6 qualifies for automation.',
           createdAt: new Date('2024-01-18'),
           updatedAt: new Date('2024-01-18'),
         },
@@ -167,13 +165,12 @@ export class DataService {
           likelihood: 3,
           impact: 3,
           riskScore: 9,
-          automationDecision: 'Manual',
-          automationReason: 'Risk score 9 exceeds automation threshold of 6, content-dependent, manual testing more effective',
+          automationReason: 'Discussion posts are content-dependent, risk score 9 is above automation threshold.',
           createdAt: new Date('2024-01-20'),
           updatedAt: new Date('2024-01-20'),
         },
       ];
-      
+
       sampleWorkflows.forEach(workflow => this.saveUserWorkflow(workflow));
     }
 
@@ -191,7 +188,7 @@ export class DataService {
         createdAt: new Date('2024-01-15'),
         updatedAt: new Date('2024-01-15'),
       };
-      
+
       this.saveRiskDocument(sampleRiskDocument);
     }
 
@@ -242,7 +239,7 @@ export class DataService {
           updatedAt: new Date('2024-01-22'),
         },
       ];
-      
+
       sampleTestPlans.forEach(plan => this.saveTestPlan(plan));
     }
   }
