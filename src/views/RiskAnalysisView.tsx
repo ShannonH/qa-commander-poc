@@ -36,8 +36,6 @@ import {
   ExpandMore,
   AutoAwesome,
   Build,
-  SkipNext,
-  Schedule,
 } from '@mui/icons-material';
 import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature } from '../types';
 import { DataService } from '../utils/dataService';
