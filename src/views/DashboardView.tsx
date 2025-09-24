@@ -60,14 +60,33 @@ const DashboardView: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
-      <Typography variant="body1" color="text.secondary" gutterBottom>
-        Welcome to QA Commander - Your Quality Assurance Management Platform
-      </Typography>
+      <Box component="header" sx={{ mb: 3 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          Dashboard
+        </Typography>
+        <Typography variant="body1" color="text.secondary" gutterBottom>
+          Welcome to QA Commander - Your Quality Assurance Management Platform
+        </Typography>
+      </Box>
 
-      <Grid container spacing={3} sx={{ mt: 2 }}>
+      <Box component="section" aria-labelledby="stats-heading">
+        <Typography 
+          variant="h5" 
+          component="h2" 
+          id="stats-heading" 
+          sx={{ 
+            mb: 2, 
+            position: 'absolute',
+            left: '-9999px',
+            width: '1px',
+            height: '1px',
+            overflow: 'hidden'
+          }}
+        >
+          Statistics Overview
+        </Typography>
+
+        <Grid container spacing={3} sx={{ mt: 2 }}>
         {dashboardStats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Card>
@@ -81,7 +100,11 @@ const DashboardView: React.FC = () => {
                       {stat.value}
                     </Typography>
                   </Box>
-                  <IconButton sx={{ color: stat.color }}>
+                  <IconButton 
+                    sx={{ color: stat.color }}
+                    aria-label={`${stat.title}: ${stat.value}`}
+                    disabled
+                  >
                     {stat.icon}
                   </IconButton>
                 </Box>
@@ -90,11 +113,12 @@ const DashboardView: React.FC = () => {
           </Grid>
         ))}
       </Grid>
+      </Box>
 
-      <Grid container spacing={3} sx={{ mt: 3 }}>
+      <Grid container spacing={3} component="section" aria-labelledby="activity-heading" sx={{ mt: 3 }}>
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3, height: 300 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" component="h2" id="activity-heading" gutterBottom>
               Recent Activity
             </Typography>
             <Box sx={{ mt: 2 }}>
@@ -115,7 +139,7 @@ const DashboardView: React.FC = () => {
         </Grid>
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3, height: 300 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" component="h2" gutterBottom>
               Quick Actions
             </Typography>
             <Box sx={{ mt: 2 }}>
