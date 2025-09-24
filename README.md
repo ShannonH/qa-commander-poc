@@ -138,7 +138,7 @@ REACT_APP_CHATBOT_API_URL=https://your-middleware-domain.com/chatbot
 
 ### 2. Use the [chatbot-middleware](https://github.com/ShannonH/chatbot-middleware) Proxy
 
-For security and flexibility, we recommend using the [chatbot-middleware](https://github.com/ShannonH/chatbot-middleware) project as a proxy between your React app and the AI provider (e.g., OpenAI, AWS Bedrock).
+For security and flexibility, we recommend using the [chatbot-middleware](https://github.com/ShannonH/chatbot-middleware) project as a proxy between your React app and the AI provider (e.g., OpenAI, Ollama).
 
 - The middleware handles authentication and securely forwards requests to the AI service.
 - You can run it locally or deploy it to any cloud provider.
