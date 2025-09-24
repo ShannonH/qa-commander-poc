@@ -272,6 +272,23 @@ What would you like help with today?`,
 
   return (
     <Box sx={{ height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' }}>
+      {/* Screen reader live region for message announcements */}
+      <Box
+        aria-live="polite"
+        aria-label="New message announcements"
+        sx={{
+          position: 'absolute',
+          left: '-9999px',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+        }}
+      >
+        {messages.length > 1 && messages[messages.length - 1]?.content && !messages[messages.length - 1]?.isUser &&
+          `New AI response received`
+        }
+      </Box>
+      
       {/* Header */}
       <Paper
         sx={{
@@ -356,6 +373,9 @@ What would you like help with today?`,
             overflow: 'auto',
             maxHeight: 'calc(100vh - 300px)',
           }}
+          role="log"
+          aria-label="Chat conversation"
+          aria-live="polite"
         >
           <List sx={{ p: 1 }}>
             {messages.map(renderMessage)}
@@ -397,12 +417,15 @@ What would you like help with today?`,
               disabled={isLoading}
               variant="outlined"
               size="small"
+              label="Message input"
+              aria-label="Type your message here"
             />
             <IconButton
               color="primary"
               onClick={handleSendMessage}
               disabled={!inputMessage.trim() || isLoading}
               sx={{ mb: 0.5 }}
+              aria-label="Send message"
             >
               <SendIcon />
             </IconButton>

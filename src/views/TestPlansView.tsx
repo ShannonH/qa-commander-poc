@@ -246,10 +246,18 @@ const TestPlansView: React.FC = () => {
                     {plan.title}
                   </Typography>
                   <Box>
-                    <IconButton size="small" onClick={() => handleView(plan)}>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleView(plan)}
+                      aria-label={`View test plan: ${plan.title}`}
+                    >
                       <ViewIcon />
                     </IconButton>
-                    <IconButton size="small" onClick={() => handleEdit(plan)}>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => handleEdit(plan)}
+                      aria-label={`Edit test plan: ${plan.title}`}
+                    >
                       <EditIcon />
                     </IconButton>
                   </Box>
@@ -304,8 +312,15 @@ const TestPlansView: React.FC = () => {
         ))}
       </Grid>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="lg" fullWidth>
-        <DialogTitle>
+      <Dialog 
+        open={open} 
+        onClose={() => setOpen(false)} 
+        maxWidth="lg" 
+        fullWidth
+        aria-labelledby="dialog-title"
+        aria-describedby="dialog-description"
+      >
+        <DialogTitle id="dialog-title">
           {viewMode === 'create' && 'Create New Test Plan'}
           {viewMode === 'edit' && 'Edit Test Plan'}
           {viewMode === 'view' && 'Test Plan Details'}
@@ -473,7 +488,11 @@ const TestPlansView: React.FC = () => {
                       disabled={viewMode === 'view'}
                     />
                     {viewMode !== 'view' && (
-                      <IconButton onClick={() => removePrerequisite(index)} disabled={formData.prerequisites.length === 1}>
+                      <IconButton 
+                        onClick={() => removePrerequisite(index)} 
+                        disabled={formData.prerequisites.length === 1}
+                        aria-label={`Remove prerequisite ${index + 1}`}
+                      >
                         <DeleteIcon />
                       </IconButton>
                     )}

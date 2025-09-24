@@ -36,8 +36,6 @@ import {
   ExpandMore,
   AutoAwesome,
   Build,
-  SkipNext,
-  Schedule,
 } from '@mui/icons-material';
 import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature } from '../types';
 import { DataService } from '../utils/dataService';
@@ -46,6 +44,13 @@ interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
   value: number;
+}
+
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    'aria-controls': `simple-tabpanel-${index}`,
+  };
 }
 
 function TabPanel(props: TabPanelProps) {
@@ -183,9 +188,9 @@ const RiskAnalysisView: React.FC = () => {
       </Box>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
-          <Tab label="User Workflows" />
-          <Tab label="Risk Analysis Documents" />
+        <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} aria-label="Risk analysis sections">
+          <Tab label="User Workflows" {...a11yProps(0)} />
+          <Tab label="Risk Analysis Documents" {...a11yProps(1)} />
         </Tabs>
       </Box>
 

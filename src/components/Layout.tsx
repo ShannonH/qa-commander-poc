@@ -91,6 +91,35 @@ const Layout: React.FC = () => {
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
+      {/* Skip to main content link for keyboard users */}
+      <Box
+        component="a"
+        href="#main-content"
+        sx={{
+          position: 'absolute',
+          left: '-9999px',
+          top: 'auto',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+          zIndex: 999999,
+          '&:focus': {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: 'auto',
+            height: 'auto',
+            padding: '8px 16px',
+            backgroundColor: 'primary.main',
+            color: 'primary.contrastText',
+            textDecoration: 'none',
+            border: '2px solid',
+            borderColor: 'primary.contrastText',
+          },
+        }}
+      >
+        Skip to main content
+      </Box>
       <AppBar
         position="fixed"
         sx={{
@@ -111,7 +140,12 @@ const Layout: React.FC = () => {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Quality Assurance Management Platform
           </Typography>
-          <IconButton sx={{ ml: 1 }} color="inherit" onClick={colorMode.toggleColorMode}>
+          <IconButton 
+            sx={{ ml: 1 }} 
+            color="inherit" 
+            onClick={colorMode.toggleColorMode}
+            aria-label={`Switch to ${colorMode.mode === 'dark' ? 'light' : 'dark'} mode`}
+          >
             {colorMode.mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
           </IconButton>
         </Toolbar>
@@ -119,6 +153,7 @@ const Layout: React.FC = () => {
       <Box
         component="nav"
         sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+        aria-label="Main navigation"
       >
         <Drawer
           variant="temporary"
@@ -147,6 +182,7 @@ const Layout: React.FC = () => {
       </Box>
       <Box
         component="main"
+        id="main-content"
         sx={{
           flexGrow: 1,
           p: 3,
