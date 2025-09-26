@@ -173,35 +173,38 @@ export interface BlackboardSession {
   availableActions: string[];
 }
 
-// AI Chatbot Types
-export interface ChatMessage {
-  id: string;
-  content: string;
-  isUser: boolean;
-  timestamp: Date;
-  type?: 'text' | 'test-plan' | 'help-article';
-  metadata?: {
-    testPlan?: Partial<TestPlan>;
-    helpUrl?: string;
-    blackboardFeature?: BlackboardFeature;
-  };
-}
-
-export interface ChatbotContext {
-  currentView?: string;
-  selectedFeature?: BlackboardFeature;
-  userGoal?: 'general-help' | 'test-planning' | 'troubleshooting';
-  sessionData?: any;
-}
-
-export interface BlackboardHelpArticle {
+// Mac Development Environment Setup Types
+export interface MacSetupStep {
   id: string;
   title: string;
-  url: string;
-  content: string;
-  feature: BlackboardFeature;
-  category: string;
-  tags: string[];
+  description: string;
+  status: 'pending' | 'in-progress' | 'completed' | 'failed' | 'skipped';
+  validationCommand?: string;
+  installCommand?: string;
+  troubleshootingTips?: string[];
+  isOptional?: boolean;
+}
+
+export interface MacSystemInfo {
+  osVersion?: string;
+  architecture?: string;
+  nodeVersion?: string;
+  npmVersion?: string;
+  gitVersion?: string;
+  homebrewInstalled?: boolean;
+  vsCodeInstalled?: boolean;
+  chromeInstalled?: boolean;
+  freeSpace?: string;
+  totalMemory?: string;
+}
+
+export interface MacSetupProgress {
+  currentStep: number;
+  stepsCompleted: number;
+  totalSteps: number;
+  systemInfo: MacSystemInfo;
+  setupSteps: MacSetupStep[];
+  lastUpdated: Date;
 }
 
 // AI Chatbot Types

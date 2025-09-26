@@ -25,6 +25,7 @@ import {
   SmartToy,
   Brightness4,
   Brightness7,
+  Computer,
 } from '@mui/icons-material';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import RiskAnalysisView from '../views/RiskAnalysisView';
@@ -33,6 +34,7 @@ import UnderConstructionView from '../views/UnderConstructionView';
 import DashboardView from '../views/DashboardView';
 import BlackboardContentView from '../views/BlackboardContentView';
 import AIChatbotView from '../views/AIChatbotView';
+import MacSetupView from '../views/MacSetupView';
 import { ColorModeContext } from '../App';
 
 const drawerWidth = 240;
@@ -55,6 +57,7 @@ const Layout: React.FC = () => {
     { text: 'Test Plans', icon: <Assignment />, path: '/test-plans' },
     { text: 'Blackboard Content', icon: <School />, path: '/blackboard-content' },
     { text: 'AI Assistant', icon: <SmartToy />, path: '/ai-assistant' },
+    { text: 'Mac Setup', icon: <Computer />, path: '/mac-setup' },
     { text: 'Jenkins Analysis', icon: <Construction />, path: '/jenkins-analysis' },
   ];
 
@@ -196,6 +199,7 @@ const Layout: React.FC = () => {
           <Route path="/test-plans" element={<TestPlansView />} />
           <Route path="/blackboard-content" element={<BlackboardContentView />} />
           <Route path="/ai-assistant" element={<AIChatbotView />} />
+          <Route path="/mac-setup" element={<MacSetupView />} />
           <Route path="/jenkins-analysis" element={<UnderConstructionView />} />
         </Routes>
       </Box>
