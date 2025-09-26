@@ -50,10 +50,23 @@ A comprehensive Quality Assurance Management Platform for Blackboard Learn/Ultra
    The application will open at `http://localhost:3000`.
 
 ### Available Scripts
-- `npm start` – Runs the development server
-- `npm test` – Runs the test suite
-- `npm run build` – Creates a production build
-- `npm run eject` – Ejects from Create React App (one-way operation)
+- `npm start` or `npm run dev` – Runs the development server using Nx
+- `npm test` – Runs the test suite via Nx
+- `npm run build` – Creates a production build with Nx
+
+---
+
+## ⚡ Nx Workspace
+
+This project uses [Nx](https://nx.dev/) as a powerful build system and task runner for modern monorepos. Nx provides fast, reliable builds, advanced caching, and enhanced developer experience.
+
+### Common Nx Commands
+- `nx serve` – Start the development server
+- `nx build` – Build the app for production
+- `nx test` – Run tests
+- `nx graph` – Visualize the project dependency graph
+
+You can also use `npx nx <command>` if Nx is not installed globally.
 
 ---
 
@@ -65,7 +78,7 @@ A comprehensive Quality Assurance Management Platform for Blackboard Learn/Ultra
 - **Routing**: React Router v6
 - **Styling**: Emotion (CSS-in-JS)
 - **Data Storage**: LocalStorage (expandable to real database)
-- **Build Tool**: Create React App
+- **Build Tool**: Nx (replaces Create React App)
 
 ### Project Structure
 ```
