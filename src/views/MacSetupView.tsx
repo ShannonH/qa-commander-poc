@@ -410,7 +410,7 @@ const MacSetupView: React.FC = () => {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4">
-          Mac Development Environment Setup
+          Blackboard Learn Ultra Development Setup
         </Typography>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button
@@ -432,8 +432,8 @@ const MacSetupView: React.FC = () => {
       </Box>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Follow this interactive guide to set up your Mac for QA Commander development. 
-        Each step includes validation to ensure your environment is configured correctly.
+        Follow this interactive guide to set up your Mac for Blackboard Learn Ultra development. 
+        Each step includes validation to ensure your environment is configured correctly for Learn development.
       </Typography>
 
       {renderSystemInfoCard()}

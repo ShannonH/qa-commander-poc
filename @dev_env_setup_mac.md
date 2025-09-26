@@ -1,147 +1,236 @@
 # Mac Development Environment Setup Guide
 
-This guide walks you through setting up your Mac for QA Commander development.
+This guide walks you through setting up your Mac for Blackboard Learn Ultra development.
 
 ## Prerequisites
 
 ### System Requirements
 - macOS 13.0 (Ventura) or later
 - Apple Silicon (M1/M2/M3) or Intel processor
-- At least 8GB RAM (16GB recommended)
-- At least 10GB free disk space
+- At least 16GB RAM (32GB recommended)
+- At least 50GB free disk space
+
+### Mac OS - Know Your Architecture Type First
+There are several sections split for M1 Macs (with Apple Silicon chips) and Intel Macs (with Intel processors). Make sure you are selecting the correct type for your Mac.
+
+#### Via Command Line
+You can check by running this in your terminal:
+```bash
+uname -m
+```
+If the response is `x86_64`, then your Mac is running an Intel Processor. If the response is `arm64`, then your Mac is running an Apple Silicon Processor.
+
+## Access Required
+
+### GitHub Access
+All source code for Learn and its various sister projects are stored in Learn Github. You must create an SSH Key for Github and add it to your Github account before you can use git to push/pull code.
+
+**Important:** Generate the SSH key without a passphrase. Just hit the "return" key to leave it blank. Otherwise, Gradle and Git will fail to authenticate you!
 
 ## Installation Steps
 
-### 1. Install Homebrew
-Homebrew is a package manager for macOS that makes installing development tools easy.
+### 1. Get Your Hostname
+By default, IT configures machines with a default hostname of `<first initial><lastname>mbp<model year>`. For example, John Smith's 2023 MacBook Pro would have the hostname `jsmithmbp23`.
 
+To get your current hostname:
+```bash
+scutil --get HostName
+```
+
+Verify that your hostname matches the normal pattern – no spaces, special characters, etc. If your hostname is incorrect, please reach out to IT to reset it.
+
+### 2. Update the hosts file
+By default, we use `mylearn.int.bbpd.io` as the hostname for our Learn installs. However, we don't register this hostname in DNS, so you need to update your hosts file.
+
+```bash
+sudo nano /etc/hosts
+```
+
+Add your machine's hostname and mylearn.int.bbpd.io as entries. For example, if your hostname was `jsmithmbp23`:
+```
+127.0.0.1    localhost localhost:localdomain jsmithmbp23 mylearn.int.bbpd.io
+```
+
+### 3. Configure ZScaler Certificate
+ZScaler is Anthology's internet security solution. You need to extract and configure its certificate for various development tools.
+
+#### Extract the ZScaler Root Certificate
+1. Create a new folder: `~/work/zscaler-certs`
+2. Open "Keychain Access" app
+3. Go to "System" keychain → "Certificates" tab
+4. Right-click the Zscaler cert and choose Export
+5. Rename to `ZscalerRootCA` and save as `.pem` in `~/work/zscaler-certs`
+6. Export again as `.cer` format to the same directory
+
+#### Add Certificate for Homebrew
+Add this to your shell profile:
+```bash
+# For Zsh (default)
+echo "export SSL_CERT_FILE=~/work/zscaler-certs/ZscalerRootCA.pem" >> ~/.zshrc
+# For Bash
+echo "export SSL_CERT_FILE=~/work/zscaler-certs/ZscalerRootCA.pem" >> ~/.bash_profile
+```
+
+### 4. Install Homebrew
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
 After installation, add Homebrew to your PATH:
 ```bash
+# For Apple Silicon
 echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# For Intel
+echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zshrc
+
+# Reload shell
+source ~/.zshrc
 ```
 
-### 2. Install Git
-Git is required for version control and cloning repositories.
-
+### 5. Install Git and SSH Setup
 ```bash
 brew install git
 ```
 
-Configure Git with your information:
+Configure Git:
 ```bash
 git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 ```
 
-### 3. Install Node.js and npm
-We use Node.js 22+ and npm 10+ for this project.
-
+Generate SSH key for GitHub:
 ```bash
-# Install Node Version Manager (nvm)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+ssh-keygen -t ed25519 -C "your.email@example.com"
+# Press Enter for default location and NO PASSPHRASE
+```
 
-# Restart terminal or reload profile
+Add SSH key to GitHub account and configure SSO for Blackboard organizations.
+
+### 6. Install Java (Amazon Corretto 11)
+```bash
+brew install --cask corretto11
+```
+
+Set JAVA_HOME:
+```bash
+echo 'export JAVA_HOME="/Library/Java/JavaVirtualMachines/amazon-corretto-11.jdk/Contents/Home"' >> ~/.zshrc
+```
+
+### 7. Install PostgreSQL 12
+```bash
+brew install postgresql@12
+brew services start postgresql@12
+```
+
+Create Postgres data directory:
+```bash
+mkdir -p ~/work/bb/blackboard-data
+```
+
+### 8. Install Node.js and npm
+```bash
+# Install Node Version Manager
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 source ~/.zshrc
 
-# Install and use Node.js 22
-nvm install 22
-nvm use 22
-nvm alias default 22
+# Install Node.js 18 (required for Ultra)
+nvm install 18
+nvm use 18
+nvm alias default 18
 ```
 
-Verify installation:
+Add Node certificate configuration:
 ```bash
-node --version  # Should show v22.x.x
-npm --version   # Should show 10.x.x or higher
+echo 'export NODE_EXTRA_CA_CERTS="~/work/zscaler-certs/ZscalerRootCA.pem"' >> ~/.zshrc
 ```
 
-### 4. Install Visual Studio Code (Recommended)
-VS Code is the recommended IDE for this project.
-
+### 9. Setup Work Directory Structure
 ```bash
-brew install --cask visual-studio-code
+mkdir -p ~/work/bb
+mkdir -p ~/work/zscaler-certs
+cd ~/work
 ```
 
-#### Recommended VS Code Extensions:
-- ES7+ React/Redux/React-Native snippets
-- Prettier - Code formatter
-- ESLint
-- TypeScript Hero
-- Auto Rename Tag
-- Bracket Pair Colorizer
-- GitLens
-
-### 5. Install Additional Development Tools
-
+### 10. Clone Learn Repositories
 ```bash
-# Chrome for testing
-brew install --cask google-chrome
+# Clone Learn Original
+git clone git@github.com:blackboard-learn/learn.git
+cd learn
 
-# Optional: Chrome DevTools for React
-# Will be available in Chrome after running the project
-
-# Optional: Postman for API testing
-brew install --cask postman
+# Clone Learn Utilities
+git clone git@github.com:blackboard-learn/learn.util.git
 ```
 
-### 6. Clone and Setup Project
+### 11. Environment Variables Setup
+Add these to your `~/.zshrc`:
 
 ```bash
-# Clone the repository
-git clone https://github.com/ShannonH/qa-commander-poc.git
-cd qa-commander-poc
+# Blackboard Environment Variables
+export BLACKBOARD_HOME="~/work/bb/blackboard"
+export bbHome="~/work/bb/blackboard"
+export GIT_ROOT="~/work/learn"
+export JAVA_HOME="/Library/Java/JavaVirtualMachines/amazon-corretto-11.jdk/Contents/Home"
 
-# Install dependencies
-npm install
+# PostgreSQL Configuration
+# For Homebrew on Apple Silicon
+export PGDATA="/opt/homebrew/var/postgresql@12"
+# For Homebrew on Intel
+# export PGDATA="/usr/local/var/postgresql@12"
 
-# Start development server
-npm start
+# Certificates
+export SSL_CERT_FILE="~/work/zscaler-certs/ZscalerRootCA.pem"
+export NODE_EXTRA_CA_CERTS="~/work/zscaler-certs/ZscalerRootCA.pem"
 ```
 
-### 7. Verify Setup
-1. The application should open at `http://localhost:3000`
-2. You should see the QA Commander dashboard
-3. Try navigating between different sections
-4. Check browser console for any errors
+### 12. Install Learn Platform
+Follow the specific Learn installation procedures in your team's documentation for:
+- Running the Learn installer
+- Configuring database connections
+- Setting up Ultra UI development environment
 
 ## Troubleshooting
 
 ### Common Issues
 
+#### Hostname Problems
+- Ensure no spaces or special characters in hostname
+- Contact IT if hostname needs to be reset
+
+#### ZScaler Certificate Issues
+- Verify certificate is exported in both .pem and .cer formats
+- Check that SSL_CERT_FILE environment variable is set
+- Restart terminal after adding environment variables
+
 #### Homebrew Installation Issues
-- If you get permission errors, ensure you have admin access
+- Ensure ZScaler certificate is configured before installing Homebrew
 - For Apple Silicon Macs, Homebrew installs to `/opt/homebrew`
 - For Intel Macs, Homebrew installs to `/usr/local`
 
-#### Node.js Version Issues
-- Always use the version specified in `.nvmrc` file
-- Use `nvm use` in the project directory to switch to correct version
+#### PostgreSQL Issues
+- Ensure PostgreSQL 12 is installed and running
+- Check that data directory exists and has proper permissions
+- Use `brew services restart postgresql@12` to restart service
 
-#### npm Install Failures
-- Clear npm cache: `npm cache clean --force`
-- Delete `node_modules` and `package-lock.json`, then run `npm install`
-- Check if you're behind a corporate firewall affecting npm downloads
+#### Git SSH Issues
+- Ensure SSH key is generated WITHOUT a passphrase
+- Add key to GitHub and configure SSO authorization
+- Test connection with `ssh -T git@github.com`
 
-#### Port 3000 Already in Use
-- Kill existing process: `lsof -ti:3000 | xargs kill -9`
-- Or use a different port: `npm start -- --port 3001`
+#### Java Issues
+- Verify JAVA_HOME points to Corretto 11 installation
+- Check Java version with `java -version`
+- Ensure PATH includes Java binaries
 
-### Performance Optimization
-- Close unnecessary applications while developing
-- Ensure adequate free disk space
-- Consider increasing Node.js memory limit for large builds:
-  ```bash
-  export NODE_OPTIONS="--max-old-space-size=4096"
-  ```
+### Getting Help
+- **Onboarding Guides**: Start with the central Blackboard Developer onboarding documentation
+- **Teams Channels**: 
+  - Learn Engineering (for Learn Original questions)
+  - Ultra Engineering (for Ultra-specific questions)
+- **Documentation**: Refer to the Onboarding - Survival Guide and Ultra Survival Guide
 
 ## Next Steps
-1. Read the main `README.md` for project overview
-2. Explore the codebase structure
-3. Run tests: `npm test`
-4. Build for production: `npm run build`
-5. Join the development team discussions
+1. Complete Learn platform installation following team-specific guides
+2. Configure your IDE (IntelliJ IDEA recommended)
+3. Set up local database and test data
+4. Run initial Learn build and validation
+5. Join team standups and development discussions

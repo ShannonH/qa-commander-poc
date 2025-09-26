@@ -78,7 +78,7 @@ jest.mock('../utils/macSetupService', () => ({
     })),
     updateStepStatus: jest.fn((progress, stepId, status) => ({
       ...progress,
-      setupSteps: progress.setupSteps.map(step => 
+      setupSteps: progress.setupSteps.map((step: any) => 
         step.id === stepId ? { ...step, status } : step
       ),
       stepsCompleted: status === 'completed' ? progress.stepsCompleted + 1 : progress.stepsCompleted,

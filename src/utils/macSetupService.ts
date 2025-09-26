@@ -1,19 +1,46 @@
 import { MacSetupStep, MacSystemInfo, MacSetupProgress } from '../types';
 
 export class MacSetupService {
-  private static readonly STORAGE_KEY = 'qa-commander-mac-setup-progress';
+  private static readonly STORAGE_KEY = 'blackboard-learn-mac-setup-progress';
 
-  // Initialize default setup steps
+  // Initialize default setup steps for Blackboard Learn Ultra development
   private static readonly DEFAULT_SETUP_STEPS: MacSetupStep[] = [
     {
       id: 'system-check',
       title: 'System Requirements Check',
-      description: 'Verify macOS version and hardware requirements',
+      description: 'Verify macOS version, architecture, and hardware requirements',
       status: 'pending',
-      validationCommand: 'sw_vers',
+      validationCommand: 'uname -m && sw_vers',
       troubleshootingTips: [
         'Ensure you are running macOS 13.0 (Ventura) or later',
-        'Check system requirements in System Settings > General > About'
+        'Check if you have Apple Silicon (arm64) or Intel (x86_64) processor',
+        'Ensure at least 16GB RAM and 50GB free disk space'
+      ]
+    },
+    {
+      id: 'hostname-setup',
+      title: 'Configure Hostname and Hosts File',
+      description: 'Set up hostname and update hosts file for Blackboard Learn development',
+      status: 'pending',
+      validationCommand: 'scutil --get HostName && grep "mylearn.int.bbpd.io" /etc/hosts',
+      troubleshootingTips: [
+        'Hostname should follow pattern: <first initial><lastname>mbp<model year>',
+        'Contact IT if hostname needs to be reset',
+        'Must add mylearn.int.bbpd.io to /etc/hosts file'
+      ]
+    },
+    {
+      id: 'zscaler-cert',
+      title: 'Configure ZScaler Certificate',
+      description: 'Extract and configure ZScaler certificate for development tools',
+      status: 'pending',
+      validationCommand: 'ls ~/work/zscaler-certs/ZscalerRootCA.pem',
+      installCommand: 'mkdir -p ~/work/zscaler-certs',
+      troubleshootingTips: [
+        'Open Keychain Access → System → Certificates',
+        'Export ZScaler cert as both .pem and .cer formats',
+        'Save to ~/work/zscaler-certs/ directory',
+        'Set SSL_CERT_FILE environment variable'
       ]
     },
     {
@@ -24,85 +51,119 @@ export class MacSetupService {
       validationCommand: 'brew --version',
       installCommand: '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
       troubleshootingTips: [
-        'Make sure you have admin privileges',
-        'Check your internet connection',
-        'Add Homebrew to PATH after installation: echo \'eval "$(/opt/homebrew/bin/brew shellenv)"\' >> ~/.zshrc'
+        'Configure ZScaler certificate BEFORE installing Homebrew',
+        'For Apple Silicon: brew installs to /opt/homebrew',
+        'For Intel: brew installs to /usr/local',
+        'Add Homebrew to PATH after installation'
       ]
     },
     {
-      id: 'git-install',
-      title: 'Install Git',
-      description: 'Version control system required for development',
+      id: 'git-ssh-setup',
+      title: 'Install Git and Setup SSH',
+      description: 'Version control and GitHub SSH access for Blackboard repositories',
       status: 'pending',
-      validationCommand: 'git --version',
+      validationCommand: 'git --version && ssh -T git@github.com',
       installCommand: 'brew install git',
       troubleshootingTips: [
-        'Configure Git after installation: git config --global user.name "Your Name"',
-        'Set your email: git config --global user.email "your.email@example.com"'
+        'Generate SSH key WITHOUT passphrase: ssh-keygen -t ed25519',
+        'Add SSH key to GitHub account',
+        'Configure SSO for blackboard-learn organizations',
+        'Test with: ssh -T git@github.com'
+      ]
+    },
+    {
+      id: 'java-install',
+      title: 'Install Java (Amazon Corretto 11)',
+      description: 'Java 11 runtime required for Blackboard Learn backend',
+      status: 'pending',
+      validationCommand: 'java -version 2>&1 | grep "Corretto-11"',
+      installCommand: 'brew install --cask corretto11',
+      troubleshootingTips: [
+        'Must use Amazon Corretto 11 specifically',
+        'Set JAVA_HOME to Corretto installation path',
+        'Verify with: java -version'
+      ]
+    },
+    {
+      id: 'postgresql-install',
+      title: 'Install PostgreSQL 12',
+      description: 'Database server for Blackboard Learn development',
+      status: 'pending',
+      validationCommand: 'pg_config --version | grep "PostgreSQL 12"',
+      installCommand: 'brew install postgresql@12 && brew services start postgresql@12',
+      troubleshootingTips: [
+        'Must use PostgreSQL version 12 specifically',
+        'Create data directory: ~/work/bb/blackboard-data',
+        'Start service: brew services start postgresql@12',
+        'Set PGDATA environment variable'
       ]
     },
     {
       id: 'node-install',
-      title: 'Install Node.js & npm',
-      description: 'JavaScript runtime and package manager (version 22+)',
+      title: 'Install Node.js 18 & npm',
+      description: 'JavaScript runtime for Ultra UI development',
       status: 'pending',
-      validationCommand: 'node --version && npm --version',
-      installCommand: 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && source ~/.zshrc && nvm install 22 && nvm use 22 && nvm alias default 22',
+      validationCommand: 'node --version | grep "v18" && npm --version',
+      installCommand: 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash && source ~/.zshrc && nvm install 18 && nvm use 18 && nvm alias default 18',
       troubleshootingTips: [
-        'Use Node Version Manager (nvm) for easier version management',
-        'Restart terminal after nvm installation',
-        'Check .nvmrc file in project for required version'
+        'Must use Node.js version 18 for Ultra compatibility',
+        'Set NODE_EXTRA_CA_CERTS for ZScaler certificate',
+        'Use NVM for version management'
       ]
     },
     {
-      id: 'vscode-install',
-      title: 'Install Visual Studio Code',
-      description: 'Recommended IDE for development',
+      id: 'work-directory',
+      title: 'Setup Work Directory Structure',
+      description: 'Create required directory structure for Blackboard development',
       status: 'pending',
-      validationCommand: 'code --version',
-      installCommand: 'brew install --cask visual-studio-code',
-      isOptional: true,
+      validationCommand: 'ls -la ~/work/bb && ls -la ~/work/zscaler-certs',
+      installCommand: 'mkdir -p ~/work/bb ~/work/zscaler-certs',
       troubleshootingTips: [
-        'You can also download from https://code.visualstudio.com/',
-        'Install recommended extensions for React development'
+        'All Blackboard development must be in ~/work directory',
+        'Create ~/work/bb for Blackboard installation',
+        'Create ~/work/zscaler-certs for certificates',
+        'Directory structure is critical for build system'
       ]
     },
     {
-      id: 'chrome-install',
-      title: 'Install Google Chrome',
-      description: 'Browser for testing and development',
+      id: 'environment-variables',
+      title: 'Configure Environment Variables',
+      description: 'Set up required environment variables for Blackboard development',
       status: 'pending',
-      validationCommand: '/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --version',
-      installCommand: 'brew install --cask google-chrome',
-      isOptional: true,
+      validationCommand: 'echo $BLACKBOARD_HOME && echo $JAVA_HOME && echo $SSL_CERT_FILE',
       troubleshootingTips: [
-        'Chrome DevTools are essential for web development',
-        'You can also download from https://chrome.google.com/'
+        'Add variables to ~/.zshrc or ~/.bash_profile',
+        'BLACKBOARD_HOME=~/work/bb/blackboard',
+        'JAVA_HOME=/Library/Java/JavaVirtualMachines/amazon-corretto-11.jdk/Contents/Home',
+        'SSL_CERT_FILE=~/work/zscaler-certs/ZscalerRootCA.pem',
+        'Reload shell: source ~/.zshrc'
       ]
     },
     {
-      id: 'project-setup',
-      title: 'Clone and Setup Project',
-      description: 'Clone QA Commander repository and install dependencies',
+      id: 'clone-repositories',
+      title: 'Clone Learn Repositories',
+      description: 'Clone Blackboard Learn source code repositories',
       status: 'pending',
-      validationCommand: 'ls qa-commander-poc/package.json',
-      installCommand: 'git clone https://github.com/ShannonH/qa-commander-poc.git && cd qa-commander-poc && npm install',
+      validationCommand: 'ls ~/work/learn && ls ~/work/learn.util',
+      installCommand: 'cd ~/work && git clone git@github.com:blackboard-learn/learn.git && git clone git@github.com:blackboard-learn/learn.util.git',
       troubleshootingTips: [
-        'Make sure you have access to the repository',
-        'Clear npm cache if installation fails: npm cache clean --force',
-        'Check Node.js version matches .nvmrc file'
+        'Requires GitHub SSH access to blackboard-learn organization',
+        'Must configure SSO authorization',
+        'Repositories should be cloned to ~/work directory',
+        'Test SSH access first: ssh -T git@github.com'
       ]
     },
     {
-      id: 'project-verify',
-      title: 'Verify Project Setup',
-      description: 'Start development server and verify everything works',
+      id: 'verify-setup',
+      title: 'Verify Complete Setup',
+      description: 'Validate all components are properly installed and configured',
       status: 'pending',
-      validationCommand: 'cd qa-commander-poc && npm test -- --watchAll=false',
+      validationCommand: 'echo "Checking all components..." && java -version && node --version && psql --version && brew --version && git --version',
       troubleshootingTips: [
-        'Port 3000 should be available',
-        'Check for any error messages in console',
-        'Verify all tests pass before development'
+        'All components should be installed and accessible',
+        'Environment variables should be set correctly',
+        'SSH access to GitHub should be working',
+        'Ready to proceed with Learn platform installation'
       ]
     }
   ];
