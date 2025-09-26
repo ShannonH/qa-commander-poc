@@ -88,7 +88,7 @@ const DashboardView: React.FC = () => {
 
         <Grid container spacing={3} sx={{ mt: 2 }}>
         {dashboardStats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center" justifyContent="space-between">
@@ -116,7 +116,7 @@ const DashboardView: React.FC = () => {
       </Box>
 
       <Grid container spacing={3} component="section" aria-labelledby="activity-heading" sx={{ mt: 3 }}>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3, height: 300 }}>
             <Typography variant="h6" component="h2" id="activity-heading" gutterBottom>
               Recent Activity
@@ -137,7 +137,7 @@ const DashboardView: React.FC = () => {
             </Box>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3, height: 300 }}>
             <Typography variant="h6" component="h2" gutterBottom>
               Quick Actions

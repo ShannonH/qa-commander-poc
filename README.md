@@ -11,7 +11,7 @@ A comprehensive Quality Assurance Management Platform for Blackboard Learn/Ultra
 - 📋 **Test Plans**: Manage detailed test plans, categorize by type, track status, and assign team members.
 - 🧪 **Automated/Manual Test Guidance**: Built-in logic recommends automation based on risk score.
 - 🚧 **Jenkins Analysis**: (Coming Soon) Analyze build logs, failures, and performance trends.
-- 🖥️ **Modern UI/UX**: Responsive, Material-UI v5 design with dark mode toggle. (can be switched over to bb-ui for Blackboard look and feel)
+- 🖥️ **Modern UI/UX**: Responsive, Material-UI v7 design with dark mode toggle. (can be switched over to bb-ui for Blackboard look and feel)
 - 🔒 **Secure & Serverless Ready**: Deploy easily to AWS S3/CloudFront, connect to serverless backends, and keep API keys safe with middleware.
 
 ---
@@ -61,7 +61,7 @@ A comprehensive Quality Assurance Management Platform for Blackboard Learn/Ultra
 
 ### Technology Stack
 - **Frontend**: React 19 + TypeScript
-- **UI Framework**: Material-UI v5 (with dark mode)
+- **UI Framework**: Material-UI v7 (with dark mode)
 - **Routing**: React Router v6
 - **Styling**: Emotion (CSS-in-JS)
 - **Data Storage**: LocalStorage (expandable to real database)

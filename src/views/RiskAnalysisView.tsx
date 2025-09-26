@@ -238,7 +238,7 @@ const RiskAnalysisView: React.FC = () => {
             const riskLevel = getRiskLevelFromScore(workflow.riskScore);
             const automationStatus = getAutomationRecommendation(workflow.riskScore);
             return (
-              <Grid item xs={12} md={6} lg={4} key={workflow.id}>
+              <Grid size={{ xs: 12, md: 6, lg: 4 }} key={workflow.id}>
                 <Card>
                   <CardContent>
                     <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
@@ -382,7 +382,7 @@ const RiskAnalysisView: React.FC = () => {
         </DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="Workflow Name"
                 fullWidth
@@ -391,7 +391,7 @@ const RiskAnalysisView: React.FC = () => {
                 placeholder="e.g., Student Login to Course"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="User Story"
                 fullWidth
@@ -400,7 +400,7 @@ const RiskAnalysisView: React.FC = () => {
                 placeholder="As a [user], I want to [action] so that [benefit]"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="Description"
                 fullWidth
@@ -411,7 +411,7 @@ const RiskAnalysisView: React.FC = () => {
                 placeholder="Detailed description of the workflow steps"
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <FormControl fullWidth>
                 <InputLabel>Blackboard Feature</InputLabel>
                 <Select
@@ -425,7 +425,7 @@ const RiskAnalysisView: React.FC = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography gutterBottom>Likelihood of Failure (1-4, 1=Most Likely)</Typography>
               <Rating
                 value={workflowFormData.likelihood}
@@ -436,7 +436,7 @@ const RiskAnalysisView: React.FC = () => {
                 How likely is this workflow to fail? (1=Most Likely, 4=Very Unlikely)
               </Typography>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <Typography gutterBottom>Impact if Failure (1-4, 1=Most Impactful)</Typography>
               <Rating
                 value={workflowFormData.impact}
@@ -447,7 +447,7 @@ const RiskAnalysisView: React.FC = () => {
                 How severe would a failure be? (1=Most Impactful, 4=Minimal Impact)
               </Typography>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Box sx={{ p: 2, backgroundColor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
                 <Typography variant="h6" gutterBottom>
                   Risk Score: {workflowFormData.likelihood * workflowFormData.impact}
@@ -462,7 +462,7 @@ const RiskAnalysisView: React.FC = () => {
                 </Typography>
               </Box>
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="Automation Reasoning"
                 fullWidth
@@ -487,7 +487,7 @@ const RiskAnalysisView: React.FC = () => {
         <DialogTitle>Create New Risk Analysis Document</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="Title"
                 fullWidth
@@ -495,7 +495,7 @@ const RiskAnalysisView: React.FC = () => {
                 onChange={e => setDocumentFormData({ ...documentFormData, title: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="Description"
                 fullWidth
@@ -505,7 +505,7 @@ const RiskAnalysisView: React.FC = () => {
                 onChange={e => setDocumentFormData({ ...documentFormData, description: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Typography gutterBottom>Select Workflows to Include</Typography>
               <Box sx={{ maxHeight: 200, overflowY: 'auto', border: 1, borderColor: 'divider', borderRadius: 1, p: 1 }}>
                 {workflows.length === 0 && <Typography color="text.secondary">No workflows available.</Typography>}

@@ -238,7 +238,7 @@ const TestPlansView: React.FC = () => {
 
       <Grid container spacing={3}>
         {testPlans.map((plan) => (
-          <Grid item xs={12} md={6} lg={4} key={plan.id}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }} key={plan.id}>
             <Card>
               <CardContent>
                 <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
@@ -333,23 +333,23 @@ const TestPlansView: React.FC = () => {
                 <Typography variant="body1" paragraph>{selectedPlan.description}</Typography>
                 
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <Typography variant="body2"><strong>Category:</strong> {selectedPlan.category}</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <Typography variant="body2"><strong>Priority:</strong> {selectedPlan.priority}</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <Typography variant="body2"><strong>Blackboard Feature:</strong> {selectedPlan.blackboardFeature}</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <Typography variant="body2"><strong>Estimated Hours:</strong> {selectedPlan.estimatedHours}h</Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid size={6}>
                     <Typography variant="body2"><strong>Status:</strong> {selectedPlan.status}</Typography>
                   </Grid>
                   {selectedPlan.assignee && (
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                       <Typography variant="body2"><strong>Assignee:</strong> {selectedPlan.assignee}</Typography>
                     </Grid>
                   )}
@@ -382,7 +382,7 @@ const TestPlansView: React.FC = () => {
             </Box>
           ) : (
             <Grid container spacing={2} sx={{ mt: 1 }}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   label="Title"
                   fullWidth
@@ -391,7 +391,7 @@ const TestPlansView: React.FC = () => {
                   disabled={viewMode === 'view'}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   label="Description"
                   fullWidth
@@ -402,7 +402,7 @@ const TestPlansView: React.FC = () => {
                   disabled={viewMode === 'view'}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   label="Feature"
                   fullWidth
@@ -411,7 +411,7 @@ const TestPlansView: React.FC = () => {
                   disabled={viewMode === 'view'}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>Blackboard Feature</InputLabel>
                   <Select
@@ -426,7 +426,7 @@ const TestPlansView: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <FormControl fullWidth>
                   <InputLabel>Category</InputLabel>
                   <Select
@@ -441,7 +441,7 @@ const TestPlansView: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <FormControl fullWidth>
                   <InputLabel>Priority</InputLabel>
                   <Select
@@ -457,7 +457,7 @@ const TestPlansView: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   label="Estimated Hours"
                   type="number"
@@ -467,7 +467,7 @@ const TestPlansView: React.FC = () => {
                   disabled={viewMode === 'view'}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   label="Assignee"
                   fullWidth
@@ -476,7 +476,7 @@ const TestPlansView: React.FC = () => {
                   disabled={viewMode === 'view'}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Typography variant="h6" gutterBottom>Prerequisites</Typography>
                 {formData.prerequisites.map((prereq, index) => (
                   <Box key={index} display="flex" alignItems="center" gap={1} mb={1}>
