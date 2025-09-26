@@ -74,6 +74,7 @@ const RiskAnalysisView: React.FC = () => {
   const [riskDocuments, setRiskDocuments] = useState<RiskAnalysisDocument[]>([]);
   const [openWorkflowDialog, setOpenWorkflowDialog] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState<UserWorkflow | null>(null);
+  const [openDocumentDialog, setOpenDocumentDialog] = useState(false);
 
   const [workflowFormData, setWorkflowFormData] = useState({
     workflowName: '',
@@ -83,6 +84,12 @@ const RiskAnalysisView: React.FC = () => {
     likelihood: 2,
     impact: 2,
     automationReason: '',
+  });
+
+  const [documentFormData, setDocumentFormData] = useState({
+    title: '',
+    description: '',
+    selectedWorkflowIds: [] as string[],
   });
 
   useEffect(() => {
@@ -138,6 +145,37 @@ const RiskAnalysisView: React.FC = () => {
     DataService.saveUserWorkflow(workflow);
     loadData();
     setOpenWorkflowDialog(false);
+  };
+
+  const handleCreateDocument = () => {
+    setDocumentFormData({ title: '', description: '', selectedWorkflowIds: [] });
+    setOpenDocumentDialog(true);
+  };
+
+  const handleSubmitDocument = () => {
+    const selectedWorkflows = workflows.filter(wf => documentFormData.selectedWorkflowIds.includes(wf.id));
+    if (selectedWorkflows.length === 0) return;
+    const totalRiskScore = selectedWorkflows.reduce((sum, wf) => sum + wf.riskScore, 0);
+    let overallRiskLevel: RiskAnalysisDocument['overallRiskLevel'] = 'Low';
+    if (totalRiskScore <= 2) overallRiskLevel = 'Critical';
+    else if (totalRiskScore <= 4) overallRiskLevel = 'High';
+    else if (totalRiskScore <= 6) overallRiskLevel = 'Medium';
+    else overallRiskLevel = 'Low';
+    const newDoc: RiskAnalysisDocument = {
+      id: Date.now().toString(),
+      title: documentFormData.title,
+      description: documentFormData.description,
+      blackboardFeature: selectedWorkflows[0]?.blackboardFeature || 'Course Management',
+      workflows: selectedWorkflows,
+      overallRiskLevel,
+      totalRiskScore,
+      recommendations: '',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    DataService.saveRiskDocument(newDoc);
+    loadData();
+    setOpenDocumentDialog(false);
   };
 
   const getAutomationRecommendation = (score: number) => {
@@ -269,6 +307,11 @@ const RiskAnalysisView: React.FC = () => {
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>
+        <Box display="flex" justifyContent="flex-end" mb={2}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateDocument}>
+            Add Risk Analysis Document
+          </Button>
+        </Box>
         {riskDocuments.map((document) => (
           <Accordion key={document.id}>
             <AccordionSummary expandIcon={<ExpandMore />}>
@@ -436,6 +479,65 @@ const RiskAnalysisView: React.FC = () => {
           <Button onClick={() => setOpenWorkflowDialog(false)}>Cancel</Button>
           <Button onClick={handleSubmitWorkflow} variant="contained">
             {selectedWorkflow ? 'Update Workflow' : 'Create Workflow'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openDocumentDialog} onClose={() => setOpenDocumentDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Create New Risk Analysis Document</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                label="Title"
+                fullWidth
+                value={documentFormData.title}
+                onChange={e => setDocumentFormData({ ...documentFormData, title: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Description"
+                fullWidth
+                multiline
+                rows={2}
+                value={documentFormData.description}
+                onChange={e => setDocumentFormData({ ...documentFormData, description: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Typography gutterBottom>Select Workflows to Include</Typography>
+              <Box sx={{ maxHeight: 200, overflowY: 'auto', border: 1, borderColor: 'divider', borderRadius: 1, p: 1 }}>
+                {workflows.length === 0 && <Typography color="text.secondary">No workflows available.</Typography>}
+                {workflows.map(wf => (
+                  <Box key={wf.id} display="flex" alignItems="center" mb={1}>
+                    <input
+                      type="checkbox"
+                      checked={documentFormData.selectedWorkflowIds.includes(wf.id)}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        setDocumentFormData(prev => ({
+                          ...prev,
+                          selectedWorkflowIds: checked
+                            ? [...prev.selectedWorkflowIds, wf.id]
+                            : prev.selectedWorkflowIds.filter(id => id !== wf.id)
+                        }));
+                      }}
+                      id={`workflow-checkbox-${wf.id}`}
+                    />
+                    <label htmlFor={`workflow-checkbox-${wf.id}`} style={{ marginLeft: 8 }}>
+                      {wf.workflowName} (Risk: {wf.riskScore})
+                    </label>
+                  </Box>
+                ))}
+              </Box>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDocumentDialog(false)}>Cancel</Button>
+          <Button onClick={handleSubmitDocument} variant="contained" disabled={!documentFormData.title || documentFormData.selectedWorkflowIds.length === 0}>
+            Create Document
           </Button>
         </DialogActions>
       </Dialog>
