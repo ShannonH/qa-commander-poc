@@ -64,19 +64,19 @@ const UnderConstructionView: React.FC = () => {
           We're building an intelligent Jenkins analysis tool that will help you:
         </Typography>
         <Grid container spacing={2} sx={{ mt: 2 }}>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="body2">
               🔍 <strong>Analyze Build Logs</strong><br />
               Automatically parse and categorize build failures
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="body2">
               📊 <strong>Performance Insights</strong><br />
               Track build times and identify bottlenecks
             </Typography>
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="body2">
               🚨 <strong>Failure Patterns</strong><br />
               Detect recurring issues and suggest fixes
@@ -90,7 +90,7 @@ const UnderConstructionView: React.FC = () => {
       </Typography>
       <Grid container spacing={3}>
         {upcomingFeatures.map((feature, index) => (
-          <Grid item xs={12} md={4} key={index}>
+          <Grid size={{ xs: 12, md: 4 }} key={index}>
             <Card>
               <CardContent>
                 <Box display="flex" alignItems="center" mb={2}>
@@ -136,7 +136,7 @@ const UnderConstructionView: React.FC = () => {
           Coming Soon Features
         </Typography>
         <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="body2" gutterBottom>
               ✅ Real-time Jenkins webhook integration
             </Typography>
@@ -150,7 +150,7 @@ const UnderConstructionView: React.FC = () => {
               ✅ Automated failure notifications
             </Typography>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Typography variant="body2" gutterBottom>
               ✅ Custom dashboard widgets
             </Typography>

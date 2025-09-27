@@ -270,7 +270,7 @@ const BlackboardContentView: React.FC = () => {
       </Typography>
       
       <Grid container spacing={3}>
-        <Grid item xs={12}>
+        <Grid size={12}>
           <TextField
             fullWidth
             label="Blackboard Learn URL"
@@ -280,7 +280,7 @@ const BlackboardContentView: React.FC = () => {
             helperText="The full URL to your Blackboard Learn instance"
           />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             label="Administrator Username"
@@ -288,7 +288,7 @@ const BlackboardContentView: React.FC = () => {
             onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
           />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
             type="password"
@@ -323,7 +323,7 @@ const BlackboardContentView: React.FC = () => {
 
       <Grid container spacing={2}>
         {contentTypes.map((type) => (
-          <Grid item xs={12} md={6} key={type.id}>
+          <Grid size={{ xs: 12, md: 6 }} key={type.id}>
             <Card 
               sx={{ 
                 cursor: 'pointer',
@@ -362,7 +362,7 @@ const BlackboardContentView: React.FC = () => {
               Create New Course
             </Typography>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   label="Course Name"
@@ -371,7 +371,7 @@ const BlackboardContentView: React.FC = () => {
                   required
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   label="Course ID"
@@ -381,7 +381,7 @@ const BlackboardContentView: React.FC = () => {
                   required
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   multiline
@@ -391,7 +391,7 @@ const BlackboardContentView: React.FC = () => {
                   onChange={(e) => setCourseData({ ...courseData, description: e.target.value })}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -402,7 +402,7 @@ const BlackboardContentView: React.FC = () => {
                   label="Allow Guest Access"
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -435,7 +435,7 @@ const BlackboardContentView: React.FC = () => {
               Create {selectedContentType === 'instructor' ? 'Instructor' : 'Students'}
             </Typography>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   label="First Name"
@@ -444,7 +444,7 @@ const BlackboardContentView: React.FC = () => {
                   required
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   label="Last Name"
@@ -453,7 +453,7 @@ const BlackboardContentView: React.FC = () => {
                   required
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   label="Username Base"
@@ -463,7 +463,7 @@ const BlackboardContentView: React.FC = () => {
                   required
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   label="External ID Base"
@@ -473,7 +473,7 @@ const BlackboardContentView: React.FC = () => {
                 />
               </Grid>
               {selectedContentType === 'students' && (
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <TextField
                     fullWidth
                     type="number"
@@ -484,7 +484,7 @@ const BlackboardContentView: React.FC = () => {
                   />
                 </Grid>
               )}
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>Role</InputLabel>
                   <Select
@@ -500,7 +500,7 @@ const BlackboardContentView: React.FC = () => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   select
@@ -540,7 +540,7 @@ const BlackboardContentView: React.FC = () => {
               Create Assignment
             </Typography>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   select
@@ -559,7 +559,7 @@ const BlackboardContentView: React.FC = () => {
                     ))}
                 </TextField>
               </Grid>
-              <Grid item xs={12} md={8}>
+              <Grid size={{ xs: 12, md: 8 }}>
                 <TextField
                   fullWidth
                   label="Assignment Title"
@@ -568,7 +568,7 @@ const BlackboardContentView: React.FC = () => {
                   required
                 />
               </Grid>
-              <Grid item xs={12} md={4}>
+              <Grid size={{ xs: 12, md: 4 }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -584,7 +584,7 @@ const BlackboardContentView: React.FC = () => {
                   inputProps={{ min: 0 }}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   multiline
@@ -594,7 +594,7 @@ const BlackboardContentView: React.FC = () => {
                   onChange={(e) => setAssignmentData({ ...assignmentData, description: e.target.value })}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <TextField
                   fullWidth
                   multiline
@@ -604,7 +604,7 @@ const BlackboardContentView: React.FC = () => {
                   onChange={(e) => setAssignmentData({ ...assignmentData, instructions: e.target.value })}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -620,7 +620,7 @@ const BlackboardContentView: React.FC = () => {
                   inputProps={{ min: 1 }}
                 />
               </Grid>
-              <Grid item xs={12} md={6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>Scoring Model</InputLabel>
                   <Select
