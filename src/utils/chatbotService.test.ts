@@ -1,4 +1,4 @@
-import { ChatbotService } from '../utils/chatbotService';
+import { ChatbotService } from './chatbotService';
 import { ChatMessage, ChatbotContext } from '../types';
 
 describe('ChatbotService', () => {
@@ -30,7 +30,7 @@ describe('ChatbotService', () => {
 
       ChatbotService.saveChatHistory(messages);
       const retrieved = ChatbotService.getChatHistory();
-      
+
       expect(retrieved).toHaveLength(1);
       expect(retrieved[0].content).toBe('Hello');
       expect(retrieved[0].isUser).toBe(true);
@@ -49,7 +49,7 @@ describe('ChatbotService', () => {
 
       ChatbotService.saveChatHistory(messages);
       ChatbotService.clearChatHistory();
-      
+
       const history = ChatbotService.getChatHistory();
       expect(history).toEqual([]);
     });
@@ -139,7 +139,7 @@ describe('ChatbotService', () => {
 
       expect(response.type).toBe('test-plan');
       expect(response.metadata?.testPlan).toBeDefined();
-      
+
       const testPlan = response.metadata?.testPlan;
       expect(testPlan?.title).toContain('Testing Plan');
       expect(testPlan?.priority).toBe('High');
