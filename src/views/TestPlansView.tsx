@@ -34,55 +34,21 @@ import {
   Edit as EditIcon,
   Visibility as ViewIcon,
 } from '@mui/icons-material';
-import { TestPlan, TestCategory, BlackboardFeature } from '../types';
+import { TestPlan, TestCategory, TestScenario, BlackboardFeature } from '../types';
+import { DataService } from '../utils/dataService';
 
 const TestPlansView: React.FC = () => {
-  const [testPlans, setTestPlans] = useState<TestPlan[]>([
-    {
-      id: '1',
-      title: 'Gradebook Feature Testing',
-      description: 'Comprehensive testing of Blackboard Ultra gradebook functionality',
-      feature: 'Grade Management',
-      category: 'Functional',
-      priority: 'High',
-      estimatedHours: 40,
-      prerequisites: ['Test environment setup', 'Sample course with students'],
-      testCases: [
-        {
-          id: 'tc1',
-          title: 'Create Grade Column',
-          description: 'Test creating a new grade column in gradebook',
-          steps: [
-            { id: 's1', stepNumber: 1, action: 'Navigate to gradebook', expectedResult: 'Gradebook loads successfully' },
-            { id: 's2', stepNumber: 2, action: 'Click Add Column', expectedResult: 'Column creation form appears' },
-          ],
-          expectedResult: 'Grade column is created successfully',
-          priority: 'High',
-        },
-      ],
-      blackboardFeature: 'Gradebook',
-      status: 'Draft',
-      assignee: 'John Doe',
-      createdAt: new Date('2024-01-15'),
-      updatedAt: new Date('2024-01-15'),
-    },
-    {
-      id: '2',
-      title: 'Discussion Forum Integration',
-      description: 'Testing discussion forum features and student interactions',
-      feature: 'Communication',
-      category: 'Integration',
-      priority: 'Medium',
-      estimatedHours: 24,
-      prerequisites: ['Course with enrolled students', 'Forum configuration'],
-      testCases: [],
-      blackboardFeature: 'Discussion Forums',
-      status: 'In Progress',
-      assignee: 'Jane Smith',
-      createdAt: new Date('2024-01-20'),
-      updatedAt: new Date('2024-01-22'),
-    },
-  ]);
+  const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
+
+  React.useEffect(() => {
+    // Initialize sample data on first load
+    DataService.initializeSampleData();
+    loadData();
+  }, []);
+
+  const loadData = () => {
+    setTestPlans(DataService.getTestPlans());
+  };
 
   const [open, setOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<TestPlan | null>(null);
@@ -96,6 +62,7 @@ const TestPlansView: React.FC = () => {
     priority: 'Medium' as TestPlan['priority'],
     estimatedHours: 8,
     prerequisites: [''],
+    testScenarios: [] as TestScenario[],
     blackboardFeature: 'Course Management' as BlackboardFeature,
     assignee: '',
   });
@@ -124,6 +91,7 @@ const TestPlansView: React.FC = () => {
       priority: 'Medium',
       estimatedHours: 8,
       prerequisites: [''],
+      testScenarios: [],
       blackboardFeature: 'Course Management',
       assignee: '',
     });
@@ -141,6 +109,7 @@ const TestPlansView: React.FC = () => {
       priority: plan.priority,
       estimatedHours: plan.estimatedHours,
       prerequisites: plan.prerequisites,
+      testScenarios: plan.testScenarios,
       blackboardFeature: plan.blackboardFeature,
       assignee: plan.assignee || '',
     });
@@ -163,15 +132,41 @@ const TestPlansView: React.FC = () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      setTestPlans([...testPlans, newTestPlan]);
+      DataService.saveTestPlan(newTestPlan);
     } else if (viewMode === 'edit' && selectedPlan) {
-      setTestPlans(testPlans.map(plan => 
-        plan.id === selectedPlan.id 
-          ? { ...plan, ...formData, updatedAt: new Date() }
-          : plan
-      ));
+      const updatedPlan = { ...selectedPlan, ...formData, updatedAt: new Date() };
+      DataService.saveTestPlan(updatedPlan);
     }
+    loadData();
     setOpen(false);
+  };
+
+  const addTestScenario = () => {
+    const newScenario: TestScenario = {
+      id: Date.now().toString(),
+      given: '',
+      when: '',
+      then: '',
+      priority: 'Medium',
+      notes: ''
+    };
+    setFormData({
+      ...formData,
+      testScenarios: [...formData.testScenarios, newScenario]
+    });
+  };
+
+  const updateTestScenario = (index: number, field: keyof TestScenario, value: string) => {
+    const newScenarios = [...formData.testScenarios];
+    newScenarios[index] = { ...newScenarios[index], [field]: value };
+    setFormData({ ...formData, testScenarios: newScenarios });
+  };
+
+  const removeTestScenario = (index: number) => {
+    setFormData({
+      ...formData,
+      testScenarios: formData.testScenarios.filter((_, i) => i !== index)
+    });
   };
 
   const addPrerequisite = () => {
@@ -298,6 +293,9 @@ const TestPlansView: React.FC = () => {
                 <Typography variant="body2" gutterBottom>
                   <strong>Test Cases:</strong> {plan.testCases.length}
                 </Typography>
+                <Typography variant="body2" gutterBottom>
+                  <strong>Test Scenarios:</strong> {plan.testScenarios.length}
+                </Typography>
                 {plan.assignee && (
                   <Typography variant="body2" gutterBottom>
                     <strong>Assignee:</strong> {plan.assignee}
@@ -365,6 +363,26 @@ const TestPlansView: React.FC = () => {
                     </ListItem>
                   ))}
                 </List>
+                
+                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Test Scenarios ({selectedPlan.testScenarios.length})</Typography>
+                {selectedPlan.testScenarios.map((scenario) => (
+                  <Accordion key={scenario.id}>
+                    <AccordionSummary expandIcon={<ExpandMore />}>
+                      <Typography>Scenario: {scenario.given}</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Box>
+                        <Typography variant="body2" gutterBottom><strong>Given:</strong> {scenario.given}</Typography>
+                        <Typography variant="body2" gutterBottom><strong>When:</strong> {scenario.when}</Typography>
+                        <Typography variant="body2" gutterBottom><strong>Then:</strong> {scenario.then}</Typography>
+                        <Typography variant="body2" gutterBottom><strong>Priority:</strong> {scenario.priority}</Typography>
+                        {scenario.notes && (
+                          <Typography variant="body2" gutterBottom><strong>Notes:</strong> {scenario.notes}</Typography>
+                        )}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+                ))}
                 
                 <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>Test Cases ({selectedPlan.testCases.length})</Typography>
                 {selectedPlan.testCases.map((testCase) => (
@@ -501,6 +519,96 @@ const TestPlansView: React.FC = () => {
                 {viewMode !== 'view' && (
                   <Button onClick={addPrerequisite} size="small">
                     Add Prerequisite
+                  </Button>
+                )}
+              </Grid>
+              <Grid size={12}>
+                <Typography variant="h6" gutterBottom>Test Scenarios (Given/When/Then)</Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Define test scenarios that will be used for risk analysis workflows
+                </Typography>
+                {formData.testScenarios.map((scenario, index) => (
+                  <Paper key={scenario.id} sx={{ p: 2, mb: 2, backgroundColor: 'background.default' }}>
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                      <Typography variant="subtitle2">Scenario {index + 1}</Typography>
+                      {viewMode !== 'view' && (
+                        <IconButton 
+                          onClick={() => removeTestScenario(index)}
+                          size="small"
+                          aria-label={`Remove scenario ${index + 1}`}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      )}
+                    </Box>
+                    <Grid container spacing={2}>
+                      <Grid size={12}>
+                        <TextField
+                          fullWidth
+                          label="Given (Initial condition)"
+                          placeholder="e.g., An instructor has entered a grade into the gradebook cell"
+                          value={scenario.given}
+                          onChange={(e) => updateTestScenario(index, 'given', e.target.value)}
+                          disabled={viewMode === 'view'}
+                          multiline
+                          rows={2}
+                        />
+                      </Grid>
+                      <Grid size={12}>
+                        <TextField
+                          fullWidth
+                          label="When (Action or trigger)"
+                          placeholder="e.g., They hit enter or click away from the cell"
+                          value={scenario.when}
+                          onChange={(e) => updateTestScenario(index, 'when', e.target.value)}
+                          disabled={viewMode === 'view'}
+                          multiline
+                          rows={2}
+                        />
+                      </Grid>
+                      <Grid size={12}>
+                        <TextField
+                          fullWidth
+                          label="Then (Expected outcome)"
+                          placeholder="e.g., The grade is saved to the database and displayed correctly"
+                          value={scenario.then}
+                          onChange={(e) => updateTestScenario(index, 'then', e.target.value)}
+                          disabled={viewMode === 'view'}
+                          multiline
+                          rows={2}
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <FormControl fullWidth>
+                          <InputLabel>Priority</InputLabel>
+                          <Select
+                            value={scenario.priority}
+                            label="Priority"
+                            onChange={(e) => updateTestScenario(index, 'priority', e.target.value)}
+                            disabled={viewMode === 'view'}
+                          >
+                            <MenuItem value="Low">Low</MenuItem>
+                            <MenuItem value="Medium">Medium</MenuItem>
+                            <MenuItem value="High">High</MenuItem>
+                            <MenuItem value="Critical">Critical</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 6 }}>
+                        <TextField
+                          fullWidth
+                          label="Notes (optional)"
+                          value={scenario.notes || ''}
+                          onChange={(e) => updateTestScenario(index, 'notes', e.target.value)}
+                          disabled={viewMode === 'view'}
+                        />
+                      </Grid>
+                    </Grid>
+                  </Paper>
+                ))}
+                {viewMode !== 'view' && (
+                  <Button onClick={addTestScenario} size="small" startIcon={<AddIcon />}>
+                    Add Test Scenario
                   </Button>
                 )}
               </Grid>

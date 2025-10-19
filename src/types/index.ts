@@ -4,10 +4,14 @@ export interface UserWorkflow {
   description: string;
   userStory: string;
   blackboardFeature: BlackboardFeature;
-  likelihood: number; // 1-5 scale (probability of failure)
-  impact: number; // 1-5 scale (impact if failure occurs)
+  likelihood: number; // 1-4 scale (probability of failure)
+  impact: number; // 1-4 scale (impact if failure occurs)
   riskScore: number; // likelihood * impact
+  testingTier: 'Tier 1: CRITICAL' | 'Tier 2: HIGH' | 'Tier 3: MEDIUM/LOW';
+  deliverables: string; // Required testing deliverables
   automationReason: string;
+  sourceTestPlanId?: string; // Link to originating test plan
+  sourceScenarioId?: string; // Link to originating test scenario
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,12 +38,22 @@ export interface TestPlan {
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
   estimatedHours: number;
   prerequisites: string[];
+  testScenarios: TestScenario[];
   testCases: TestCase[];
   blackboardFeature: BlackboardFeature;
   status: 'Draft' | 'Review' | 'Approved' | 'In Progress' | 'Completed' | 'Archived';
   assignee?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface TestScenario {
+  id: string;
+  given: string;
+  when: string;
+  then: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  notes?: string;
 }
 
 export interface TestCase {
@@ -49,6 +63,7 @@ export interface TestCase {
   steps: TestStep[];
   expectedResult: string;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  relatedScenarioId?: string; // Link to TestScenario
 }
 
 export interface TestStep {

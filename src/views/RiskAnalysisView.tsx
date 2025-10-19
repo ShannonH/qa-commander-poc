@@ -37,7 +37,7 @@ import {
   AutoAwesome,
   Build,
 } from '@mui/icons-material';
-import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature } from '../types';
+import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature, TestPlan, TestScenario } from '../types';
 import { DataService } from '../utils/dataService';
 
 interface TabPanelProps {
@@ -72,9 +72,11 @@ const RiskAnalysisView: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const [workflows, setWorkflows] = useState<UserWorkflow[]>([]);
   const [riskDocuments, setRiskDocuments] = useState<RiskAnalysisDocument[]>([]);
+  const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
   const [openWorkflowDialog, setOpenWorkflowDialog] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState<UserWorkflow | null>(null);
   const [openDocumentDialog, setOpenDocumentDialog] = useState(false);
+  const [openImportDialog, setOpenImportDialog] = useState(false);
 
   const [workflowFormData, setWorkflowFormData] = useState({
     workflowName: '',
@@ -83,6 +85,8 @@ const RiskAnalysisView: React.FC = () => {
     blackboardFeature: 'Course Management' as BlackboardFeature,
     likelihood: 2,
     impact: 2,
+    testingTier: 'Tier 2: HIGH' as UserWorkflow['testingTier'],
+    deliverables: 'UI Automation, Exploratory Testing',
     automationReason: '',
   });
 
@@ -101,6 +105,56 @@ const RiskAnalysisView: React.FC = () => {
   const loadData = () => {
     setWorkflows(DataService.getUserWorkflows());
     setRiskDocuments(DataService.getRiskDocuments());
+    setTestPlans(DataService.getTestPlans());
+  };
+
+  const getTestingTierFromRiskScore = (score: number): UserWorkflow['testingTier'] => {
+    if (score <= 4) return 'Tier 1: CRITICAL';
+    if (score <= 8) return 'Tier 2: HIGH';
+    return 'Tier 3: MEDIUM/LOW';
+  };
+
+  const getDefaultDeliverables = (tier: UserWorkflow['testingTier']): string => {
+    switch (tier) {
+      case 'Tier 1: CRITICAL':
+        return 'Unit Test, UI Automation, Exploratory Testing';
+      case 'Tier 2: HIGH':
+        return 'UI Automation, Exploratory Testing';
+      case 'Tier 3: MEDIUM/LOW':
+        return 'Manual Testing';
+      default:
+        return 'Manual Testing';
+    }
+  };
+
+  const handleImportFromTestPlans = () => {
+    setOpenImportDialog(true);
+  };
+
+  const importTestScenario = (testPlan: TestPlan, scenario: TestScenario) => {
+    const riskScore = 2 * 2; // Default values
+    const testingTier = getTestingTierFromRiskScore(riskScore);
+    
+    const newWorkflow: UserWorkflow = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      workflowName: `${scenario.given} → ${scenario.when} → ${scenario.then}`,
+      description: `Imported from test plan: ${testPlan.title}`,
+      userStory: `Given ${scenario.given}, when ${scenario.when}, then ${scenario.then}`,
+      blackboardFeature: testPlan.blackboardFeature,
+      likelihood: 2,
+      impact: 2,
+      riskScore,
+      testingTier,
+      deliverables: getDefaultDeliverables(testingTier),
+      automationReason: 'Imported from test plan, needs review',
+      sourceTestPlanId: testPlan.id,
+      sourceScenarioId: scenario.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    DataService.saveUserWorkflow(newWorkflow);
+    loadData();
   };
 
   const handleCreateWorkflow = () => {
@@ -112,6 +166,8 @@ const RiskAnalysisView: React.FC = () => {
       blackboardFeature: 'Course Management',
       likelihood: 2,
       impact: 2,
+      testingTier: 'Tier 2: HIGH',
+      deliverables: 'UI Automation, Exploratory Testing',
       automationReason: '',
     });
     setOpenWorkflowDialog(true);
@@ -126,6 +182,8 @@ const RiskAnalysisView: React.FC = () => {
       blackboardFeature: workflow.blackboardFeature,
       likelihood: workflow.likelihood,
       impact: workflow.impact,
+      testingTier: workflow.testingTier,
+      deliverables: workflow.deliverables,
       automationReason: workflow.automationReason,
     });
     setOpenWorkflowDialog(true);
@@ -133,11 +191,17 @@ const RiskAnalysisView: React.FC = () => {
 
   const handleSubmitWorkflow = () => {
     const riskScore = workflowFormData.likelihood * workflowFormData.impact;
+    const testingTier = getTestingTierFromRiskScore(riskScore);
+    const deliverables = workflowFormData.deliverables || getDefaultDeliverables(testingTier);
 
     const workflow: UserWorkflow = {
       id: selectedWorkflow?.id || Date.now().toString(),
       ...workflowFormData,
       riskScore,
+      testingTier,
+      deliverables,
+      sourceTestPlanId: selectedWorkflow?.sourceTestPlanId,
+      sourceScenarioId: selectedWorkflow?.sourceScenarioId,
       createdAt: selectedWorkflow?.createdAt || new Date(),
       updatedAt: new Date(),
     };
@@ -216,13 +280,22 @@ const RiskAnalysisView: React.FC = () => {
             Analyze user workflows to determine UI test automation strategy
           </Typography>
         </div>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreateWorkflow}
-        >
-          Add User Workflow
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={handleImportFromTestPlans}
+          >
+            Import from Test Plans
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreateWorkflow}
+          >
+            Add User Workflow
+          </Button>
+        </Box>
       </Box>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -268,6 +341,12 @@ const RiskAnalysisView: React.FC = () => {
                         label={`Risk: ${riskLevel.level} (${workflow.riskScore})`}
                         color={riskLevel.color as any}
                         size="small"
+                        sx={{ mr: 1, mb: 1 }}
+                      />
+                      <Chip
+                        label={workflow.testingTier}
+                        color={workflow.testingTier.includes('CRITICAL') ? 'error' : workflow.testingTier.includes('HIGH') ? 'warning' : 'info'}
+                        size="small"
                         sx={{ mb: 1 }}
                       />
                     </Box>
@@ -282,6 +361,9 @@ const RiskAnalysisView: React.FC = () => {
                       </Box>
                       <Rating value={workflow.riskScore / 4} readOnly size="small" max={4} />
                     </Box>
+                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                      <strong>Deliverables:</strong> {workflow.deliverables}
+                    </Typography>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
                       <strong>Automation Rule:</strong> {automationStatus === 'Automate' ? 'Score 1-6: Automate' : 'Score 7-16: Manual Only'}
                     </Typography>
@@ -335,19 +417,22 @@ const RiskAnalysisView: React.FC = () => {
                 <Table size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Workflow</TableCell>
-                      <TableCell align="center">Likelihood</TableCell>
-                      <TableCell align="center">Impact</TableCell>
-                      <TableCell align="center">Risk Score</TableCell>
-                      <TableCell align="center">Decision</TableCell>
+                      <TableCell>Workflow / AC Item</TableCell>
+                      <TableCell align="center">Impact (1-4)</TableCell>
+                      <TableCell align="center">Likelihood (1-4)</TableCell>
+                      <TableCell align="center">Risk Factor (I x L)</TableCell>
+                      <TableCell align="center">Mandatory Testing Tier</TableCell>
+                      <TableCell>Deliverables Commitment</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {document.workflows.map((workflow) => (
                       <TableRow key={workflow.id}>
-                        <TableCell>{workflow.workflowName}</TableCell>
-                        <TableCell align="center">{workflow.likelihood}</TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{workflow.workflowName}</Typography>
+                        </TableCell>
                         <TableCell align="center">{workflow.impact}</TableCell>
+                        <TableCell align="center">{workflow.likelihood}</TableCell>
                         <TableCell align="center">
                           <Chip
                             label={workflow.riskScore}
@@ -356,11 +441,13 @@ const RiskAnalysisView: React.FC = () => {
                           />
                         </TableCell>
                         <TableCell align="center">
-                          <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-                            {getAutomationIcon(workflow.riskScore)}
-                            {getAutomationRecommendation(workflow.riskScore)}
-                          </Box>
+                          <Chip
+                            label={workflow.testingTier}
+                            color={workflow.testingTier.includes('CRITICAL') ? 'error' : workflow.testingTier.includes('HIGH') ? 'warning' : 'info'}
+                            size="small"
+                          />
                         </TableCell>
+                        <TableCell>{workflow.deliverables}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -455,12 +542,27 @@ const RiskAnalysisView: React.FC = () => {
                 <Typography variant="body2" color="text.secondary" gutterBottom>
                   Risk Level: {getRiskLevelFromScore(workflowFormData.likelihood * workflowFormData.impact).level}
                 </Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Testing Tier: {getTestingTierFromRiskScore(workflowFormData.likelihood * workflowFormData.impact)}
+                </Typography>
                 <Typography variant="body2" color={getAutomationColor(workflowFormData.likelihood * workflowFormData.impact)}>
                   {getAutomationRecommendation(workflowFormData.likelihood * workflowFormData.impact) === 'Automate'
                     ? 'Score 1-6: Automate'
                     : 'Score 7-16: Manual Only'}
                 </Typography>
               </Box>
+            </Grid>
+            <Grid size={12}>
+              <TextField
+                label="Required Deliverables"
+                fullWidth
+                multiline
+                rows={2}
+                value={workflowFormData.deliverables}
+                onChange={(e) => setWorkflowFormData({ ...workflowFormData, deliverables: e.target.value })}
+                placeholder="e.g., Unit Test, UI Automation, Exploratory Testing"
+                helperText="Specify the testing deliverables required for this workflow"
+              />
             </Grid>
             <Grid size={12}>
               <TextField
@@ -539,6 +641,52 @@ const RiskAnalysisView: React.FC = () => {
           <Button onClick={handleSubmitDocument} variant="contained" disabled={!documentFormData.title || documentFormData.selectedWorkflowIds.length === 0}>
             Create Document
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openImportDialog} onClose={() => setOpenImportDialog(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Import Test Scenarios from Test Plans</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Select test scenarios from existing test plans to create risk analysis workflows
+          </Typography>
+          <Box sx={{ maxHeight: 400, overflowY: 'auto', mt: 2 }}>
+            {testPlans.map((testPlan) => (
+              <Accordion key={testPlan.id}>
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Typography variant="h6">{testPlan.title} ({testPlan.testScenarios.length} scenarios)</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  {testPlan.testScenarios.map((scenario) => (
+                    <Paper key={scenario.id} sx={{ p: 2, mb: 2, backgroundColor: 'background.default' }}>
+                      <Typography variant="body2" gutterBottom><strong>Given:</strong> {scenario.given}</Typography>
+                      <Typography variant="body2" gutterBottom><strong>When:</strong> {scenario.when}</Typography>
+                      <Typography variant="body2" gutterBottom><strong>Then:</strong> {scenario.then}</Typography>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
+                        <Chip label={scenario.priority} size="small" />
+                        <Button 
+                          size="small" 
+                          variant="contained"
+                          onClick={() => importTestScenario(testPlan, scenario)}
+                        >
+                          Import as Workflow
+                        </Button>
+                      </Box>
+                    </Paper>
+                  ))}
+                  {testPlan.testScenarios.length === 0 && (
+                    <Typography color="text.secondary">No test scenarios defined for this test plan.</Typography>
+                  )}
+                </AccordionDetails>
+              </Accordion>
+            ))}
+            {testPlans.length === 0 && (
+              <Typography color="text.secondary">No test plans available. Create test plans first to import scenarios.</Typography>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenImportDialog(false)}>Close</Button>
         </DialogActions>
       </Dialog>
 

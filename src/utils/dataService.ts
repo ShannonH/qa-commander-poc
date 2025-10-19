@@ -1,4 +1,4 @@
-import { UserWorkflow, RiskAnalysisDocument, TestPlan } from '../types';
+import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario } from '../types';
 
 const STORAGE_KEYS = {
   WORKFLOWS: 'qa_commander_workflows',
@@ -139,6 +139,8 @@ export class DataService {
           likelihood: 2,
           impact: 2,
           riskScore: 4,
+          testingTier: 'Tier 2: HIGH',
+          deliverables: 'UI Automation, Exploratory Testing',
           automationReason: 'Login is critical and stable, risk score 4 qualifies for automation.',
           createdAt: new Date('2024-01-15'),
           updatedAt: new Date('2024-01-15'),
@@ -152,6 +154,8 @@ export class DataService {
           likelihood: 2,
           impact: 3,
           riskScore: 6,
+          testingTier: 'Tier 2: HIGH',
+          deliverables: 'UI Automation, Exploratory Testing',
           automationReason: 'Assignment creation is frequently used, risk score 6 qualifies for automation.',
           createdAt: new Date('2024-01-18'),
           updatedAt: new Date('2024-01-18'),
@@ -165,6 +169,8 @@ export class DataService {
           likelihood: 3,
           impact: 3,
           riskScore: 9,
+          testingTier: 'Tier 3: MEDIUM/LOW',
+          deliverables: 'Manual Testing',
           automationReason: 'Discussion posts are content-dependent, risk score 9 is above automation threshold.',
           createdAt: new Date('2024-01-20'),
           updatedAt: new Date('2024-01-20'),
@@ -203,6 +209,24 @@ export class DataService {
           priority: 'High',
           estimatedHours: 40,
           prerequisites: ['Test environment setup', 'Sample course with students'],
+          testScenarios: [
+            {
+              id: 'ts1',
+              given: 'An instructor has entered a grade into the gradebook cell',
+              when: 'They hit enter or click away from the cell',
+              then: 'The grade is saved to the database and displayed correctly',
+              priority: 'High',
+              notes: 'Critical workflow for grade management'
+            },
+            {
+              id: 'ts2', 
+              given: 'An instructor has multiple students in their course',
+              when: 'They bulk update grades for an assignment',
+              then: 'All grades are saved and reflected in student views',
+              priority: 'Medium',
+              notes: 'Important for efficiency'
+            }
+          ],
           testCases: [
             {
               id: 'tc1',
@@ -214,6 +238,7 @@ export class DataService {
               ],
               expectedResult: 'Grade column is created successfully',
               priority: 'High',
+              relatedScenarioId: 'ts1'
             },
           ],
           blackboardFeature: 'Gradebook',
@@ -231,6 +256,16 @@ export class DataService {
           priority: 'Medium',
           estimatedHours: 24,
           prerequisites: ['Course with enrolled students', 'Forum configuration'],
+          testScenarios: [
+            {
+              id: 'ts3',
+              given: 'A student is logged into their course',
+              when: 'They create a new discussion post',
+              then: 'The post is published and visible to other students',
+              priority: 'Medium',
+              notes: 'Basic forum functionality'
+            }
+          ],
           testCases: [],
           blackboardFeature: 'Discussion Forums',
           status: 'In Progress',
