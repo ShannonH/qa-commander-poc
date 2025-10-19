@@ -50,6 +50,7 @@ export interface TestPlan {
   
   // 4. Strategy
   testStrategy: string;
+  strategyChecklist: StrategyChecklistItem[];
   
   // 5. Test Scenarios (Given/When/Then)
   testScenarios: TestScenario[];
@@ -72,6 +73,14 @@ export interface TestPlan {
   assignee?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface StrategyChecklistItem {
+  id: string;
+  category: 'test_types' | 'automation' | 'risk_management' | 'tools' | 'coverage' | 'process';
+  item: string;
+  checked: boolean;
+  notes?: string;
 }
 
 export interface TestScenario {

@@ -30,6 +30,9 @@ import {
   Step,
   StepLabel,
   StepContent,
+  Checkbox,
+  FormControlLabel,
+  Tooltip,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -37,8 +40,10 @@ import {
   ExpandMore,
   Edit as EditIcon,
   Visibility as ViewIcon,
+  GetApp as ExportIcon,
+  Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
-import { TestPlan, TestCategory, TestScenario, BlackboardFeature } from '../types';
+import { TestPlan, TestCategory, TestScenario, BlackboardFeature, StrategyChecklistItem } from '../types';
 import { DataService } from '../utils/dataService';
 
 const TestPlansView: React.FC = () => {
@@ -52,6 +57,172 @@ const TestPlansView: React.FC = () => {
 
   const loadData = () => {
     setTestPlans(DataService.getTestPlans());
+  };
+
+  // Strategy checklist management
+  const getDefaultStrategyChecklist = (): StrategyChecklistItem[] => [
+    { id: 'sc1', category: 'test_types', item: 'Functional testing of core workflows', checked: false },
+    { id: 'sc2', category: 'test_types', item: 'Integration testing with external systems', checked: false },
+    { id: 'sc3', category: 'test_types', item: 'Usability and user experience testing', checked: false },
+    { id: 'sc4', category: 'test_types', item: 'Accessibility testing (WCAG compliance)', checked: false },
+    { id: 'sc5', category: 'test_types', item: 'Performance and load testing', checked: false },
+    { id: 'sc6', category: 'test_types', item: 'Security and data protection testing', checked: false },
+    { id: 'sc7', category: 'automation', item: 'Automate critical user paths', checked: false },
+    { id: 'sc8', category: 'automation', item: 'Automated regression testing', checked: false },
+    { id: 'sc9', category: 'automation', item: 'Cross-browser automated testing', checked: false },
+    { id: 'sc10', category: 'automation', item: 'API testing automation', checked: false },
+    { id: 'sc11', category: 'risk_management', item: 'Test edge cases and error conditions', checked: false },
+    { id: 'sc12', category: 'risk_management', item: 'Data integrity and backup testing', checked: false },
+    { id: 'sc13', category: 'risk_management', item: 'Concurrent user scenarios', checked: false },
+    { id: 'sc14', category: 'risk_management', item: 'Network interruption and recovery', checked: false },
+    { id: 'sc15', category: 'tools', item: 'Database verification and monitoring', checked: false },
+    { id: 'sc16', category: 'tools', item: 'Log analysis and error tracking', checked: false },
+    { id: 'sc17', category: 'tools', item: 'Performance monitoring tools', checked: false },
+    { id: 'sc18', category: 'coverage', item: 'Test all supported browsers', checked: false },
+    { id: 'sc19', category: 'coverage', item: 'Mobile device compatibility', checked: false },
+    { id: 'sc20', category: 'coverage', item: 'Different user roles and permissions', checked: false },
+    { id: 'sc21', category: 'process', item: 'Smoke testing for each build', checked: false },
+    { id: 'sc22', category: 'process', item: 'User acceptance testing involvement', checked: false },
+    { id: 'sc23', category: 'process', item: 'Documentation and knowledge transfer', checked: false }
+  ];
+
+  const updateStrategyChecklistItem = (itemId: string, field: keyof StrategyChecklistItem, value: any) => {
+    const updatedChecklist = formData.strategyChecklist.map(item => 
+      item.id === itemId ? { ...item, [field]: value } : item
+    );
+    setFormData({ ...formData, strategyChecklist: updatedChecklist });
+  };
+
+  const addCustomStrategyItem = (category: StrategyChecklistItem['category']) => {
+    const newItem: StrategyChecklistItem = {
+      id: `custom_${Date.now()}`,
+      category,
+      item: 'Custom strategy item',
+      checked: false,
+      notes: ''
+    };
+    setFormData({
+      ...formData,
+      strategyChecklist: [...formData.strategyChecklist, newItem]
+    });
+  };
+
+  // Export functionality
+  const generatePDF = async (testPlan: TestPlan) => {
+    try {
+      // Simple text-based export for now - could be enhanced with a proper PDF library
+      const content = `
+TEST PLAN: ${testPlan.title}
+======================================
+
+Description: ${testPlan.description}
+Feature: ${testPlan.feature}
+Priority: ${testPlan.priority}
+Estimated Hours: ${testPlan.estimatedHours}
+
+OBJECTIVE:
+${testPlan.objective}
+
+IN SCOPE:
+${testPlan.inScope.map(item => `• ${item}`).join('\n')}
+
+OUT OF SCOPE:
+${testPlan.outOfScope.map(item => `• ${item}`).join('\n')}
+
+PREREQUISITES:
+${testPlan.prerequisites.map(item => `• ${item}`).join('\n')}
+
+STRATEGY:
+${testPlan.testStrategy}
+
+Strategy Checklist:
+${testPlan.strategyChecklist.map(item => `${item.checked ? '☑' : '☐'} ${item.item} ${item.notes ? `(${item.notes})` : ''}`).join('\n')}
+
+TEST SCENARIOS:
+${testPlan.testScenarios.map((scenario, index) => `
+${index + 1}. Given: ${scenario.given}
+   When: ${scenario.when}
+   Then: ${scenario.then}
+   Priority: ${scenario.priority}
+   ${scenario.notes ? `Notes: ${scenario.notes}` : ''}
+`).join('\n')}
+
+ENVIRONMENT REQUIREMENTS:
+${testPlan.testEnvironmentRequirements.map(item => `• ${item}`).join('\n')}
+
+DATA REQUIREMENTS:
+${testPlan.testDataRequirements.map(item => `• ${item}`).join('\n')}
+
+SUCCESS CRITERIA:
+${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
+      `;
+
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `TestPlan_${testPlan.title.replace(/\s+/g, '_')}.txt`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating export file');
+    }
+  };
+
+  // Generate risk analysis from test plan
+  const generateRiskAnalysis = (testPlan: TestPlan) => {
+    try {
+      // Create workflows from test scenarios
+      const workflows = testPlan.testScenarios.map(scenario => {
+        const defaultRiskScore = 4; // Medium risk as starting point
+        const defaultTier = 'Tier 2: HIGH';
+        
+        return {
+          id: `wf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          workflowName: `${scenario.given} → ${scenario.when} → ${scenario.then}`,
+          description: `Generated from test plan: ${testPlan.title}`,
+          userStory: `Given ${scenario.given}, when ${scenario.when}, then ${scenario.then}`,
+          blackboardFeature: testPlan.blackboardFeature,
+          likelihood: 2,
+          impact: 2,
+          riskScore: defaultRiskScore,
+          testingTier: defaultTier,
+          deliverables: 'UI Automation, Exploratory Testing',
+          automationReason: 'Generated from test plan scenario - requires review and assessment',
+          sourceTestPlanId: testPlan.id,
+          sourceScenarioId: scenario.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      });
+
+      // Save all workflows
+      workflows.forEach(workflow => DataService.saveUserWorkflow(workflow));
+      
+      // Create risk analysis document
+      const riskDocument = {
+        id: `ra_${Date.now()}`,
+        title: `Risk Analysis: ${testPlan.title}`,
+        description: `Generated risk analysis document based on test plan scenarios for ${testPlan.feature}`,
+        blackboardFeature: testPlan.blackboardFeature,
+        workflows: workflows,
+        overallRiskLevel: 'Medium' as const,
+        totalRiskScore: workflows.reduce((sum, w) => sum + w.riskScore, 0),
+        recommendations: 'Review and adjust impact/likelihood scores for each workflow. Consider automation for high-frequency, stable workflows.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      DataService.saveRiskDocument(riskDocument);
+      
+      alert(`Generated risk analysis with ${workflows.length} workflows. Check the Risk Analysis section to review and adjust the scoring.`);
+    } catch (error) {
+      console.error('Error generating risk analysis:', error);
+      alert('Error generating risk analysis');
+    }
   };
 
   const [open, setOpen] = useState(false);
@@ -70,6 +241,7 @@ const TestPlansView: React.FC = () => {
     outOfScope: [''] as string[],
     prerequisites: [''] as string[],
     testStrategy: '',
+    strategyChecklist: [] as StrategyChecklistItem[],
     testScenarios: [] as TestScenario[],
     testEnvironmentRequirements: [''] as string[],
     testDataRequirements: [''] as string[],
@@ -171,10 +343,37 @@ const TestPlansView: React.FC = () => {
           </List>
         </Paper>
 
-        {plan.testStrategy && (
+        {(plan.testStrategy || plan.strategyChecklist?.length > 0) && (
           <Paper sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" gutterBottom color="primary">Test Strategy</Typography>
-            <Typography variant="body2">{plan.testStrategy}</Typography>
+            {plan.testStrategy && (
+              <Typography variant="body2" paragraph>{plan.testStrategy}</Typography>
+            )}
+            {plan.strategyChecklist && plan.strategyChecklist.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle1" gutterBottom>Strategy Checklist</Typography>
+                {['test_types', 'automation', 'risk_management', 'tools', 'coverage', 'process'].map(category => {
+                  const categoryItems = plan.strategyChecklist.filter(item => item.category === category);
+                  if (categoryItems.length === 0) return null;
+                  
+                  return (
+                    <Box key={category} sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ textTransform: 'capitalize', fontWeight: 'bold' }}>
+                        {category.replace('_', ' ')}
+                      </Typography>
+                      {categoryItems.map(item => (
+                        <Box key={item.id} sx={{ ml: 2, display: 'flex', alignItems: 'center' }}>
+                          <Typography variant="body2">
+                            {item.checked ? '☑️' : '☐'} {item.item}
+                            {item.notes && ` (${item.notes})`}
+                          </Typography>
+                        </Box>
+                      ))}
+                    </Box>
+                  );
+                })}
+              </Box>
+            )}
           </Paper>
         )}
 
@@ -252,6 +451,24 @@ const TestPlansView: React.FC = () => {
             </Accordion>
           ))}
         </Paper>
+
+        <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'flex-end' }}>
+          <Button
+            variant="outlined"
+            startIcon={<ExportIcon />}
+            onClick={() => generatePDF(plan)}
+          >
+            Export PDF
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AnalyticsIcon />}
+            onClick={() => generateRiskAnalysis(plan)}
+            color="primary"
+          >
+            Generate Risk Analysis
+          </Button>
+        </Box>
       </Box>
     );
   };
@@ -512,21 +729,86 @@ const TestPlansView: React.FC = () => {
                 4. Test Strategy
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                Describe your overall approach to testing this feature.
+                Define your testing approach and select applicable strategies from the checklist below.
               </Typography>
             </Grid>
+            
             <Grid size={12}>
               <TextField
-                label="Test Strategy *"
+                label="Strategy Overview"
                 fullWidth
                 multiline
-                rows={5}
+                rows={3}
                 value={formData.testStrategy}
                 onChange={(e) => setFormData({ ...formData, testStrategy: e.target.value })}
-                placeholder="Describe your testing approach: combination of automated and manual testing, risk-based focus areas, testing techniques, etc."
+                placeholder="Provide a high-level overview of your testing approach..."
                 disabled={viewMode === 'view'}
-                helperText="Include testing approaches, automation strategy, risk-based priorities, and key techniques you'll use."
+                helperText="Brief description of your overall testing strategy and focus areas."
               />
+            </Grid>
+
+            <Grid size={12}>
+              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                Strategy Checklist
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                Select applicable testing strategies and add notes where needed. This checklist helps ensure comprehensive test coverage.
+              </Typography>
+              
+              {['test_types', 'automation', 'risk_management', 'tools', 'coverage', 'process'].map(category => {
+                const categoryItems = formData.strategyChecklist.filter(item => item.category === category);
+                if (categoryItems.length === 0) return null;
+                
+                return (
+                  <Box key={category} sx={{ mb: 3 }}>
+                    <Typography variant="subtitle1" sx={{ 
+                      textTransform: 'capitalize', 
+                      fontWeight: 'bold',
+                      color: 'primary.main',
+                      mb: 1
+                    }}>
+                      {category.replace('_', ' ')}
+                    </Typography>
+                    <Paper sx={{ p: 2, backgroundColor: 'background.default' }}>
+                      {categoryItems.map(item => (
+                        <Box key={item.id} sx={{ mb: 1 }}>
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={item.checked}
+                                onChange={(e) => updateStrategyChecklistItem(item.id, 'checked', e.target.checked)}
+                                disabled={viewMode === 'view'}
+                              />
+                            }
+                            label={item.item}
+                          />
+                          {item.checked && (
+                            <TextField
+                              fullWidth
+                              size="small"
+                              placeholder="Add implementation notes..."
+                              value={item.notes || ''}
+                              onChange={(e) => updateStrategyChecklistItem(item.id, 'notes', e.target.value)}
+                              disabled={viewMode === 'view'}
+                              sx={{ ml: 4, mt: 1 }}
+                            />
+                          )}
+                        </Box>
+                      ))}
+                      {viewMode !== 'view' && (
+                        <Button
+                          size="small"
+                          startIcon={<AddIcon />}
+                          onClick={() => addCustomStrategyItem(category as StrategyChecklistItem['category'])}
+                          sx={{ mt: 1 }}
+                        >
+                          Add Custom {category.replace('_', ' ')} Item
+                        </Button>
+                      )}
+                    </Paper>
+                  </Box>
+                );
+              })}
             </Grid>
           </Grid>
         );
@@ -821,6 +1103,7 @@ const TestPlansView: React.FC = () => {
       outOfScope: [''],
       prerequisites: [''],
       testStrategy: '',
+      strategyChecklist: getDefaultStrategyChecklist(),
       testScenarios: [],
       testEnvironmentRequirements: [''],
       testDataRequirements: [''],
@@ -847,6 +1130,7 @@ const TestPlansView: React.FC = () => {
       outOfScope: plan.outOfScope,
       prerequisites: plan.prerequisites,
       testStrategy: plan.testStrategy,
+      strategyChecklist: plan.strategyChecklist,
       testScenarios: plan.testScenarios,
       testEnvironmentRequirements: plan.testEnvironmentRequirements,
       testDataRequirements: plan.testDataRequirements,
@@ -1002,20 +1286,43 @@ const TestPlansView: React.FC = () => {
                     {plan.title}
                   </Typography>
                   <Box>
-                    <IconButton 
-                      size="small" 
-                      onClick={() => handleView(plan)}
-                      aria-label={`View test plan: ${plan.title}`}
-                    >
-                      <ViewIcon />
-                    </IconButton>
-                    <IconButton 
-                      size="small" 
-                      onClick={() => handleEdit(plan)}
-                      aria-label={`Edit test plan: ${plan.title}`}
-                    >
-                      <EditIcon />
-                    </IconButton>
+                    <Tooltip title="View Details">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleView(plan)}
+                        aria-label={`View test plan: ${plan.title}`}
+                      >
+                        <ViewIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Edit Test Plan">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleEdit(plan)}
+                        aria-label={`Edit test plan: ${plan.title}`}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Export PDF">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => generatePDF(plan)}
+                        aria-label={`Export test plan: ${plan.title}`}
+                      >
+                        <ExportIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Generate Risk Analysis">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => generateRiskAnalysis(plan)}
+                        aria-label={`Generate risk analysis for: ${plan.title}`}
+                        color="primary"
+                      >
+                        <AnalyticsIcon />
+                      </IconButton>
+                    </Tooltip>
                   </Box>
                 </Box>
                 

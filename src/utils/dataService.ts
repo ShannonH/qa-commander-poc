@@ -1,4 +1,4 @@
-import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario } from '../types';
+import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario, StrategyChecklistItem } from '../types';
 
 const STORAGE_KEYS = {
   WORKFLOWS: 'qa_commander_workflows',
@@ -81,9 +81,10 @@ export class DataService {
     const data = localStorage.getItem(STORAGE_KEYS.TEST_PLANS);
     if (data) {
       const plans = JSON.parse(data);
-      // Convert date strings back to Date objects
+      // Convert date strings back to Date objects and add missing fields
       return plans.map((plan: any) => ({
         ...plan,
+        strategyChecklist: plan.strategyChecklist || [], // Add default empty array for missing field
         createdAt: new Date(plan.createdAt),
         updatedAt: new Date(plan.updatedAt),
       }));
@@ -202,151 +203,292 @@ export class DataService {
       const sampleTestPlans: TestPlan[] = [
         {
           id: '1',
-          title: 'Gradebook Feature Testing',
-          description: 'Comprehensive testing of Blackboard Ultra gradebook functionality',
-          feature: 'Grade Management',
-          blackboardFeature: 'Gradebook',
+          title: 'Ultra Course Navigation & Content Access',
+          description: 'End-to-end testing of Ultra course navigation, content organization, and student access workflows',
+          feature: 'Course Navigation',
+          blackboardFeature: 'Ultra Course View',
           category: 'Functional',
-          priority: 'High',
-          objective: 'Validate all core gradebook functionalities including grade entry, calculation, and display to ensure data integrity and user experience meet Blackboard Learn standards.',
+          priority: 'Critical',
+          objective: 'Ensure students and instructors can seamlessly navigate Ultra courses, access all content types, and experience consistent performance across different devices and browsers.',
           inScope: [
-            'Grade entry and editing workflows',
-            'Grade calculations and weighting',
-            'Student grade visibility',
-            'Instructor grade management interface',
-            'Grade export functionality'
+            'Course homepage and navigation menu',
+            'Content folder access and organization',
+            'File download and preview functionality',
+            'Mobile responsiveness and accessibility',
+            'Cross-browser compatibility (Chrome, Safari, Firefox, Edge)'
           ],
           outOfScope: [
-            'Grade import from external systems',
-            'Custom grading schemas beyond standard',
-            'Third-party gradebook integrations'
+            'Original course view testing',
+            'Third-party content integrations',
+            'System administration functions',
+            'Grade passback from external tools'
           ],
-          prerequisites: ['Test environment setup', 'Sample course with students', 'Instructor and student test accounts'],
-          testStrategy: 'Combination of automated UI testing for critical workflows and manual exploratory testing for edge cases. Risk-based approach focusing on high-impact grade management scenarios.',
+          prerequisites: [
+            'Ultra course with diverse content types configured',
+            'Test accounts for instructor, student, and TA roles',
+            'Content uploaded (PDFs, videos, SCORM packages)',
+            'Mobile devices for responsive testing'
+          ],
+          testStrategy: 'Risk-based approach focusing on high-traffic navigation paths with automated regression testing for core workflows and manual exploratory testing for accessibility and usability.',
+          strategyChecklist: [
+            { id: 'sc1', category: 'test_types', item: 'Functional testing of all navigation elements', checked: true, notes: 'Core requirement' },
+            { id: 'sc2', category: 'test_types', item: 'Usability testing with real user scenarios', checked: true },
+            { id: 'sc3', category: 'test_types', item: 'Accessibility testing (WCAG 2.1 AA compliance)', checked: true },
+            { id: 'sc4', category: 'test_types', item: 'Performance testing for content loading', checked: false, notes: 'Separate performance test cycle' },
+            { id: 'sc5', category: 'automation', item: 'Automate critical navigation paths', checked: true },
+            { id: 'sc6', category: 'automation', item: 'Automated cross-browser testing', checked: true },
+            { id: 'sc7', category: 'automation', item: 'Mobile responsive automation', checked: false, notes: 'Manual testing preferred' },
+            { id: 'sc8', category: 'risk_management', item: 'Test with slow network connections', checked: true },
+            { id: 'sc9', category: 'risk_management', item: 'Large file download scenarios', checked: true },
+            { id: 'sc10', category: 'tools', item: 'Use screen readers for accessibility', checked: true },
+            { id: 'sc11', category: 'coverage', item: 'Test all supported content types', checked: true },
+            { id: 'sc12', category: 'process', item: 'Smoke test before each release', checked: true }
+          ],
           testScenarios: [
             {
               id: 'ts1',
-              given: 'An instructor has entered a grade into the gradebook cell',
-              when: 'They hit enter or click away from the cell',
-              then: 'The grade is saved to the database and displayed correctly',
-              priority: 'High',
-              notes: 'Critical workflow for grade management'
+              given: 'A student is enrolled in an Ultra course with multiple content folders',
+              when: 'They click on a content folder in the course navigation',
+              then: 'The folder expands to show all contained items without page reload',
+              priority: 'Critical',
+              notes: 'Core navigation workflow used in every session'
             },
             {
-              id: 'ts2', 
-              given: 'An instructor has multiple students in their course',
-              when: 'They bulk update grades for an assignment',
-              then: 'All grades are saved and reflected in student views',
-              priority: 'Medium',
-              notes: 'Important for efficiency'
+              id: 'ts2',
+              given: 'A student wants to download a PDF document from course content',
+              when: 'They click the download link on a PDF file',
+              then: 'The file downloads successfully and opens in their default PDF viewer',
+              priority: 'High',
+              notes: 'Essential for accessing course materials'
+            },
+            {
+              id: 'ts3',
+              given: 'An instructor accesses their course on a mobile device',
+              when: 'They navigate to the course content area',
+              then: 'All content is properly formatted and accessible on the mobile interface',
+              priority: 'High',
+              notes: 'Mobile usage is increasing rapidly'
             }
           ],
           testCases: [
             {
               id: 'tc1',
-              title: 'Create Grade Column',
-              description: 'Test creating a new grade column in gradebook',
+              title: 'Content Folder Navigation',
+              description: 'Verify folder navigation works correctly in Ultra courses',
               steps: [
-                { id: 's1', stepNumber: 1, action: 'Navigate to gradebook', expectedResult: 'Gradebook loads successfully' },
-                { id: 's2', stepNumber: 2, action: 'Click Add Column', expectedResult: 'Column creation form appears' },
+                { id: 's1', stepNumber: 1, action: 'Login as student and access Ultra course', expectedResult: 'Course homepage loads successfully' },
+                { id: 's2', stepNumber: 2, action: 'Click on content folder', expectedResult: 'Folder expands showing items' },
+                { id: 's3', stepNumber: 3, action: 'Click on sub-folder', expectedResult: 'Sub-folder contents display correctly' }
               ],
-              expectedResult: 'Grade column is created successfully',
-              priority: 'High',
+              expectedResult: 'All folder navigation works smoothly without errors',
+              priority: 'Critical',
               relatedScenarioId: 'ts1'
-            },
+            }
           ],
           testEnvironmentRequirements: [
-            'Blackboard Learn Ultra test instance',
-            'Test course with 20+ enrolled students',
-            'Various assignment types configured',
-            'Different user roles (instructor, TA, student)'
+            'Blackboard Learn Ultra (latest version)',
+            'Test course with representative content structure',
+            'Multiple browser types and versions for compatibility testing',
+            'Mobile devices (iOS and Android)',
+            'Screen reader software for accessibility testing'
           ],
           testDataRequirements: [
-            'Multiple assignment submissions',
-            'Grade data for calculations',
-            'Different grading schemas',
-            'Student enrollment data'
+            'Course content of various types (PDF, video, SCORM, web links)',
+            'Folder structure with nested content organization',
+            'Large files for download testing (>100MB)',
+            'User accounts with different role permissions'
           ],
           successCriteria: [
-            'All grade entry scenarios pass without data loss',
-            'Grade calculations are mathematically accurate',
-            'Student and instructor views show consistent data',
-            'Performance meets sub-2 second response time',
-            'No critical or high severity defects remain'
+            'Zero navigation failures in critical user paths',
+            'Content loads within 3 seconds on standard connection',
+            'Full accessibility compliance verified',
+            'Cross-browser compatibility confirmed',
+            'Mobile experience matches desktop functionality'
           ],
-          estimatedHours: 40,
+          estimatedHours: 32,
           status: 'Draft',
-          assignee: 'John Doe',
-          createdAt: new Date('2024-01-15'),
-          updatedAt: new Date('2024-01-15'),
+          assignee: 'Sarah Chen',
+          createdAt: new Date('2024-02-01'),
+          updatedAt: new Date('2024-02-01'),
         },
         {
           id: '2',
-          title: 'Discussion Forum Integration',
-          description: 'Testing discussion forum features and student interactions',
-          feature: 'Communication',
-          blackboardFeature: 'Discussion Forums',
+          title: 'Assignment Submission & Feedback Workflow',
+          description: 'Comprehensive testing of student assignment submission process and instructor feedback mechanisms',
+          feature: 'Assignment Management',
+          blackboardFeature: 'Assignments',
           category: 'Integration',
-          priority: 'Medium',
-          objective: 'Ensure discussion forum functionality enables effective student-instructor and student-student communication while maintaining proper content moderation and notification workflows.',
+          priority: 'High',
+          objective: 'Validate the complete assignment lifecycle from student submission through instructor grading and feedback delivery, ensuring data integrity and user experience quality.',
           inScope: [
-            'Creating and editing discussion posts',
-            'Reply and thread management',
-            'Forum moderation tools',
-            'Notification system for new posts',
-            'Content formatting and file attachments'
+            'Student assignment submission interface',
+            'File upload and attachment handling',
+            'Instructor grading and comment workflows',
+            'Grade and feedback delivery to students',
+            'Assignment deadline management and late submissions'
           ],
           outOfScope: [
-            'External forum integrations',
-            'Advanced analytics reporting',
-            'Bulk content management tools'
+            'Plagiarism detection (SafeAssign)',
+            'Bulk grade import/export',
+            'Grade center advanced analytics',
+            'External tool integration grading'
           ],
-          prerequisites: ['Course with enrolled students', 'Forum configuration', 'Email notification setup'],
-          testStrategy: 'Manual testing focused on user interaction flows and communication workflows, with automated testing for basic CRUD operations.',
+          prerequisites: [
+            'Course with multiple assignment types configured',
+            'Student test accounts with submission history',
+            'Instructor account with grading permissions',
+            'Sample files for submission testing'
+          ],
+          testStrategy: 'End-to-end workflow testing with emphasis on data integrity during submission and grading processes, including edge cases for large files and concurrent submissions.',
+          strategyChecklist: [
+            { id: 'sc13', category: 'test_types', item: 'End-to-end workflow testing', checked: true },
+            { id: 'sc14', category: 'test_types', item: 'Data integrity validation', checked: true },
+            { id: 'sc15', category: 'test_types', item: 'Load testing for concurrent submissions', checked: true },
+            { id: 'sc16', category: 'automation', item: 'Automate submission workflows', checked: true },
+            { id: 'sc17', category: 'automation', item: 'Automated grading workflow testing', checked: false, notes: 'Complex instructor interactions' },
+            { id: 'sc18', category: 'risk_management', item: 'Test large file uploads (>500MB)', checked: true },
+            { id: 'sc19', category: 'risk_management', item: 'Network interruption during upload', checked: true },
+            { id: 'sc20', category: 'tools', item: 'Database verification tools', checked: true },
+            { id: 'sc21', category: 'coverage', item: 'All assignment types (text, file, media)', checked: true },
+            { id: 'sc22', category: 'process', item: 'Regression testing for each iteration', checked: true }
+          ],
           testScenarios: [
             {
-              id: 'ts3',
-              given: 'A student is logged into their course',
-              when: 'They create a new discussion post',
-              then: 'The post is published and visible to other students',
-              priority: 'Medium',
-              notes: 'Basic forum functionality'
+              id: 'ts4',
+              given: 'A student has completed an assignment and is ready to submit',
+              when: 'They upload their file and click submit before the deadline',
+              then: 'The submission is recorded with timestamp and confirmation is displayed',
+              priority: 'Critical',
+              notes: 'Core functionality for academic integrity'
             },
             {
-              id: 'ts4',
-              given: 'An instructor moderates a discussion forum',
-              when: 'They approve or hide student posts',
-              then: 'The moderation actions are reflected immediately for all users',
+              id: 'ts5',
+              given: 'An instructor has received multiple student submissions for grading',
+              when: 'They access the grade center and provide feedback with grades',
+              then: 'Students receive grades and feedback notifications immediately',
               priority: 'High',
-              notes: 'Critical for content management'
+              notes: 'Key workflow for timely feedback'
+            },
+            {
+              id: 'ts6',
+              given: 'A student attempts to submit an assignment after the deadline',
+              when: 'They try to access the submission interface',
+              then: 'They see appropriate messaging about late submission policies',
+              priority: 'Medium',
+              notes: 'Important for policy enforcement'
             }
           ],
           testCases: [],
           testEnvironmentRequirements: [
-            'Blackboard Learn test course',
-            'Multiple student test accounts',
-            'Instructor account with moderation rights',
-            'Email server for notifications'
+            'Blackboard Learn with assignment tools enabled',
+            'Email server for notification testing',
+            'Large storage capacity for file upload testing',
+            'Network throttling tools for connection testing'
           ],
           testDataRequirements: [
-            'Sample discussion topics',
-            'Test posts and replies',
-            'File attachments for testing',
-            'User profile data'
+            'Various file types for submission testing',
+            'Assignment templates with different settings',
+            'Student submission history data',
+            'Grading rubrics for consistent evaluation'
           ],
           successCriteria: [
-            'All discussion posts display correctly',
-            'Notification system works reliably',
-            'Moderation tools function as expected',
-            'No content loss during editing operations',
-            'Cross-browser compatibility verified'
+            'Zero data loss during submission process',
+            'All notifications deliver within 5 minutes',
+            'File uploads complete successfully up to system limits',
+            'Grading workflows maintain data consistency',
+            'Late submission policies enforced correctly'
           ],
-          estimatedHours: 24,
+          estimatedHours: 28,
           status: 'In Progress',
-          assignee: 'Jane Smith',
-          createdAt: new Date('2024-01-20'),
-          updatedAt: new Date('2024-01-22'),
+          assignee: 'Michael Rodriguez',
+          createdAt: new Date('2024-02-05'),
+          updatedAt: new Date('2024-02-07'),
         },
+        {
+          id: '3',
+          title: 'Discussion Forum Moderation & Engagement',
+          description: 'Testing discussion forum functionality including student engagement, instructor moderation, and notification systems',
+          feature: 'Discussion & Communication',
+          blackboardFeature: 'Discussion Forums',
+          category: 'Functional',
+          priority: 'Medium',
+          objective: 'Ensure discussion forums facilitate effective academic discourse while providing instructors with proper moderation tools and maintaining engagement through reliable notification systems.',
+          inScope: [
+            'Discussion thread creation and management',
+            'Student posting and reply workflows',
+            'Instructor moderation capabilities',
+            'Email and in-app notification systems',
+            'Rich text editing and media attachments'
+          ],
+          outOfScope: [
+            'Advanced analytics and engagement metrics',
+            'External forum integrations',
+            'Automated content filtering',
+            'Video conference integration'
+          ],
+          prerequisites: [
+            'Course with discussion forums configured',
+            'Multiple student accounts for interaction testing',
+            'Instructor account with moderation privileges',
+            'Email notification system enabled'
+          ],
+          testStrategy: 'User-centered testing approach focusing on realistic discussion scenarios with automated testing for notification reliability and manual testing for moderation workflows.',
+          strategyChecklist: [
+            { id: 'sc23', category: 'test_types', item: 'User scenario-based testing', checked: true },
+            { id: 'sc24', category: 'test_types', item: 'Notification reliability testing', checked: true },
+            { id: 'sc25', category: 'test_types', item: 'Content moderation workflow testing', checked: true },
+            { id: 'sc26', category: 'automation', item: 'Automated notification testing', checked: true },
+            { id: 'sc27', category: 'automation', item: 'Basic posting workflow automation', checked: false, notes: 'Rich content requires manual validation' },
+            { id: 'sc28', category: 'risk_management', item: 'Test with high-volume discussions', checked: true },
+            { id: 'sc29', category: 'risk_management', item: 'Concurrent posting scenarios', checked: true },
+            { id: 'sc30', category: 'tools', item: 'Email testing tools for notifications', checked: true },
+            { id: 'sc31', category: 'coverage', item: 'All rich text formatting options', checked: true },
+            { id: 'sc32', category: 'process', item: 'User acceptance testing with real scenarios', checked: true }
+          ],
+          testScenarios: [
+            {
+              id: 'ts7',
+              given: 'Multiple students are engaged in a discussion thread',
+              when: 'A new student posts a reply to an existing thread',
+              then: 'All thread participants receive email notifications about the new post',
+              priority: 'High',
+              notes: 'Critical for maintaining engagement'
+            },
+            {
+              id: 'ts8',
+              given: 'An instructor is monitoring class discussions for inappropriate content',
+              when: 'They hide or delete a student post that violates guidelines',
+              then: 'The post is immediately removed from all student views and logs the moderation action',
+              priority: 'High',
+              notes: 'Essential for maintaining safe learning environment'
+            }
+          ],
+          testCases: [],
+          testEnvironmentRequirements: [
+            'Blackboard Learn discussion tools configured',
+            'Email server for notification delivery testing',
+            'Multiple user accounts for interaction scenarios',
+            'Rich text testing tools'
+          ],
+          testDataRequirements: [
+            'Sample discussion topics and prompts',
+            'Test content including text, images, and attachments',
+            'User profile data for notification preferences',
+            'Moderation policy guidelines for testing'
+          ],
+          successCriteria: [
+            'All notifications deliver within expected timeframes',
+            'Moderation actions take effect immediately',
+            'Rich text content displays correctly across browsers',
+            'Thread organization remains clear with high post volumes',
+            'User engagement features work reliably'
+          ],
+          estimatedHours: 20,
+          status: 'Draft',
+          assignee: 'Jennifer Liu',
+          createdAt: new Date('2024-02-08'),
+          updatedAt: new Date('2024-02-08'),
+        }
       ];
 
       sampleTestPlans.forEach(plan => this.saveTestPlan(plan));
