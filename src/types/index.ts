@@ -33,14 +33,41 @@ export interface TestPlan {
   id: string;
   title: string;
   description: string;
+  
+  // 1. Feature Overview
   feature: string;
+  blackboardFeature: BlackboardFeature;
   category: TestCategory;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
-  estimatedHours: number;
+  
+  // 2. Objective
+  objective: string;
+  
+  // 3. Test Scope  
+  inScope: string[];
+  outOfScope: string[];
   prerequisites: string[];
+  
+  // 4. Strategy
+  testStrategy: string;
+  
+  // 5. Test Scenarios (Given/When/Then)
   testScenarios: TestScenario[];
+  
+  // 6. Test Cases
   testCases: TestCase[];
-  blackboardFeature: BlackboardFeature;
+  
+  // 7. Test Environment Requirements
+  testEnvironmentRequirements: string[];
+  
+  // 8. Test Data Requirements
+  testDataRequirements: string[];
+  
+  // 9. Success Criteria
+  successCriteria: string[];
+  
+  // Meta information
+  estimatedHours: number;
   status: 'Draft' | 'Review' | 'Approved' | 'In Progress' | 'Completed' | 'Archived';
   assignee?: string;
   createdAt: Date;

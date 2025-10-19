@@ -205,10 +205,24 @@ export class DataService {
           title: 'Gradebook Feature Testing',
           description: 'Comprehensive testing of Blackboard Ultra gradebook functionality',
           feature: 'Grade Management',
+          blackboardFeature: 'Gradebook',
           category: 'Functional',
           priority: 'High',
-          estimatedHours: 40,
-          prerequisites: ['Test environment setup', 'Sample course with students'],
+          objective: 'Validate all core gradebook functionalities including grade entry, calculation, and display to ensure data integrity and user experience meet Blackboard Learn standards.',
+          inScope: [
+            'Grade entry and editing workflows',
+            'Grade calculations and weighting',
+            'Student grade visibility',
+            'Instructor grade management interface',
+            'Grade export functionality'
+          ],
+          outOfScope: [
+            'Grade import from external systems',
+            'Custom grading schemas beyond standard',
+            'Third-party gradebook integrations'
+          ],
+          prerequisites: ['Test environment setup', 'Sample course with students', 'Instructor and student test accounts'],
+          testStrategy: 'Combination of automated UI testing for critical workflows and manual exploratory testing for edge cases. Risk-based approach focusing on high-impact grade management scenarios.',
           testScenarios: [
             {
               id: 'ts1',
@@ -241,7 +255,26 @@ export class DataService {
               relatedScenarioId: 'ts1'
             },
           ],
-          blackboardFeature: 'Gradebook',
+          testEnvironmentRequirements: [
+            'Blackboard Learn Ultra test instance',
+            'Test course with 20+ enrolled students',
+            'Various assignment types configured',
+            'Different user roles (instructor, TA, student)'
+          ],
+          testDataRequirements: [
+            'Multiple assignment submissions',
+            'Grade data for calculations',
+            'Different grading schemas',
+            'Student enrollment data'
+          ],
+          successCriteria: [
+            'All grade entry scenarios pass without data loss',
+            'Grade calculations are mathematically accurate',
+            'Student and instructor views show consistent data',
+            'Performance meets sub-2 second response time',
+            'No critical or high severity defects remain'
+          ],
+          estimatedHours: 40,
           status: 'Draft',
           assignee: 'John Doe',
           createdAt: new Date('2024-01-15'),
@@ -252,10 +285,24 @@ export class DataService {
           title: 'Discussion Forum Integration',
           description: 'Testing discussion forum features and student interactions',
           feature: 'Communication',
+          blackboardFeature: 'Discussion Forums',
           category: 'Integration',
           priority: 'Medium',
-          estimatedHours: 24,
-          prerequisites: ['Course with enrolled students', 'Forum configuration'],
+          objective: 'Ensure discussion forum functionality enables effective student-instructor and student-student communication while maintaining proper content moderation and notification workflows.',
+          inScope: [
+            'Creating and editing discussion posts',
+            'Reply and thread management',
+            'Forum moderation tools',
+            'Notification system for new posts',
+            'Content formatting and file attachments'
+          ],
+          outOfScope: [
+            'External forum integrations',
+            'Advanced analytics reporting',
+            'Bulk content management tools'
+          ],
+          prerequisites: ['Course with enrolled students', 'Forum configuration', 'Email notification setup'],
+          testStrategy: 'Manual testing focused on user interaction flows and communication workflows, with automated testing for basic CRUD operations.',
           testScenarios: [
             {
               id: 'ts3',
@@ -264,10 +311,37 @@ export class DataService {
               then: 'The post is published and visible to other students',
               priority: 'Medium',
               notes: 'Basic forum functionality'
+            },
+            {
+              id: 'ts4',
+              given: 'An instructor moderates a discussion forum',
+              when: 'They approve or hide student posts',
+              then: 'The moderation actions are reflected immediately for all users',
+              priority: 'High',
+              notes: 'Critical for content management'
             }
           ],
           testCases: [],
-          blackboardFeature: 'Discussion Forums',
+          testEnvironmentRequirements: [
+            'Blackboard Learn test course',
+            'Multiple student test accounts',
+            'Instructor account with moderation rights',
+            'Email server for notifications'
+          ],
+          testDataRequirements: [
+            'Sample discussion topics',
+            'Test posts and replies',
+            'File attachments for testing',
+            'User profile data'
+          ],
+          successCriteria: [
+            'All discussion posts display correctly',
+            'Notification system works reliably',
+            'Moderation tools function as expected',
+            'No content loss during editing operations',
+            'Cross-browser compatibility verified'
+          ],
+          estimatedHours: 24,
           status: 'In Progress',
           assignee: 'Jane Smith',
           createdAt: new Date('2024-01-20'),
