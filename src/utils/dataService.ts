@@ -84,7 +84,16 @@ export class DataService {
       // Convert date strings back to Date objects and add missing fields
       return plans.map((plan: any) => ({
         ...plan,
-        strategyChecklist: plan.strategyChecklist || [], // Add default empty array for missing field
+        // Add defaults for all new fields that might be missing from old data
+        objective: plan.objective || '',
+        inScope: plan.inScope || [],
+        outOfScope: plan.outOfScope || [],
+        testStrategy: plan.testStrategy || '',
+        strategyChecklist: plan.strategyChecklist || [],
+        testScenarios: plan.testScenarios || [],
+        testEnvironmentRequirements: plan.testEnvironmentRequirements || [],
+        testDataRequirements: plan.testDataRequirements || [],
+        successCriteria: plan.successCriteria || [],
         createdAt: new Date(plan.createdAt),
         updatedAt: new Date(plan.updatedAt),
       }));
@@ -125,6 +134,11 @@ export class DataService {
       activeTestPlans: testPlans.filter(p => p.status === 'In Progress' || p.status === 'Review').length,
       completedTestPlans: testPlans.filter(p => p.status === 'Completed').length,
     };
+  }
+
+  // Clear all test plans (for debugging)
+  static clearTestPlans(): void {
+    localStorage.removeItem(STORAGE_KEYS.TEST_PLANS);
   }
 
   // Initialize with sample data if empty

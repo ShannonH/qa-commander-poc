@@ -50,7 +50,8 @@ const TestPlansView: React.FC = () => {
   const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
 
   React.useEffect(() => {
-    // Initialize sample data on first load
+    // Clear existing data and reinitialize to fix any structure issues
+    DataService.clearTestPlans();
     DataService.initializeSampleData();
     loadData();
   }, []);
@@ -124,22 +125,22 @@ OBJECTIVE:
 ${testPlan.objective}
 
 IN SCOPE:
-${testPlan.inScope.map(item => `• ${item}`).join('\n')}
+${(testPlan.inScope || []).map(item => `• ${item}`).join('\n')}
 
 OUT OF SCOPE:
-${testPlan.outOfScope.map(item => `• ${item}`).join('\n')}
+${(testPlan.outOfScope || []).map(item => `• ${item}`).join('\n')}
 
 PREREQUISITES:
-${testPlan.prerequisites.map(item => `• ${item}`).join('\n')}
+${(testPlan.prerequisites || []).map(item => `• ${item}`).join('\n')}
 
 STRATEGY:
 ${testPlan.testStrategy}
 
 Strategy Checklist:
-${testPlan.strategyChecklist.map(item => `${item.checked ? '☑' : '☐'} ${item.item} ${item.notes ? `(${item.notes})` : ''}`).join('\n')}
+${(testPlan.strategyChecklist || []).map(item => `${item.checked ? '☑' : '☐'} ${item.item} ${item.notes ? `(${item.notes})` : ''}`).join('\n')}
 
 TEST SCENARIOS:
-${testPlan.testScenarios.map((scenario, index) => `
+${(testPlan.testScenarios || []).map((scenario, index) => `
 ${index + 1}. Given: ${scenario.given}
    When: ${scenario.when}
    Then: ${scenario.then}
@@ -148,13 +149,13 @@ ${index + 1}. Given: ${scenario.given}
 `).join('\n')}
 
 ENVIRONMENT REQUIREMENTS:
-${testPlan.testEnvironmentRequirements.map(item => `• ${item}`).join('\n')}
+${(testPlan.testEnvironmentRequirements || []).map(item => `• ${item}`).join('\n')}
 
 DATA REQUIREMENTS:
-${testPlan.testDataRequirements.map(item => `• ${item}`).join('\n')}
+${(testPlan.testDataRequirements || []).map(item => `• ${item}`).join('\n')}
 
 SUCCESS CRITERIA:
-${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
+${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       `;
 
       const blob = new Blob([content], { type: 'text/plain' });
@@ -176,7 +177,7 @@ ${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
   const generateRiskAnalysis = (testPlan: TestPlan) => {
     try {
       // Create workflows from test scenarios
-      const workflows = testPlan.testScenarios.map(scenario => {
+      const workflows = (testPlan.testScenarios || []).map(scenario => {
         const defaultRiskScore = 4; // Medium risk as starting point
         const defaultTier = 'Tier 2: HIGH';
         
@@ -317,7 +318,7 @@ ${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
           
           <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>In Scope</Typography>
           <List dense>
-            {plan.inScope.map((item, index) => (
+            {(plan.inScope || []).map((item, index) => (
               <ListItem key={index}>
                 <ListItemText primary={`• ${item}`} />
               </ListItem>
@@ -326,7 +327,7 @@ ${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
           
           <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>Out of Scope</Typography>
           <List dense>
-            {plan.outOfScope.map((item, index) => (
+            {(plan.outOfScope || []).map((item, index) => (
               <ListItem key={index}>
                 <ListItemText primary={`• ${item}`} />
               </ListItem>
@@ -335,7 +336,7 @@ ${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
           
           <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>Prerequisites</Typography>
           <List dense>
-            {plan.prerequisites.map((prereq, index) => (
+            {(plan.prerequisites || []).map((prereq, index) => (
               <ListItem key={index}>
                 <ListItemText primary={`• ${prereq}`} />
               </ListItem>
@@ -353,7 +354,7 @@ ${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" gutterBottom>Strategy Checklist</Typography>
                 {['test_types', 'automation', 'risk_management', 'tools', 'coverage', 'process'].map(category => {
-                  const categoryItems = plan.strategyChecklist.filter(item => item.category === category);
+                  const categoryItems = (plan.strategyChecklist || []).filter(item => item.category === category);
                   if (categoryItems.length === 0) return null;
                   
                   return (
@@ -379,7 +380,7 @@ ${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
 
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h6" gutterBottom color="primary">Test Scenarios ({plan.testScenarios.length})</Typography>
-          {plan.testScenarios.map((scenario, index) => (
+          {(plan.testScenarios || []).map((scenario, index) => (
             <Accordion key={scenario.id}>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography>Scenario {index + 1}: {scenario.given}</Typography>
@@ -404,7 +405,7 @@ ${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom color="primary">Environment Requirements</Typography>
               <List dense>
-                {plan.testEnvironmentRequirements.map((item, index) => (
+                {(plan.testEnvironmentRequirements || []).map((item, index) => (
                   <ListItem key={index}>
                     <ListItemText primary={`• ${item}`} />
                   </ListItem>
@@ -416,7 +417,7 @@ ${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
             <Paper sx={{ p: 3 }}>
               <Typography variant="h6" gutterBottom color="primary">Data Requirements</Typography>
               <List dense>
-                {plan.testDataRequirements.map((item, index) => (
+                {(plan.testDataRequirements || []).map((item, index) => (
                   <ListItem key={index}>
                     <ListItemText primary={`• ${item}`} />
                   </ListItem>
@@ -429,7 +430,7 @@ ${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
         <Paper sx={{ p: 3, mt: 3 }}>
           <Typography variant="h6" gutterBottom color="primary">Success Criteria</Typography>
           <List dense>
-            {plan.successCriteria.map((item, index) => (
+            {(plan.successCriteria || []).map((item, index) => (
               <ListItem key={index}>
                 <ListItemText primary={`• ${item}`} />
               </ListItem>
@@ -439,7 +440,7 @@ ${testPlan.successCriteria.map(item => `• ${item}`).join('\n')}
 
         <Paper sx={{ p: 3, mt: 3 }}>
           <Typography variant="h6" gutterBottom color="primary">Test Cases ({plan.testCases.length})</Typography>
-          {plan.testCases.map((testCase) => (
+          {(plan.testCases || []).map((testCase) => (
             <Accordion key={testCase.id}>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography>{testCase.title}</Typography>
