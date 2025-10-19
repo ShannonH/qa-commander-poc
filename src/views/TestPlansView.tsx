@@ -1125,7 +1125,6 @@ const TestPlansView: React.FC = () => {
                 </Stepper>
               )}
             </Box>
-          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => {
