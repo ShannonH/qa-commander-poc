@@ -760,7 +760,7 @@ const RiskAnalysisView: React.FC = () => {
               <Typography>{document.recommendations}</Typography>
             </AccordionDetails>
           </Accordion>
-            ))}
+        ))}
           </Box>
         )}
       </TabPanel>
