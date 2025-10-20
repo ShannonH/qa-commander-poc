@@ -34,6 +34,7 @@ import {
   ToggleButtonGroup,
   TablePagination,
   Tooltip,
+  IconButton,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -42,6 +43,9 @@ import {
   Build,
   ViewModule as CardViewIcon,
   ViewList as TableViewIcon,
+  Visibility as ViewIcon,
+  GetApp as ExportIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature, TestPlan, TestScenario } from '../types';
 import { DataService } from '../utils/dataService';
@@ -258,6 +262,67 @@ const RiskAnalysisView: React.FC = () => {
     setOpenDocumentDialog(false);
   };
 
+  const handleViewDocument = (document: RiskAnalysisDocument) => {
+    // Create a temporary dialog or modal to show document details
+    const documentDetails = `
+Risk Analysis Document: ${document.title}
+
+Description: ${document.description}
+
+Feature: ${document.blackboardFeature}
+Overall Risk Level: ${document.overallRiskLevel}
+Total Risk Score: ${document.totalRiskScore}
+Created: ${document.createdAt.toLocaleDateString()}
+
+Workflows (${document.workflows.length}):
+${document.workflows.map((wf, index) => `${index + 1}. ${wf.workflowName} (Risk Score: ${wf.riskScore})`).join('\n')}
+
+Recommendations: ${document.recommendations}
+    `.trim();
+    
+    alert(documentDetails); // For now using alert, could be replaced with a proper dialog
+  };
+
+  const handleDownloadDocument = (document: RiskAnalysisDocument) => {
+    const content = `
+Risk Analysis Document Export
+============================
+
+Title: ${document.title}
+Description: ${document.description}
+Feature: ${document.blackboardFeature}
+Overall Risk Level: ${document.overallRiskLevel}
+Total Risk Score: ${document.totalRiskScore}
+Created: ${document.createdAt.toLocaleDateString()}
+
+Workflows Summary:
+${document.workflows.map((wf, index) => `
+${index + 1}. ${wf.workflowName}
+   - Description: ${wf.description}
+   - User Story: ${wf.userStory}
+   - Risk Score: ${wf.riskScore} (Impact: ${wf.impact}, Likelihood: ${wf.likelihood})
+   - Testing Tier: ${wf.testingTier}
+   - Deliverables: ${wf.deliverables}
+   - Automation Recommendation: ${wf.automationRecommendation || 'N/A'}
+`).join('')}
+
+Recommendations:
+${document.recommendations}
+
+Export Date: ${new Date().toLocaleString()}
+    `.trim();
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `risk-analysis-${document.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  };
+
   const getAutomationRecommendation = (score: number) => {
     return score >= 1 && score <= 6 ? 'Automate' : 'Manual Only';
   };
@@ -387,9 +452,18 @@ const RiskAnalysisView: React.FC = () => {
                       <TableCell>{document.totalRiskScore}</TableCell>
                       <TableCell>{document.createdAt.toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Tooltip title="View Details">
-                          <Button size="small" variant="outlined">View</Button>
-                        </Tooltip>
+                        <Box display="flex" gap={1}>
+                          <Tooltip title="View Details">
+                            <IconButton size="small" onClick={() => handleViewDocument(document)}>
+                              <ViewIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Download">
+                            <IconButton size="small" onClick={() => handleDownloadDocument(document)}>
+                              <ExportIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ))}
