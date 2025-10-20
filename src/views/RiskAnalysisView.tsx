@@ -761,7 +761,7 @@ const RiskAnalysisView: React.FC = () => {
             </AccordionDetails>
           </Accordion>
         ))}
-          </Box>
+        </Box>
         )}
       </TabPanel>
 
