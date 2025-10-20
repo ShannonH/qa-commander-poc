@@ -98,6 +98,10 @@ const RiskAnalysisView: React.FC = () => {
   const [workflowsPage, setWorkflowsPage] = useState(0);
   const [workflowsRowsPerPage, setWorkflowsRowsPerPage] = useState(10);
 
+  // Document view modal states
+  const [viewDocumentOpen, setViewDocumentOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<RiskAnalysisDocument | null>(null);
+
   const [workflowFormData, setWorkflowFormData] = useState({
     workflowName: '',
     description: '',
@@ -263,24 +267,8 @@ const RiskAnalysisView: React.FC = () => {
   };
 
   const handleViewDocument = (document: RiskAnalysisDocument) => {
-    // Create a temporary dialog or modal to show document details
-    const documentDetails = `
-Risk Analysis Document: ${document.title}
-
-Description: ${document.description}
-
-Feature: ${document.blackboardFeature}
-Overall Risk Level: ${document.overallRiskLevel}
-Total Risk Score: ${document.totalRiskScore}
-Created: ${document.createdAt.toLocaleDateString()}
-
-Workflows (${document.workflows.length}):
-${document.workflows.map((wf, index) => `${index + 1}. ${wf.workflowName} (Risk Score: ${wf.riskScore})`).join('\n')}
-
-Recommendations: ${document.recommendations}
-    `.trim();
-    
-    alert(documentDetails); // For now using alert, could be replaced with a proper dialog
+    setSelectedDocument(document);
+    setViewDocumentOpen(true);
   };
 
   const handleDownloadDocument = (document: RiskAnalysisDocument) => {
@@ -362,6 +350,35 @@ Export Date: ${new Date().toLocaleString()}
     if (score <= 4) return { level: 'High', color: 'warning' };
     if (score <= 6) return { level: 'Medium', color: 'info' };
     return { level: 'Low', color: 'success' };
+  };
+
+  const getRiskColor = (score: number) => {
+    if (score <= 2) return 'error';
+    if (score <= 4) return 'warning'; 
+    if (score <= 6) return 'info';
+    return 'success';
+  };
+
+  const groupWorkflowsByScenario = (workflows: UserWorkflow[], testPlans: TestPlan[]) => {
+    const grouped: { [scenarioKey: string]: { scenario: TestScenario; workflows: UserWorkflow[] } } = {};
+    
+    workflows.forEach(workflow => {
+      if (workflow.sourceTestPlanId && workflow.sourceScenarioId) {
+        const testPlan = testPlans.find(tp => tp.id === workflow.sourceTestPlanId);
+        if (testPlan) {
+          const scenario = testPlan.testScenarios?.find(ts => ts.id === workflow.sourceScenarioId);
+          if (scenario) {
+            const key = `${workflow.sourceTestPlanId}-${workflow.sourceScenarioId}`;
+            if (!grouped[key]) {
+              grouped[key] = { scenario, workflows: [] };
+            }
+            grouped[key].workflows.push(workflow);
+          }
+        }
+      }
+    });
+    
+    return Object.values(grouped);
   };
 
   const blackboardFeatures: BlackboardFeature[] = [
@@ -978,6 +995,151 @@ Export Date: ${new Date().toLocaleString()}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenImportDialog(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Elegant Document View Modal */}
+      <Dialog 
+        open={viewDocumentOpen} 
+        onClose={() => setViewDocumentOpen(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          <Box>
+            <Typography variant="h5" component="div" gutterBottom>
+              {selectedDocument?.title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {selectedDocument?.description}
+            </Typography>
+            <Box display="flex" gap={2} mt={2}>
+              <Chip 
+                label={selectedDocument?.blackboardFeature} 
+                variant="outlined" 
+                size="small" 
+              />
+              <Chip 
+                label={selectedDocument?.overallRiskLevel} 
+                color={getRiskColor(selectedDocument?.totalRiskScore || 0)} 
+                size="small" 
+              />
+              <Chip 
+                label={`Risk Score: ${selectedDocument?.totalRiskScore}`} 
+                variant="outlined" 
+                size="small" 
+              />
+            </Box>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers sx={{ maxHeight: '70vh' }}>
+          {selectedDocument && (
+            <Box>
+              <Typography variant="body1" paragraph>
+                <strong>Created:</strong> {selectedDocument.createdAt.toLocaleDateString()}
+              </Typography>
+              
+              {groupWorkflowsByScenario(selectedDocument.workflows, testPlans).map((group, index) => (
+                <Box key={index} mb={4}>
+                  <Typography variant="h6" gutterBottom sx={{ 
+                    bgcolor: 'primary.light', 
+                    color: 'primary.contrastText', 
+                    p: 2, 
+                    borderRadius: 1,
+                    mb: 2
+                  }}>
+                    <strong>Given:</strong> {group.scenario.given}<br/>
+                    <strong>When:</strong> {group.scenario.when}<br/>
+                    <strong>Then:</strong> {group.scenario.then}
+                  </Typography>
+                  
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell><strong>ID</strong></TableCell>
+                          <TableCell><strong>Acceptance Criteria</strong></TableCell>
+                          <TableCell align="center"><strong>Impact</strong></TableCell>
+                          <TableCell align="center"><strong>Likelihood</strong></TableCell>
+                          <TableCell align="center"><strong>Risk Score</strong></TableCell>
+                          <TableCell align="center"><strong>Testing Tier</strong></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {group.workflows.map((workflow) => (
+                          <TableRow key={workflow.id}>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="bold">
+                                {workflow.automationId || workflow.id}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {workflow.description}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="center">
+                              <Chip 
+                                label={workflow.impact} 
+                                color={workflow.impact <= 2 ? 'error' : workflow.impact <= 3 ? 'warning' : 'success'}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell align="center">
+                              <Chip 
+                                label={workflow.likelihood} 
+                                color={workflow.likelihood <= 2 ? 'error' : workflow.likelihood <= 3 ? 'warning' : 'success'}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell align="center">
+                              <Chip 
+                                label={workflow.riskScore} 
+                                color={getRiskColor(workflow.riskScore)}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell align="center">
+                              <Chip 
+                                label={workflow.testingTier} 
+                                color={
+                                  workflow.testingTier.includes('CRITICAL') ? 'error' :
+                                  workflow.testingTier.includes('HIGH') ? 'warning' : 'info'
+                                }
+                                size="small"
+                              />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Box>
+              ))}
+              
+              {selectedDocument.recommendations && (
+                <Box mt={3}>
+                  <Typography variant="h6" gutterBottom>
+                    Recommendations
+                  </Typography>
+                  <Typography variant="body2" sx={{ 
+                    bgcolor: 'grey.50', 
+                    p: 2, 
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'grey.200'
+                  }}>
+                    {selectedDocument.recommendations}
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setViewDocumentOpen(false)}>
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
 
