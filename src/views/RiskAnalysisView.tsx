@@ -83,11 +83,11 @@ const RiskAnalysisView: React.FC = () => {
   const [selectedWorkflow, setSelectedWorkflow] = useState<UserWorkflow | null>(null);
   const [openDocumentDialog, setOpenDocumentDialog] = useState(false);
   const [openImportDialog, setOpenImportDialog] = useState(false);
-  
+
   // View mode states for each tab
   const [documentsViewMode, setDocumentsViewMode] = useState<'cards' | 'table'>('cards');
   const [workflowsViewMode, setWorkflowsViewMode] = useState<'cards' | 'table'>('cards');
-  
+
   // Pagination states
   const [documentsPage, setDocumentsPage] = useState(0);
   const [documentsRowsPerPage, setDocumentsRowsPerPage] = useState(10);
@@ -150,7 +150,7 @@ const RiskAnalysisView: React.FC = () => {
   const importTestScenario = (testPlan: TestPlan, scenario: TestScenario) => {
     const riskScore = 2 * 2; // Default values
     const testingTier = getTestingTierFromRiskScore(riskScore);
-    
+
     const newWorkflow: UserWorkflow = {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       workflowName: `${scenario.given} → ${scenario.when} → ${scenario.then}`,
@@ -273,7 +273,7 @@ const RiskAnalysisView: React.FC = () => {
   const getPriorityColor = (priority: string) => {
     switch (priority.toLowerCase()) {
       case 'critical': return 'error';
-      case 'high': return 'warning'; 
+      case 'high': return 'warning';
       case 'medium': return 'info';
       case 'low': return 'success';
       default: return 'default';
@@ -385,8 +385,8 @@ const RiskAnalysisView: React.FC = () => {
                         <Box>
                           <Typography variant="subtitle2">{document.title}</Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {document.description.length > 80 
-                              ? `${document.description.substring(0, 80)}...` 
+                            {document.description.length > 80
+                              ? `${document.description.substring(0, 80)}...`
                               : document.description}
                           </Typography>
                         </Box>
@@ -412,7 +412,7 @@ const RiskAnalysisView: React.FC = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-            
+
             <TablePagination
               component="div"
               count={riskDocuments.length}
@@ -546,15 +546,15 @@ const RiskAnalysisView: React.FC = () => {
                   {workflows.slice(workflowsPage * workflowsRowsPerPage, workflowsPage * workflowsRowsPerPage + workflowsRowsPerPage).map((workflow) => {
                     const riskLevel = getRiskLevelFromScore(workflow.riskScore);
                     const automationStatus = getAutomationRecommendation(workflow.riskScore);
-                    
+
                     return (
                       <TableRow key={workflow.id}>
                         <TableCell>
                           <Box>
                             <Typography variant="subtitle2">{workflow.workflowName}</Typography>
                             <Typography variant="caption" color="text.secondary">
-                              {workflow.description.length > 60 
-                                ? `${workflow.description.substring(0, 60)}...` 
+                              {workflow.description.length > 60
+                                ? `${workflow.description.substring(0, 60)}...`
                                 : workflow.description}
                             </Typography>
                           </Box>
@@ -599,7 +599,7 @@ const RiskAnalysisView: React.FC = () => {
                 </TableBody>
               </Table>
             </TableContainer>
-            
+
             <TablePagination
               component="div"
               count={workflows.length}
@@ -693,75 +693,6 @@ const RiskAnalysisView: React.FC = () => {
             );
           })}
           </Grid>
-        )}
-      </TabPanel>
-          <Accordion key={document.id}>
-            <AccordionSummary expandIcon={<ExpandMore />}>
-              <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-                <Typography variant="h6">{document.title}</Typography>
-                <Chip
-                  label={`${document.overallRiskLevel} Risk`}
-                  color={getRiskLevelFromScore(document.totalRiskScore).color as any}
-                  size="small"
-                />
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography paragraph>{document.description}</Typography>
-
-              <Typography variant="h6" gutterBottom>
-                Workflow Analysis ({document.workflows.length} workflows)
-              </Typography>
-
-              <TableContainer component={Paper} sx={{ mb: 3 }}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Workflow / AC Item</TableCell>
-                      <TableCell align="center">Impact (1-4)</TableCell>
-                      <TableCell align="center">Likelihood (1-4)</TableCell>
-                      <TableCell align="center">Risk Factor (I x L)</TableCell>
-                      <TableCell align="center">Mandatory Testing Tier</TableCell>
-                      <TableCell>Deliverables Commitment</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {document.workflows.map((workflow) => (
-                      <TableRow key={workflow.id}>
-                        <TableCell>
-                          <Typography variant="body2">{workflow.workflowName}</Typography>
-                        </TableCell>
-                        <TableCell align="center">{workflow.impact}</TableCell>
-                        <TableCell align="center">{workflow.likelihood}</TableCell>
-                        <TableCell align="center">
-                          <Chip
-                            label={workflow.riskScore}
-                            color={getRiskLevelFromScore(workflow.riskScore).color as any}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell align="center">
-                          <Chip
-                            label={workflow.testingTier}
-                            color={workflow.testingTier.includes('CRITICAL') ? 'error' : workflow.testingTier.includes('HIGH') ? 'warning' : 'info'}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>{workflow.deliverables}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              <Typography variant="h6" gutterBottom>
-                Recommendations
-              </Typography>
-              <Typography>{document.recommendations}</Typography>
-            </AccordionDetails>
-          </Accordion>
-        ))}
-        </Box>
         )}
       </TabPanel>
 
@@ -966,8 +897,8 @@ const RiskAnalysisView: React.FC = () => {
                       <Typography variant="body2" gutterBottom><strong>Then:</strong> {scenario.then}</Typography>
                       <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
                         <Chip label={scenario.priority} size="small" />
-                        <Button 
-                          size="small" 
+                        <Button
+                          size="small"
                           variant="contained"
                           onClick={() => importTestScenario(testPlan, scenario)}
                         >
