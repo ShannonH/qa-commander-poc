@@ -438,8 +438,6 @@ Export Date: ${new Date().toLocaleString()}
                     <TableCell>Title</TableCell>
                     <TableCell>Feature</TableCell>
                     <TableCell>Workflows Count</TableCell>
-                    <TableCell>Overall Risk</TableCell>
-                    <TableCell>Total Risk Score</TableCell>
                     <TableCell>Created</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
@@ -459,14 +457,6 @@ Export Date: ${new Date().toLocaleString()}
                       </TableCell>
                       <TableCell>{document.blackboardFeature}</TableCell>
                       <TableCell>{document.workflows.length}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={`${document.overallRiskLevel} Risk`}
-                          color={getRiskLevelFromScore(document.totalRiskScore).color as any}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell>{document.totalRiskScore}</TableCell>
                       <TableCell>{document.createdAt.toLocaleDateString()}</TableCell>
                       <TableCell>
                         <Box display="flex" gap={1}>
