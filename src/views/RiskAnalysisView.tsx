@@ -318,22 +318,6 @@ const RiskAnalysisView: React.FC = () => {
             Analyze user workflows to determine UI test automation strategy
           </Typography>
         </div>
-        <Box display="flex" gap={2}>
-          <Button
-            variant="outlined"
-            startIcon={<AddIcon />}
-            onClick={handleImportFromTestPlans}
-          >
-            Import from Test Plans
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleCreateWorkflow}
-          >
-            Add User Workflow
-          </Button>
-        </Box>
       </Box>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
