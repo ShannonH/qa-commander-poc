@@ -760,7 +760,9 @@ const RiskAnalysisView: React.FC = () => {
               <Typography>{document.recommendations}</Typography>
             </AccordionDetails>
           </Accordion>
-        ))}
+            ))}
+          </Box>
+        )}
       </TabPanel>
 
       <Dialog open={openWorkflowDialog} onClose={() => setOpenWorkflowDialog(false)} maxWidth="md" fullWidth>
