@@ -30,12 +30,18 @@ import {
   TableHead,
   TableRow,
   Paper,
+  ToggleButton,
+  ToggleButtonGroup,
+  TablePagination,
+  Tooltip,
 } from '@mui/material';
 import {
   Add as AddIcon,
   ExpandMore,
   AutoAwesome,
   Build,
+  ViewModule as CardViewIcon,
+  ViewList as TableViewIcon,
 } from '@mui/icons-material';
 import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature, TestPlan, TestScenario } from '../types';
 import { DataService } from '../utils/dataService';
@@ -77,6 +83,16 @@ const RiskAnalysisView: React.FC = () => {
   const [selectedWorkflow, setSelectedWorkflow] = useState<UserWorkflow | null>(null);
   const [openDocumentDialog, setOpenDocumentDialog] = useState(false);
   const [openImportDialog, setOpenImportDialog] = useState(false);
+  
+  // View mode states for each tab
+  const [documentsViewMode, setDocumentsViewMode] = useState<'cards' | 'table'>('cards');
+  const [workflowsViewMode, setWorkflowsViewMode] = useState<'cards' | 'table'>('cards');
+  
+  // Pagination states
+  const [documentsPage, setDocumentsPage] = useState(0);
+  const [documentsRowsPerPage, setDocumentsRowsPerPage] = useState(10);
+  const [workflowsPage, setWorkflowsPage] = useState(0);
+  const [workflowsRowsPerPage, setWorkflowsRowsPerPage] = useState(10);
 
   const [workflowFormData, setWorkflowFormData] = useState({
     workflowName: '',
@@ -254,6 +270,28 @@ const RiskAnalysisView: React.FC = () => {
     return score >= 1 && score <= 6 ? 'primary' : 'secondary';
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'critical': return 'error';
+      case 'high': return 'warning'; 
+      case 'medium': return 'info';
+      case 'low': return 'success';
+      default: return 'default';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'completed': return 'success';
+      case 'in progress': return 'info';
+      case 'review': return 'warning';
+      case 'draft': return 'default';
+      case 'approved': return 'primary';
+      case 'archived': return 'default';
+      default: return 'default';
+    }
+  };
+
   const getRiskLevelFromScore = (score: number) => {
     if (score <= 2) return { level: 'Critical', color: 'error' };
     if (score <= 4) return { level: 'High', color: 'warning' };
@@ -300,14 +338,283 @@ const RiskAnalysisView: React.FC = () => {
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} aria-label="Risk analysis sections">
-          <Tab label="User Workflows" {...a11yProps(0)} />
-          <Tab label="Risk Analysis Documents" {...a11yProps(1)} />
+          <Tab label="Risk Analysis Documents" {...a11yProps(0)} />
+          <Tab label="User Workflows" {...a11yProps(1)} />
         </Tabs>
       </Box>
 
       <TabPanel value={tabValue} index={0}>
-        <Grid container spacing={3}>
-          {workflows.map((workflow) => {
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <ToggleButtonGroup
+            value={documentsViewMode}
+            exclusive
+            onChange={(_, newMode) => newMode && setDocumentsViewMode(newMode)}
+            aria-label="documents view mode"
+          >
+            <ToggleButton value="cards" aria-label="card view">
+              <CardViewIcon />
+            </ToggleButton>
+            <ToggleButton value="table" aria-label="table view">
+              <TableViewIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateDocument}>
+            Add Risk Analysis Document
+          </Button>
+        </Box>
+
+        {documentsViewMode === 'table' ? (
+          <Box>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Title</TableCell>
+                    <TableCell>Feature</TableCell>
+                    <TableCell>Workflows Count</TableCell>
+                    <TableCell>Overall Risk</TableCell>
+                    <TableCell>Total Risk Score</TableCell>
+                    <TableCell>Created</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {riskDocuments.slice(documentsPage * documentsRowsPerPage, documentsPage * documentsRowsPerPage + documentsRowsPerPage).map((document) => (
+                    <TableRow key={document.id}>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="subtitle2">{document.title}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {document.description.length > 80 
+                              ? `${document.description.substring(0, 80)}...` 
+                              : document.description}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>{document.blackboardFeature}</TableCell>
+                      <TableCell>{document.workflows.length}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={`${document.overallRiskLevel} Risk`}
+                          color={getRiskLevelFromScore(document.totalRiskScore).color as any}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{document.totalRiskScore}</TableCell>
+                      <TableCell>{document.createdAt.toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Tooltip title="View Details">
+                          <Button size="small" variant="outlined">View</Button>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            <TablePagination
+              component="div"
+              count={riskDocuments.length}
+              page={documentsPage}
+              onPageChange={(_, newPage) => setDocumentsPage(newPage)}
+              rowsPerPage={documentsRowsPerPage}
+              onRowsPerPageChange={(event) => {
+                setDocumentsRowsPerPage(parseInt(event.target.value, 10));
+                setDocumentsPage(0);
+              }}
+            />
+          </Box>
+        ) : (
+          <Box>
+            {riskDocuments.map((document) => (
+              <Accordion key={document.id}>
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
+                    <Typography variant="h6">{document.title}</Typography>
+                    <Chip
+                      label={`${document.overallRiskLevel} Risk`}
+                      color={getRiskLevelFromScore(document.totalRiskScore).color as any}
+                      size="small"
+                    />
+                  </Box>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Typography paragraph>{document.description}</Typography>
+
+                  <Typography variant="h6" gutterBottom>
+                    Workflow Analysis ({document.workflows.length} workflows)
+                  </Typography>
+
+                  <TableContainer component={Paper} sx={{ mb: 3 }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Workflow</TableCell>
+                          <TableCell align="center">Likelihood</TableCell>
+                          <TableCell align="center">Impact</TableCell>
+                          <TableCell align="center">Risk Score</TableCell>
+                          <TableCell align="center">Decision</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {document.workflows.map((workflow) => (
+                          <TableRow key={workflow.id}>
+                            <TableCell>{workflow.workflowName}</TableCell>
+                            <TableCell align="center">{workflow.likelihood}</TableCell>
+                            <TableCell align="center">{workflow.impact}</TableCell>
+                            <TableCell align="center">
+                              <Chip
+                                label={workflow.riskScore}
+                                color={getRiskLevelFromScore(workflow.riskScore).color as any}
+                                size="small"
+                              />
+                            </TableCell>
+                            <TableCell align="center">
+                              <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                                {getAutomationIcon(workflow.riskScore)}
+                                {getAutomationRecommendation(workflow.riskScore)}
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+
+                  <Typography variant="h6" gutterBottom>
+                    Recommendations
+                  </Typography>
+                  <Typography>{document.recommendations}</Typography>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+        )}
+      </TabPanel>
+
+      <TabPanel value={tabValue} index={1}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <ToggleButtonGroup
+            value={workflowsViewMode}
+            exclusive
+            onChange={(_, newMode) => newMode && setWorkflowsViewMode(newMode)}
+            aria-label="workflows view mode"
+          >
+            <ToggleButton value="cards" aria-label="card view">
+              <CardViewIcon />
+            </ToggleButton>
+            <ToggleButton value="table" aria-label="table view">
+              <TableViewIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+          <Box display="flex" gap={2}>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={handleImportFromTestPlans}
+            >
+              Import from Test Plans
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleCreateWorkflow}
+            >
+              Add User Workflow
+            </Button>
+          </Box>
+        </Box>
+
+        {workflowsViewMode === 'table' ? (
+          <Box>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Workflow Name</TableCell>
+                    <TableCell>Feature</TableCell>
+                    <TableCell>Priority</TableCell>
+                    <TableCell>Risk Score</TableCell>
+                    <TableCell>Testing Tier</TableCell>
+                    <TableCell>Automation</TableCell>
+                    <TableCell>Updated</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {workflows.slice(workflowsPage * workflowsRowsPerPage, workflowsPage * workflowsRowsPerPage + workflowsRowsPerPage).map((workflow) => {
+                    const riskLevel = getRiskLevelFromScore(workflow.riskScore);
+                    const automationStatus = getAutomationRecommendation(workflow.riskScore);
+                    
+                    return (
+                      <TableRow key={workflow.id}>
+                        <TableCell>
+                          <Box>
+                            <Typography variant="subtitle2">{workflow.workflowName}</Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {workflow.description.length > 60 
+                                ? `${workflow.description.substring(0, 60)}...` 
+                                : workflow.description}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>{workflow.blackboardFeature}</TableCell>
+                        <TableCell>
+                          <Chip
+                            label={riskLevel.level}
+                            color={riskLevel.color as any}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight="bold">
+                            {workflow.riskScore}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={workflow.testingTier}
+                            color={workflow.testingTier.includes('CRITICAL') ? 'error' : workflow.testingTier.includes('HIGH') ? 'warning' : 'info'}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Box display="flex" alignItems="center" gap={1}>
+                            {getAutomationIcon(workflow.riskScore)}
+                            <Typography variant="body2">{automationStatus}</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>{workflow.updatedAt.toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Tooltip title="Edit Workflow">
+                            <Button size="small" onClick={() => handleEditWorkflow(workflow)}>
+                              Edit
+                            </Button>
+                          </Tooltip>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            <TablePagination
+              component="div"
+              count={workflows.length}
+              page={workflowsPage}
+              onPageChange={(_, newPage) => setWorkflowsPage(newPage)}
+              rowsPerPage={workflowsRowsPerPage}
+              onRowsPerPageChange={(event) => {
+                setWorkflowsRowsPerPage(parseInt(event.target.value, 10));
+                setWorkflowsPage(0);
+              }}
+            />
+          </Box>
+        ) : (
+          <Grid container spacing={3}>
+            {workflows.map((workflow) => {
             const riskLevel = getRiskLevelFromScore(workflow.riskScore);
             const automationStatus = getAutomationRecommendation(workflow.riskScore);
             return (
@@ -385,16 +692,9 @@ const RiskAnalysisView: React.FC = () => {
               </Grid>
             );
           })}
-        </Grid>
+          </Grid>
+        )}
       </TabPanel>
-
-      <TabPanel value={tabValue} index={1}>
-        <Box display="flex" justifyContent="flex-end" mb={2}>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateDocument}>
-            Add Risk Analysis Document
-          </Button>
-        </Box>
-        {riskDocuments.map((document) => (
           <Accordion key={document.id}>
             <AccordionSummary expandIcon={<ExpandMore />}>
               <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
