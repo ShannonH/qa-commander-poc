@@ -1040,81 +1040,116 @@ Export Date: ${new Date().toLocaleString()}
               </Typography>
               
               {groupWorkflowsByScenario(selectedDocument.workflows, testPlans).map((group, index) => (
-                <Box key={index} mb={4}>
-                  <Typography variant="h6" gutterBottom sx={{ 
-                    bgcolor: 'primary.light', 
-                    color: 'primary.contrastText', 
-                    p: 2, 
-                    borderRadius: 1,
-                    mb: 2
-                  }}>
-                    <strong>Given:</strong> {group.scenario.given}<br/>
-                    <strong>When:</strong> {group.scenario.when}<br/>
-                    <strong>Then:</strong> {group.scenario.then}
-                  </Typography>
-                  
-                  <TableContainer component={Paper} variant="outlined">
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell><strong>ID</strong></TableCell>
-                          <TableCell><strong>Acceptance Criteria</strong></TableCell>
-                          <TableCell align="center"><strong>Impact</strong></TableCell>
-                          <TableCell align="center"><strong>Likelihood</strong></TableCell>
-                          <TableCell align="center"><strong>Risk Score</strong></TableCell>
-                          <TableCell align="center"><strong>Testing Tier</strong></TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {group.workflows.map((workflow) => (
-                          <TableRow key={workflow.id}>
-                            <TableCell>
-                              <Typography variant="body2" fontWeight="bold">
-                                {workflow.automationId || workflow.id}
-                              </Typography>
+                <Accordion key={index} defaultExpanded sx={{ mb: 3 }}>
+                  <AccordionSummary 
+                    expandIcon={<ExpandMore />}
+                    sx={{ 
+                      bgcolor: 'grey.50',
+                      '&:hover': {
+                        bgcolor: 'grey.100',
+                      },
+                    }}
+                  >
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                      <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong> {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ p: 0 }}>
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow sx={{ bgcolor: 'grey.50' }}>
+                            <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                              Acceptance Criteria
                             </TableCell>
-                            <TableCell>
-                              <Typography variant="body2">
-                                {workflow.description}
-                              </Typography>
+                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                              Likelihood
                             </TableCell>
-                            <TableCell align="center">
-                              <Chip 
-                                label={workflow.impact} 
-                                color={workflow.impact <= 2 ? 'error' : workflow.impact <= 3 ? 'warning' : 'success'}
-                                size="small"
-                              />
+                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                              Impact
                             </TableCell>
-                            <TableCell align="center">
-                              <Chip 
-                                label={workflow.likelihood} 
-                                color={workflow.likelihood <= 2 ? 'error' : workflow.likelihood <= 3 ? 'warning' : 'success'}
-                                size="small"
-                              />
+                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                              Risk Factor
                             </TableCell>
-                            <TableCell align="center">
-                              <Chip 
-                                label={workflow.riskScore} 
-                                color={getRiskColor(workflow.riskScore)}
-                                size="small"
-                              />
+                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                              Testing Tier
                             </TableCell>
-                            <TableCell align="center">
-                              <Chip 
-                                label={workflow.testingTier} 
-                                color={
-                                  workflow.testingTier.includes('CRITICAL') ? 'error' :
-                                  workflow.testingTier.includes('HIGH') ? 'warning' : 'info'
-                                }
-                                size="small"
-                              />
+                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                              Testing Types
                             </TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Box>
+                        </TableHead>
+                        <TableBody>
+                          {group.workflows.map((workflow) => (
+                            <TableRow key={workflow.id} sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.25' } }}>
+                              <TableCell>
+                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                  {workflow.description}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Chip 
+                                  label={workflow.likelihood === 1 ? 'Low' : workflow.likelihood === 2 ? 'Medium' : workflow.likelihood === 3 ? 'High' : 'Critical'} 
+                                  color={workflow.likelihood <= 2 ? 'success' : workflow.likelihood === 3 ? 'warning' : 'error'}
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <Chip 
+                                  label={workflow.impact === 1 ? 'Low' : workflow.impact === 2 ? 'Medium' : workflow.impact === 3 ? 'High' : 'Critical'} 
+                                  color={workflow.impact <= 2 ? 'success' : workflow.impact === 3 ? 'warning' : 'error'}
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <Chip 
+                                  label={workflow.riskScore} 
+                                  color={workflow.riskScore <= 2 ? 'success' : workflow.riskScore <= 6 ? 'warning' : 'error'}
+                                  size="small"
+                                  sx={{ fontWeight: 'bold', minWidth: '40px' }}
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <Chip 
+                                  label={workflow.testingTier.includes('1') ? 'Unit' : workflow.testingTier.includes('2') ? 'Integration' : 'E2E'} 
+                                  color={
+                                    workflow.testingTier.includes('CRITICAL') ? 'error' :
+                                    workflow.testingTier.includes('HIGH') ? 'warning' : 'info'
+                                  }
+                                  size="small"
+                                />
+                              </TableCell>
+                              <TableCell align="center">
+                                <Box display="flex" flexWrap="wrap" gap={0.5} justifyContent="center">
+                                  {workflow.riskScore <= 2 && (
+                                    <>
+                                      <Chip label="Functional" size="small" variant="outlined" />
+                                      <Chip label="Security" size="small" variant="outlined" />
+                                    </>
+                                  )}
+                                  {workflow.riskScore <= 6 && workflow.riskScore > 2 && (
+                                    <>
+                                      <Chip label="Performance" size="small" variant="outlined" />
+                                      <Chip label="Functional" size="small" variant="outlined" />
+                                    </>
+                                  )}
+                                  {workflow.riskScore > 6 && (
+                                    <>
+                                      <Chip label="Accessibility" size="small" variant="outlined" />
+                                      <Chip label="Functional" size="small" variant="outlined" />
+                                    </>
+                                  )}
+                                </Box>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </AccordionDetails>
+                </Accordion>
               ))}
               
               {selectedDocument.recommendations && (
