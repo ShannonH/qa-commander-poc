@@ -33,6 +33,15 @@ import {
   Checkbox,
   FormControlLabel,
   Tooltip,
+  ToggleButton,
+  ToggleButtonGroup,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -42,8 +51,10 @@ import {
   Visibility as ViewIcon,
   GetApp as ExportIcon,
   Analytics as AnalyticsIcon,
+  ViewModule as CardViewIcon,
+  ViewList as TableViewIcon,
 } from '@mui/icons-material';
-import { TestPlan, TestCategory, TestScenario, BlackboardFeature, StrategyChecklistItem } from '../types';
+import { TestPlan, TestCategory, TestScenario, BlackboardFeature, StrategyChecklistItem, AcceptanceCriteria } from '../types';
 import { DataService } from '../utils/dataService';
 
 const TestPlansView: React.FC = () => {
@@ -176,29 +187,42 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   // Generate risk analysis from test plan
   const generateRiskAnalysis = (testPlan: TestPlan) => {
     try {
-      // Create workflows from test scenarios
-      const workflows = (testPlan.testScenarios || []).map(scenario => {
-        const defaultRiskScore = 4; // Medium risk as starting point
-        const defaultTier = 'Tier 2: HIGH';
-        
-        return {
-          id: `wf_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          workflowName: `${scenario.given} → ${scenario.when} → ${scenario.then}`,
-          description: `Generated from test plan: ${testPlan.title}`,
-          userStory: `Given ${scenario.given}, when ${scenario.when}, then ${scenario.then}`,
-          blackboardFeature: testPlan.blackboardFeature,
-          likelihood: 2,
-          impact: 2,
-          riskScore: defaultRiskScore,
-          testingTier: defaultTier,
-          deliverables: 'UI Automation, Exploratory Testing',
-          automationReason: 'Generated from test plan scenario - requires review and assessment',
-          sourceTestPlanId: testPlan.id,
-          sourceScenarioId: scenario.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
+      // Create workflows from acceptance criteria, not scenarios
+      const workflows: any[] = [];
+      
+      (testPlan.testScenarios || []).forEach(scenario => {
+        (scenario.acceptanceCriteria || []).forEach(ac => {
+          const defaultRiskScore = 4; // Medium risk as starting point
+          const defaultTier = 'Tier 2: HIGH';
+          
+          const workflow = {
+            id: ac.id, // Use AC ID as workflow ID
+            workflowName: ac.description,
+            description: `Acceptance criteria from scenario: ${scenario.given} → ${scenario.when} → ${scenario.then}`,
+            userStory: `Given ${scenario.given}, when ${scenario.when}, then ${scenario.then}`,
+            blackboardFeature: testPlan.blackboardFeature,
+            likelihood: 2,
+            impact: 2,
+            riskScore: defaultRiskScore,
+            testingTier: defaultTier,
+            deliverables: 'UI Automation, Exploratory Testing',
+            automationReason: 'Generated from acceptance criteria - requires review and assessment',
+            sourceTestPlanId: testPlan.id,
+            sourceScenarioId: scenario.id,
+            sourceAcceptanceCriteriaId: ac.id,
+            automationId: ac.automationId,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          
+          workflows.push(workflow);
+        });
       });
+
+      if (workflows.length === 0) {
+        alert('No acceptance criteria found to generate risk analysis. Please add acceptance criteria to your test scenarios first.');
+        return;
+      }
 
       // Save all workflows
       workflows.forEach(workflow => DataService.saveUserWorkflow(workflow));
@@ -207,19 +231,19 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       const riskDocument = {
         id: `ra_${Date.now()}`,
         title: `Risk Analysis: ${testPlan.title}`,
-        description: `Generated risk analysis document based on test plan scenarios for ${testPlan.feature}`,
+        description: `Generated risk analysis document based on acceptance criteria for ${testPlan.feature}`,
         blackboardFeature: testPlan.blackboardFeature,
         workflows: workflows,
         overallRiskLevel: 'Medium' as const,
         totalRiskScore: workflows.reduce((sum, w) => sum + w.riskScore, 0),
-        recommendations: 'Review and adjust impact/likelihood scores for each workflow. Consider automation for high-frequency, stable workflows.',
+        recommendations: 'Review and adjust impact/likelihood scores for each acceptance criteria workflow. Focus automation on high-frequency, stable workflows.',
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       DataService.saveRiskDocument(riskDocument);
       
-      alert(`Generated risk analysis with ${workflows.length} workflows. Check the Risk Analysis section to review and adjust the scoring.`);
+      alert(`Generated risk analysis with ${workflows.length} acceptance criteria workflows. Check the Risk Analysis section to review and adjust the scoring.`);
     } catch (error) {
       console.error('Error generating risk analysis:', error);
       alert('Error generating risk analysis');
@@ -229,6 +253,9 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   const [open, setOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<TestPlan | null>(null);
   const [viewMode, setViewMode] = useState<'create' | 'edit' | 'view'>('create');
+  const [displayMode, setDisplayMode] = useState<'cards' | 'table'>('cards');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -393,6 +420,27 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                   <Typography variant="body2" gutterBottom><strong>Priority:</strong> {scenario.priority}</Typography>
                   {scenario.notes && (
                     <Typography variant="body2" gutterBottom><strong>Notes:</strong> {scenario.notes}</Typography>
+                  )}
+                  
+                  {scenario.acceptanceCriteria && scenario.acceptanceCriteria.length > 0 && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom><strong>Acceptance Criteria ({scenario.acceptanceCriteria.length}):</strong></Typography>
+                      {scenario.acceptanceCriteria.map((ac, acIndex) => (
+                        <Box key={ac.id} sx={{ ml: 2, mb: 1, p: 1, backgroundColor: 'background.default', borderRadius: 1 }}>
+                          <Typography variant="body2" gutterBottom>
+                            <strong>ID:</strong> {ac.id} {ac.automationId && `(${ac.automationId})`}
+                          </Typography>
+                          <Typography variant="body2" gutterBottom>
+                            <strong>Description:</strong> {ac.description}
+                          </Typography>
+                          {ac.notes && (
+                            <Typography variant="body2" color="text.secondary">
+                              <strong>Notes:</strong> {ac.notes}
+                            </Typography>
+                          )}
+                        </Box>
+                      ))}
+                    </Box>
                   )}
                 </Box>
               </AccordionDetails>
@@ -902,6 +950,79 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                         placeholder="Additional context or rationale"
                       />
                     </Grid>
+                    
+                    {/* Acceptance Criteria Section */}
+                    <Grid size={12}>
+                      <Typography variant="h6" gutterBottom sx={{ mt: 2, mb: 1 }}>
+                        Acceptance Criteria (Workflows)
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" gutterBottom>
+                        These acceptance criteria become the individual workflows in risk analysis. Each gets a unique ID for test automation.
+                      </Typography>
+                      
+                      {(scenario.acceptanceCriteria || []).map((ac, acIndex) => (
+                        <Box key={ac.id} sx={{ mb: 2, p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+                          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+                            <Typography variant="subtitle2">AC #{acIndex + 1} - ID: {ac.id}</Typography>
+                            {viewMode !== 'view' && (
+                              <IconButton 
+                                size="small" 
+                                onClick={() => removeAcceptanceCriteria(index, acIndex)}
+                                aria-label={`Remove acceptance criteria ${acIndex + 1}`}
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            )}
+                          </Box>
+                          <Grid container spacing={2}>
+                            <Grid size={12}>
+                              <TextField
+                                fullWidth
+                                label="Description *"
+                                value={ac.description}
+                                onChange={(e) => updateAcceptanceCriteria(index, acIndex, 'description', e.target.value)}
+                                disabled={viewMode === 'view'}
+                                placeholder="e.g., Folder icon changes state to indicate expanded/collapsed status"
+                                multiline
+                                rows={2}
+                              />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                              <TextField
+                                fullWidth
+                                label="Automation ID"
+                                value={ac.automationId || ''}
+                                onChange={(e) => updateAcceptanceCriteria(index, acIndex, 'automationId', e.target.value)}
+                                disabled={viewMode === 'view'}
+                                placeholder="e.g., FOLDER_ICON_STATE_CHANGE"
+                                helperText="Used in automated test code"
+                              />
+                            </Grid>
+                            <Grid size={{ xs: 12, md: 6 }}>
+                              <TextField
+                                fullWidth
+                                label="Notes"
+                                value={ac.notes || ''}
+                                onChange={(e) => updateAcceptanceCriteria(index, acIndex, 'notes', e.target.value)}
+                                disabled={viewMode === 'view'}
+                                placeholder="Implementation notes"
+                              />
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      ))}
+                      
+                      {viewMode !== 'view' && (
+                        <Button 
+                          onClick={() => addAcceptanceCriteria(index)} 
+                          size="small" 
+                          startIcon={<AddIcon />}
+                          variant="outlined"
+                        >
+                          Add Acceptance Criteria
+                        </Button>
+                      )}
+                    </Grid>
                   </Grid>
                 </Paper>
               </Grid>
@@ -1175,6 +1296,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       when: '',
       then: '',
       priority: 'Medium',
+      acceptanceCriteria: [],
       notes: ''
     };
     setFormData({
@@ -1183,8 +1305,44 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
     });
   };
 
+  const addAcceptanceCriteria = (scenarioIndex: number) => {
+    const newAC: AcceptanceCriteria = {
+      id: DataService.generateWorkflowId(),
+      description: '',
+      automationId: '',
+      notes: ''
+    };
+    
+    const updatedScenarios = [...formData.testScenarios];
+    updatedScenarios[scenarioIndex].acceptanceCriteria = [
+      ...updatedScenarios[scenarioIndex].acceptanceCriteria,
+      newAC
+    ];
+    
+    setFormData({ ...formData, testScenarios: updatedScenarios });
+  };
+
+  const updateAcceptanceCriteria = (scenarioIndex: number, acIndex: number, field: keyof AcceptanceCriteria, value: string) => {
+    const updatedScenarios = [...formData.testScenarios];
+    updatedScenarios[scenarioIndex].acceptanceCriteria[acIndex] = {
+      ...updatedScenarios[scenarioIndex].acceptanceCriteria[acIndex],
+      [field]: value
+    };
+    setFormData({ ...formData, testScenarios: updatedScenarios });
+  };
+
+  const removeAcceptanceCriteria = (scenarioIndex: number, acIndex: number) => {
+    const updatedScenarios = [...formData.testScenarios];
+    updatedScenarios[scenarioIndex].acceptanceCriteria = updatedScenarios[scenarioIndex].acceptanceCriteria.filter((_, i) => i !== acIndex);
+    setFormData({ ...formData, testScenarios: updatedScenarios });
+  };
+
   const updateTestScenario = (index: number, field: keyof TestScenario, value: string) => {
     const newScenarios = [...formData.testScenarios];
+    if (field === 'acceptanceCriteria') {
+      // Handle acceptance criteria separately
+      return;
+    }
     newScenarios[index] = { ...newScenarios[index], [field]: value };
     setFormData({ ...formData, testScenarios: newScenarios });
   };
@@ -1268,16 +1426,130 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
             Manage test plans for Blackboard Learn/Ultra features
           </Typography>
         </div>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleCreateNew}
-        >
-          Create Test Plan
-        </Button>
+        <Box display="flex" alignItems="center" gap={2}>
+          <ToggleButtonGroup
+            value={displayMode}
+            exclusive
+            onChange={(_, newMode) => newMode && setDisplayMode(newMode)}
+            aria-label="view mode"
+          >
+            <ToggleButton value="cards" aria-label="card view">
+              <CardViewIcon />
+            </ToggleButton>
+            <ToggleButton value="table" aria-label="table view">
+              <TableViewIcon />
+            </ToggleButton>
+          </ToggleButtonGroup>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={handleCreateNew}
+          >
+            Create Test Plan
+          </Button>
+        </Box>
       </Box>
 
-      <Grid container spacing={3}>
+      {displayMode === 'table' ? (
+        <Box>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Title</TableCell>
+                  <TableCell>Feature</TableCell>
+                  <TableCell>Priority</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Scenarios</TableCell>
+                  <TableCell>Acceptance Criteria</TableCell>
+                  <TableCell>Assignee</TableCell>
+                  <TableCell>Updated</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {testPlans.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((plan) => {
+                  const totalAC = plan.testScenarios.reduce((sum, scenario) => 
+                    sum + (scenario.acceptanceCriteria?.length || 0), 0
+                  );
+                  
+                  return (
+                    <TableRow key={plan.id}>
+                      <TableCell>
+                        <Box>
+                          <Typography variant="subtitle2">{plan.title}</Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {plan.description.length > 100 
+                              ? `${plan.description.substring(0, 100)}...` 
+                              : plan.description}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>{plan.blackboardFeature}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={plan.priority}
+                          color={getPriorityColor(plan.priority) as any}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={plan.status}
+                          color={getStatusColor(plan.status) as any}
+                          variant="outlined"
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{plan.testScenarios.length}</TableCell>
+                      <TableCell>{totalAC}</TableCell>
+                      <TableCell>{plan.assignee || '-'}</TableCell>
+                      <TableCell>{plan.updatedAt.toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Box display="flex" gap={1}>
+                          <Tooltip title="View Details">
+                            <IconButton size="small" onClick={() => handleView(plan)}>
+                              <ViewIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Edit">
+                            <IconButton size="small" onClick={() => handleEdit(plan)}>
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Export PDF">
+                            <IconButton size="small" onClick={() => generatePDF(plan)}>
+                              <ExportIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Generate Risk Analysis">
+                            <IconButton size="small" onClick={() => generateRiskAnalysis(plan)}>
+                              <AnalyticsIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          
+          <TablePagination
+            component="div"
+            count={testPlans.length}
+            page={page}
+            onPageChange={(_, newPage) => setPage(newPage)}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(event) => {
+              setRowsPerPage(parseInt(event.target.value, 10));
+              setPage(0);
+            }}
+          />
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
         {testPlans.map((plan) => (
           <Grid size={{ xs: 12, md: 6, lg: 4 }} key={plan.id}>
             <Card>
@@ -1378,6 +1650,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
           </Grid>
         ))}
       </Grid>
+      )}
 
       <Dialog 
         open={open} 

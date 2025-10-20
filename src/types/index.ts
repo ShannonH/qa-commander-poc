@@ -1,5 +1,5 @@
 export interface UserWorkflow {
-  id: string;
+  id: string; // Matches AcceptanceCriteria.id for linking
   workflowName: string;
   description: string;
   userStory: string;
@@ -12,6 +12,8 @@ export interface UserWorkflow {
   automationReason: string;
   sourceTestPlanId?: string; // Link to originating test plan
   sourceScenarioId?: string; // Link to originating test scenario
+  sourceAcceptanceCriteriaId?: string; // Link to specific AC item
+  automationId?: string; // Unique ID for test automation code
   createdAt: Date;
   updatedAt: Date;
 }
@@ -83,12 +85,20 @@ export interface StrategyChecklistItem {
   notes?: string;
 }
 
+export interface AcceptanceCriteria {
+  id: string; // Unique ID for test automation (e.g., "AC_001", "AC_002")
+  description: string;
+  automationId?: string; // Optional separate automation ID
+  notes?: string;
+}
+
 export interface TestScenario {
   id: string;
   given: string;
   when: string;
   then: string;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  acceptanceCriteria: AcceptanceCriteria[]; // These become the workflows
   notes?: string;
 }
 

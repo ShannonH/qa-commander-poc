@@ -1,12 +1,40 @@
-import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario, StrategyChecklistItem } from '../types';
+import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario, StrategyChecklistItem, AcceptanceCriteria } from '../types';
 
 const STORAGE_KEYS = {
   WORKFLOWS: 'qa_commander_workflows',
   RISK_DOCUMENTS: 'qa_commander_risk_documents',
   TEST_PLANS: 'qa_commander_test_plans',
+  WORKFLOW_COUNTER: 'qa_commander_workflow_counter',
 };
 
 export class DataService {
+  // Generate unique workflow ID
+  static generateWorkflowId(): string {
+    const currentCounter = parseInt(localStorage.getItem(STORAGE_KEYS.WORKFLOW_COUNTER) || '0');
+    const newCounter = currentCounter + 1;
+    localStorage.setItem(STORAGE_KEYS.WORKFLOW_COUNTER, newCounter.toString());
+    return `AC_${newCounter.toString().padStart(3, '0')}`;
+  }
+
+  // Check if workflow ID already exists
+  static isWorkflowIdUnique(id: string): boolean {
+    const allWorkflows = this.getUserWorkflows();
+    return !allWorkflows.some(w => w.id === id || w.automationId === id);
+  }
+
+  // Get all acceptance criteria from all test plans to check for duplicates
+  static getAllAcceptanceCriteria(): AcceptanceCriteria[] {
+    const testPlans = this.getTestPlans();
+    const allAC: AcceptanceCriteria[] = [];
+    testPlans.forEach(plan => {
+      plan.testScenarios.forEach(scenario => {
+        if (scenario.acceptanceCriteria) {
+          allAC.push(...scenario.acceptanceCriteria);
+        }
+      });
+    });
+    return allAC;
+  }
   // User Workflow methods
   static getUserWorkflows(): UserWorkflow[] {
     const data = localStorage.getItem(STORAGE_KEYS.WORKFLOWS);
@@ -90,7 +118,10 @@ export class DataService {
         outOfScope: plan.outOfScope || [],
         testStrategy: plan.testStrategy || '',
         strategyChecklist: plan.strategyChecklist || [],
-        testScenarios: plan.testScenarios || [],
+        testScenarios: (plan.testScenarios || []).map((scenario: any) => ({
+          ...scenario,
+          acceptanceCriteria: scenario.acceptanceCriteria || []
+        })),
         testEnvironmentRequirements: plan.testEnvironmentRequirements || [],
         testDataRequirements: plan.testDataRequirements || [],
         successCriteria: plan.successCriteria || [],
@@ -265,6 +296,26 @@ export class DataService {
               when: 'They click on a content folder in the course navigation',
               then: 'The folder expands to show all contained items without page reload',
               priority: 'Critical',
+              acceptanceCriteria: [
+                {
+                  id: 'AC_001',
+                  description: 'Folder icon changes state to indicate expanded/collapsed status',
+                  automationId: 'FOLDER_ICON_STATE_CHANGE',
+                  notes: 'Visual indicator for user feedback'
+                },
+                {
+                  id: 'AC_002', 
+                  description: 'All child content items are visible within 2 seconds of clicking',
+                  automationId: 'FOLDER_CONTENT_LOAD_TIME',
+                  notes: 'Performance requirement'
+                },
+                {
+                  id: 'AC_003',
+                  description: 'Folder content displays in correct hierarchical order',
+                  automationId: 'FOLDER_CONTENT_HIERARCHY',
+                  notes: 'Content organization requirement'
+                }
+              ],
               notes: 'Core navigation workflow used in every session'
             },
             {
@@ -273,6 +324,26 @@ export class DataService {
               when: 'They click the download link on a PDF file',
               then: 'The file downloads successfully and opens in their default PDF viewer',
               priority: 'High',
+              acceptanceCriteria: [
+                {
+                  id: 'AC_004',
+                  description: 'Download begins immediately upon clicking the download link',
+                  automationId: 'PDF_DOWNLOAD_INITIATE',
+                  notes: 'User experience requirement'
+                },
+                {
+                  id: 'AC_005',
+                  description: 'Downloaded file maintains original filename and format',
+                  automationId: 'PDF_FILE_INTEGRITY',
+                  notes: 'File integrity verification'
+                },
+                {
+                  id: 'AC_006',
+                  description: 'Browser handles PDF opening according to user preferences',
+                  automationId: 'PDF_BROWSER_HANDLING',
+                  notes: 'Respect user browser settings'
+                }
+              ],
               notes: 'Essential for accessing course materials'
             },
             {
@@ -281,6 +352,26 @@ export class DataService {
               when: 'They navigate to the course content area',
               then: 'All content is properly formatted and accessible on the mobile interface',
               priority: 'High',
+              acceptanceCriteria: [
+                {
+                  id: 'AC_007',
+                  description: 'Content area adapts to mobile screen width without horizontal scrolling',
+                  automationId: 'MOBILE_CONTENT_RESPONSIVE',
+                  notes: 'Responsive design requirement'
+                },
+                {
+                  id: 'AC_008',
+                  description: 'Touch targets for content items are at least 44px in size',
+                  automationId: 'MOBILE_TOUCH_TARGET_SIZE',
+                  notes: 'Accessibility requirement for mobile'
+                },
+                {
+                  id: 'AC_009',
+                  description: 'All content functions work with touch gestures',
+                  automationId: 'MOBILE_TOUCH_FUNCTIONALITY',
+                  notes: 'Mobile interaction requirement'
+                }
+              ],
               notes: 'Mobile usage is increasing rapidly'
             }
           ],
@@ -373,6 +464,26 @@ export class DataService {
               when: 'They upload their file and click submit before the deadline',
               then: 'The submission is recorded with timestamp and confirmation is displayed',
               priority: 'Critical',
+              acceptanceCriteria: [
+                {
+                  id: 'AC_010',
+                  description: 'File upload progress indicator displays during upload process',
+                  automationId: 'ASSIGNMENT_UPLOAD_PROGRESS',
+                  notes: 'User feedback during upload'
+                },
+                {
+                  id: 'AC_011',
+                  description: 'Submission timestamp is recorded accurately to the second',
+                  automationId: 'ASSIGNMENT_TIMESTAMP_ACCURACY',
+                  notes: 'Critical for deadline enforcement'
+                },
+                {
+                  id: 'AC_012',
+                  description: 'Confirmation message displays submission details including timestamp',
+                  automationId: 'ASSIGNMENT_CONFIRMATION_DISPLAY',
+                  notes: 'User confirmation requirement'
+                }
+              ],
               notes: 'Core functionality for academic integrity'
             },
             {
@@ -381,6 +492,26 @@ export class DataService {
               when: 'They access the grade center and provide feedback with grades',
               then: 'Students receive grades and feedback notifications immediately',
               priority: 'High',
+              acceptanceCriteria: [
+                {
+                  id: 'AC_013',
+                  description: 'Grade entry interface allows both numeric and letter grades',
+                  automationId: 'GRADE_ENTRY_FORMATS',
+                  notes: 'Flexible grading support'
+                },
+                {
+                  id: 'AC_014',
+                  description: 'Feedback text is saved and associated with the correct student',
+                  automationId: 'FEEDBACK_STUDENT_ASSOCIATION',
+                  notes: 'Data integrity requirement'
+                },
+                {
+                  id: 'AC_015',
+                  description: 'Email notification is sent within 5 minutes of grade publication',
+                  automationId: 'GRADE_NOTIFICATION_TIMING',
+                  notes: 'Timely communication requirement'
+                }
+              ],
               notes: 'Key workflow for timely feedback'
             },
             {
@@ -389,6 +520,20 @@ export class DataService {
               when: 'They try to access the submission interface',
               then: 'They see appropriate messaging about late submission policies',
               priority: 'Medium',
+              acceptanceCriteria: [
+                {
+                  id: 'AC_016',
+                  description: 'Clear message displays explaining the assignment is past due',
+                  automationId: 'LATE_SUBMISSION_MESSAGE',
+                  notes: 'Policy communication requirement'
+                },
+                {
+                  id: 'AC_017',
+                  description: 'Late submission is blocked unless instructor allows late work',
+                  automationId: 'LATE_SUBMISSION_POLICY_ENFORCEMENT',
+                  notes: 'Policy enforcement requirement'
+                }
+              ],
               notes: 'Important for policy enforcement'
             }
           ],
@@ -466,6 +611,26 @@ export class DataService {
               when: 'A new student posts a reply to an existing thread',
               then: 'All thread participants receive email notifications about the new post',
               priority: 'High',
+              acceptanceCriteria: [
+                {
+                  id: 'AC_018',
+                  description: 'Email notification includes thread title and new post preview',
+                  automationId: 'DISCUSSION_EMAIL_CONTENT',
+                  notes: 'Informative notification requirement'
+                },
+                {
+                  id: 'AC_019',
+                  description: 'Notification is sent to all thread participants within 10 minutes',
+                  automationId: 'DISCUSSION_NOTIFICATION_TIMING',
+                  notes: 'Timely engagement requirement'
+                },
+                {
+                  id: 'AC_020',
+                  description: 'Users can opt out of thread notifications via preferences',
+                  automationId: 'DISCUSSION_NOTIFICATION_PREFERENCES',
+                  notes: 'User control requirement'
+                }
+              ],
               notes: 'Critical for maintaining engagement'
             },
             {
@@ -474,6 +639,26 @@ export class DataService {
               when: 'They hide or delete a student post that violates guidelines',
               then: 'The post is immediately removed from all student views and logs the moderation action',
               priority: 'High',
+              acceptanceCriteria: [
+                {
+                  id: 'AC_021',
+                  description: 'Hidden post becomes invisible to students but remains visible to instructor',
+                  automationId: 'DISCUSSION_POST_HIDE_VISIBILITY',
+                  notes: 'Moderation visibility requirement'
+                },
+                {
+                  id: 'AC_022',
+                  description: 'Moderation action is logged with timestamp and reason',
+                  automationId: 'DISCUSSION_MODERATION_LOGGING',
+                  notes: 'Audit trail requirement'
+                },
+                {
+                  id: 'AC_023',
+                  description: 'Student who posted receives notification about moderation action',
+                  automationId: 'DISCUSSION_MODERATION_NOTIFICATION',
+                  notes: 'Student communication requirement'
+                }
+              ],
               notes: 'Essential for maintaining safe learning environment'
             }
           ],
