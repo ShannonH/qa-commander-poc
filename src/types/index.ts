@@ -1,13 +1,19 @@
 export interface UserWorkflow {
-  id: string;
+  id: string; // Matches AcceptanceCriteria.id for linking
   workflowName: string;
   description: string;
   userStory: string;
   blackboardFeature: BlackboardFeature;
-  likelihood: number; // 1-5 scale (probability of failure)
-  impact: number; // 1-5 scale (impact if failure occurs)
+  likelihood: number; // 1-4 scale (probability of failure)
+  impact: number; // 1-4 scale (impact if failure occurs)
   riskScore: number; // likelihood * impact
+  testingTier: 'Tier 1: CRITICAL' | 'Tier 2: HIGH' | 'Tier 3: MEDIUM/LOW';
+  deliverables: string; // Required testing deliverables
   automationReason: string;
+  sourceTestPlanId?: string; // Link to originating test plan
+  sourceScenarioId?: string; // Link to originating test scenario
+  sourceAcceptanceCriteriaId?: string; // Link to specific AC item
+  automationId?: string; // Unique ID for test automation code
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,17 +35,71 @@ export interface TestPlan {
   id: string;
   title: string;
   description: string;
+  
+  // 1. Feature Overview
   feature: string;
+  blackboardFeature: BlackboardFeature;
   category: TestCategory;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
-  estimatedHours: number;
+  
+  // 2. Objective
+  objective: string;
+  
+  // 3. Test Scope  
+  inScope: string[];
+  outOfScope: string[];
   prerequisites: string[];
+  
+  // 4. Strategy
+  testStrategy: string;
+  strategyChecklist: StrategyChecklistItem[];
+  
+  // 5. Test Scenarios (Given/When/Then)
+  testScenarios: TestScenario[];
+  
+  // 6. Test Cases
   testCases: TestCase[];
-  blackboardFeature: BlackboardFeature;
+  
+  // 7. Test Environment Requirements
+  testEnvironmentRequirements: string[];
+  
+  // 8. Test Data Requirements
+  testDataRequirements: string[];
+  
+  // 9. Success Criteria
+  successCriteria: string[];
+  
+  // Meta information
+  estimatedHours: number;
   status: 'Draft' | 'Review' | 'Approved' | 'In Progress' | 'Completed' | 'Archived';
   assignee?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface StrategyChecklistItem {
+  id: string;
+  category: 'test_types' | 'automation' | 'risk_management' | 'tools' | 'coverage' | 'process';
+  item: string;
+  checked: boolean;
+  notes?: string;
+}
+
+export interface AcceptanceCriteria {
+  id: string; // Unique ID for test automation (e.g., "AC_001", "AC_002")
+  description: string;
+  automationId?: string; // Optional separate automation ID
+  notes?: string;
+}
+
+export interface TestScenario {
+  id: string;
+  given: string;
+  when: string;
+  then: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  acceptanceCriteria: AcceptanceCriteria[]; // These become the workflows
+  notes?: string;
 }
 
 export interface TestCase {
@@ -49,6 +109,7 @@ export interface TestCase {
   steps: TestStep[];
   expectedResult: string;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  relatedScenarioId?: string; // Link to TestScenario
 }
 
 export interface TestStep {
