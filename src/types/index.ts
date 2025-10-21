@@ -40,6 +40,7 @@ export interface TestPlan {
   blackboardFeature: BlackboardFeature;
   category: TestCategory;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  valueStream?: string; // Value stream for organizational context
   
   // 2. Objective
   objective: string;

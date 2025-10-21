@@ -264,6 +264,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
     blackboardFeature: 'Course Management' as BlackboardFeature,
     category: 'Functional' as TestCategory,
     priority: 'Medium' as TestPlan['priority'],
+    valueStream: '',
     objective: '',
     inScope: [''] as string[],
     outOfScope: [''] as string[],
@@ -612,6 +613,17 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                   <MenuItem value="Critical">Critical</MenuItem>
                 </Select>
               </FormControl>
+            </Grid>
+            <Grid size={12}>
+              <TextField
+                label="Value Stream"
+                fullWidth
+                value={formData.valueStream || ''}
+                onChange={(e) => setFormData({ ...formData, valueStream: e.target.value })}
+                placeholder="e.g., Teaching & Learning, Student Success, Administrative Operations"
+                disabled={viewMode === 'view'}
+                helperText="Specify the value stream this test plan belongs to for organizational context"
+              />
             </Grid>
           </Grid>
         );
@@ -1247,6 +1259,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       blackboardFeature: plan.blackboardFeature,
       category: plan.category,
       priority: plan.priority,
+      valueStream: plan.valueStream || '',
       objective: plan.objective,
       inScope: plan.inScope,
       outOfScope: plan.outOfScope,

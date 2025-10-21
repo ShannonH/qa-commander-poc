@@ -332,14 +332,29 @@ const TCMView: React.FC = () => {
       {Object.entries(groupedTestCases).map(([key, group]) => (
         <Accordion key={key} defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Box>
-              <Typography variant="h6">
-                {group.adoNumber && <Chip label={group.adoNumber} size="small" sx={{ mr: 1 }} />}
-                <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong> {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {group.testCases.length} test case{group.testCases.length !== 1 ? 's' : ''}
-              </Typography>
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: 2 }}>
+              <Box>
+                <Typography variant="h6">
+                  {group.adoNumber && <Chip label={group.adoNumber} size="small" sx={{ mr: 1 }} />}
+                  <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong> {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {group.testCases.length} test case{group.testCases.length !== 1 ? 's' : ''}
+                </Typography>
+              </Box>
+              <Box onClick={(e) => e.stopPropagation()}>
+                {group.testCases.map((testCase) => (
+                  <Tooltip key={testCase.id} title={`Delete test case ${testCase.id}`}>
+                    <IconButton 
+                      size="small" 
+                      color="error"
+                      onClick={() => handleDeleteTestCase(testCase.id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                ))}
+              </Box>
             </Box>
           </AccordionSummary>
           <AccordionDetails>
@@ -410,15 +425,6 @@ const TCMView: React.FC = () => {
                             onClick={() => handleUpdateStatus(testCase, 'In Progress')}
                           >
                             <ExecuteIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete Test Case">
-                          <IconButton 
-                            size="small" 
-                            color="error"
-                            onClick={() => handleDeleteTestCase(testCase.id)}
-                          >
-                            <DeleteIcon />
                           </IconButton>
                         </Tooltip>
                       </TableCell>
