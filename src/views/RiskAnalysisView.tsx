@@ -1129,22 +1129,22 @@ Export Date: ${new Date().toLocaleString()}
                         <TableHead>
                           <TableRow sx={{ bgcolor: 'grey.50' }}>
                             <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Acceptance Criteria
+                              Workflow / AC Item
                             </TableCell>
                             <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Likelihood
+                              Impact (1-4)
                             </TableCell>
                             <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Impact
+                              Likelihood (1-4)
                             </TableCell>
                             <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Risk Factor
+                              Risk Factor (I x L)
                             </TableCell>
                             <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Testing Tier
+                              Mandatory Testing Tier
                             </TableCell>
                             <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Testing Types
+                              Deliverables Commitment
                             </TableCell>
                           </TableRow>
                         </TableHead>
@@ -1153,36 +1153,33 @@ Export Date: ${new Date().toLocaleString()}
                             <TableRow key={workflow.id} sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.25' } }}>
                               <TableCell>
                                 <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                  {workflow.description}
+                                  {workflow.workflowName}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  Test Case ID: {workflow.id}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="bold">
+                                  {workflow.impact}
+                                </Typography>
+                              </TableCell>
+                              <TableCell align="center">
+                                <Typography variant="body2" fontWeight="bold">
+                                  {workflow.likelihood}
                                 </Typography>
                               </TableCell>
                               <TableCell align="center">
                                 <Chip 
-                                  label={workflow.likelihood === 1 ? 'Low' : workflow.likelihood === 2 ? 'Medium' : workflow.likelihood === 3 ? 'High' : 'Critical'} 
-                                  color={workflow.likelihood <= 2 ? 'success' : workflow.likelihood === 3 ? 'warning' : 'error'}
-                                  size="small"
-                                  variant="outlined"
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <Chip 
-                                  label={workflow.impact === 1 ? 'Low' : workflow.impact === 2 ? 'Medium' : workflow.impact === 3 ? 'High' : 'Critical'} 
-                                  color={workflow.impact <= 2 ? 'success' : workflow.impact === 3 ? 'warning' : 'error'}
-                                  size="small"
-                                  variant="outlined"
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <Chip 
                                   label={workflow.riskScore} 
-                                  color={workflow.riskScore <= 2 ? 'success' : workflow.riskScore <= 6 ? 'warning' : 'error'}
+                                  color={workflow.riskScore <= 4 ? 'error' : workflow.riskScore <= 8 ? 'warning' : 'info'}
                                   size="small"
                                   sx={{ fontWeight: 'bold', minWidth: '40px' }}
                                 />
                               </TableCell>
                               <TableCell align="center">
                                 <Chip 
-                                  label={workflow.testingTier.includes('1') ? 'Unit' : workflow.testingTier.includes('2') ? 'Integration' : 'E2E'} 
+                                  label={workflow.testingTier} 
                                   color={
                                     workflow.testingTier.includes('CRITICAL') ? 'error' :
                                     workflow.testingTier.includes('HIGH') ? 'warning' : 'info'
@@ -1190,27 +1187,10 @@ Export Date: ${new Date().toLocaleString()}
                                   size="small"
                                 />
                               </TableCell>
-                              <TableCell align="center">
-                                <Box display="flex" flexWrap="wrap" gap={0.5} justifyContent="center">
-                                  {workflow.riskScore <= 2 && (
-                                    <>
-                                      <Chip label="Functional" size="small" variant="outlined" />
-                                      <Chip label="Security" size="small" variant="outlined" />
-                                    </>
-                                  )}
-                                  {workflow.riskScore <= 6 && workflow.riskScore > 2 && (
-                                    <>
-                                      <Chip label="Performance" size="small" variant="outlined" />
-                                      <Chip label="Functional" size="small" variant="outlined" />
-                                    </>
-                                  )}
-                                  {workflow.riskScore > 6 && (
-                                    <>
-                                      <Chip label="Accessibility" size="small" variant="outlined" />
-                                      <Chip label="Functional" size="small" variant="outlined" />
-                                    </>
-                                  )}
-                                </Box>
+                              <TableCell>
+                                <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+                                  {workflow.deliverables}
+                                </Typography>
                               </TableCell>
                             </TableRow>
                           ))}
