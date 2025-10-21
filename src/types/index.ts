@@ -1,19 +1,18 @@
 export interface UserWorkflow {
-  id: string; // Matches AcceptanceCriteria.id for linking
+  id: string; // Matches AcceptanceCriteria.id for linking (test case ID like "00001")
   workflowName: string;
   description: string;
   userStory: string;
   blackboardFeature: BlackboardFeature;
-  likelihood: number; // 1-4 scale (probability of failure)
-  impact: number; // 1-4 scale (impact if failure occurs)
+  likelihood: number; // 1-4 scale (1=Most likely to fail, 4=Unlikely)
+  impact: number; // 1-4 scale (1=Most impactful, 4=Minimal)
   riskScore: number; // likelihood * impact
-  testingTier: 'Tier 1: CRITICAL' | 'Tier 2: HIGH' | 'Tier 3: MEDIUM/LOW';
-  deliverables: string; // Required testing deliverables
+  testingTier: 'Tier 1: CRITICAL' | 'Tier 2: HIGH' | 'Tier 3: STANDARD';
+  deliverables: string; // Required testing deliverables based on tier
   automationReason: string;
   sourceTestPlanId?: string; // Link to originating test plan
   sourceScenarioId?: string; // Link to originating test scenario
-  sourceAcceptanceCriteriaId?: string; // Link to specific AC item
-  automationId?: string; // Unique ID for test automation code
+  sourceAcceptanceCriteriaId?: string; // Link to specific AC item (test case ID)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -86,14 +85,14 @@ export interface StrategyChecklistItem {
 }
 
 export interface AcceptanceCriteria {
-  id: string; // Unique ID for test automation (e.g., "AC_001", "AC_002")
+  id: string; // Auto-generated test case ID (e.g., "00001", "00002") - not user-editable
   description: string;
-  automationId?: string; // Optional separate automation ID
   notes?: string;
 }
 
 export interface TestScenario {
   id: string;
+  adoNumber?: string; // ADO number to help identify this scenario
   given: string;
   when: string;
   then: string;
@@ -117,6 +116,35 @@ export interface TestStep {
   stepNumber: number;
   action: string;
   expectedResult: string;
+}
+
+// Test Case Management (TCM) Types
+export interface TCMTestCase {
+  id: string; // Test case ID (matches acceptance criteria ID like "00001")
+  title: string;
+  description: string;
+  sourceTestPlanId: string;
+  sourceScenarioId: string;
+  sourceAcceptanceCriteriaId: string;
+  adoNumber?: string; // ADO number from the scenario
+  givenWhenThen: {
+    given: string;
+    when: string;
+    then: string;
+  };
+  acceptanceCriteria: string; // The AC description
+  riskScore: number;
+  testingTier: 'Tier 1: CRITICAL' | 'Tier 2: HIGH' | 'Tier 3: STANDARD';
+  likelihood: number;
+  impact: number;
+  deliverables: string;
+  status: 'Draft' | 'Ready' | 'In Progress' | 'Passed' | 'Failed' | 'Blocked';
+  assignee?: string;
+  testSteps?: TestStep[];
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lastExecuted?: Date;
 }
 
 export type TestCategory =

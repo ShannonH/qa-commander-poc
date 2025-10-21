@@ -135,17 +135,17 @@ const RiskAnalysisView: React.FC = () => {
   const getTestingTierFromRiskScore = (score: number): UserWorkflow['testingTier'] => {
     if (score <= 4) return 'Tier 1: CRITICAL';
     if (score <= 8) return 'Tier 2: HIGH';
-    return 'Tier 3: MEDIUM/LOW';
+    return 'Tier 3: STANDARD';
   };
 
   const getDefaultDeliverables = (tier: UserWorkflow['testingTier']): string => {
     switch (tier) {
       case 'Tier 1: CRITICAL':
-        return 'Unit Test, UI Automation, Exploratory Testing';
+        return 'Unit Test, UI Automation (UIA), Exploratory Testing (ET), TCM Test Case';
       case 'Tier 2: HIGH':
-        return 'UI Automation, Exploratory Testing';
-      case 'Tier 3: MEDIUM/LOW':
-        return 'Manual Testing';
+        return 'Unit Test (recommended), UI Automation (UIA), Exploratory Testing (ET), TCM Test Case';
+      case 'Tier 3: STANDARD':
+        return 'Unit Test (encouraged), Manual Golden Path, Exploratory Testing (optional)';
       default:
         return 'Manual Testing';
     }

@@ -1,25 +1,27 @@
-import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario, StrategyChecklistItem, AcceptanceCriteria } from '../types';
+import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario, StrategyChecklistItem, AcceptanceCriteria, TCMTestCase } from '../types';
 
 const STORAGE_KEYS = {
   WORKFLOWS: 'qa_commander_workflows',
   RISK_DOCUMENTS: 'qa_commander_risk_documents',
   TEST_PLANS: 'qa_commander_test_plans',
-  WORKFLOW_COUNTER: 'qa_commander_workflow_counter',
+  TCM_TEST_CASES: 'qa_commander_tcm_test_cases',
+  TEST_CASE_COUNTER: 'qa_commander_test_case_counter',
 };
 
 export class DataService {
-  // Generate unique workflow ID
-  static generateWorkflowId(): string {
-    const currentCounter = parseInt(localStorage.getItem(STORAGE_KEYS.WORKFLOW_COUNTER) || '0');
+  // Generate unique test case ID (starts from 00001)
+  static generateTestCaseId(): string {
+    const currentCounter = parseInt(localStorage.getItem(STORAGE_KEYS.TEST_CASE_COUNTER) || '0');
     const newCounter = currentCounter + 1;
-    localStorage.setItem(STORAGE_KEYS.WORKFLOW_COUNTER, newCounter.toString());
-    return `AC_${newCounter.toString().padStart(3, '0')}`;
+    localStorage.setItem(STORAGE_KEYS.TEST_CASE_COUNTER, newCounter.toString());
+    return newCounter.toString().padStart(5, '0');
   }
 
   // Check if workflow ID already exists
-  static isWorkflowIdUnique(id: string): boolean {
+  static isTestCaseIdUnique(id: string): boolean {
     const allWorkflows = this.getUserWorkflows();
-    return !allWorkflows.some(w => w.id === id || w.automationId === id);
+    const allTCMCases = this.getTCMTestCases();
+    return !allWorkflows.some(w => w.id === id) && !allTCMCases.some(tc => tc.id === id);
   }
 
   // Get all acceptance criteria from all test plans to check for duplicates
@@ -172,6 +174,91 @@ export class DataService {
     localStorage.removeItem(STORAGE_KEYS.TEST_PLANS);
   }
 
+  // TCM Test Case methods
+  static getTCMTestCases(): TCMTestCase[] {
+    const data = localStorage.getItem(STORAGE_KEYS.TCM_TEST_CASES);
+    if (data) {
+      const cases = JSON.parse(data);
+      return cases.map((tc: any) => ({
+        ...tc,
+        createdAt: new Date(tc.createdAt),
+        updatedAt: new Date(tc.updatedAt),
+        lastExecuted: tc.lastExecuted ? new Date(tc.lastExecuted) : undefined,
+      }));
+    }
+    return [];
+  }
+
+  static saveTCMTestCase(testCase: TCMTestCase): void {
+    const testCases = this.getTCMTestCases();
+    const existingIndex = testCases.findIndex(tc => tc.id === testCase.id);
+
+    if (existingIndex >= 0) {
+      testCases[existingIndex] = testCase;
+    } else {
+      testCases.push(testCase);
+    }
+
+    localStorage.setItem(STORAGE_KEYS.TCM_TEST_CASES, JSON.stringify(testCases));
+  }
+
+  static deleteTCMTestCase(id: string): void {
+    const testCases = this.getTCMTestCases().filter(tc => tc.id !== id);
+    localStorage.setItem(STORAGE_KEYS.TCM_TEST_CASES, JSON.stringify(testCases));
+  }
+
+  // Generate TCM test cases from workflows that meet tier threshold (Tier 1 & 2)
+  static generateTCMTestCasesFromWorkflows(workflows: UserWorkflow[], testPlans: TestPlan[]): TCMTestCase[] {
+    const newTestCases: TCMTestCase[] = [];
+    
+    workflows.forEach(workflow => {
+      // Only create TCM test cases for Tier 1 and Tier 2
+      if (workflow.testingTier === 'Tier 1: CRITICAL' || workflow.testingTier === 'Tier 2: HIGH') {
+        // Check if test case already exists
+        const existingCase = this.getTCMTestCases().find(tc => tc.id === workflow.id);
+        if (existingCase) {
+          return; // Skip if already exists
+        }
+
+        // Find the source test plan and scenario
+        const testPlan = testPlans.find(tp => tp.id === workflow.sourceTestPlanId);
+        const scenario = testPlan?.testScenarios?.find(ts => ts.id === workflow.sourceScenarioId);
+
+        if (testPlan && scenario) {
+          const testCase: TCMTestCase = {
+            id: workflow.id,
+            title: workflow.workflowName,
+            description: workflow.description,
+            sourceTestPlanId: workflow.sourceTestPlanId!,
+            sourceScenarioId: workflow.sourceScenarioId!,
+            sourceAcceptanceCriteriaId: workflow.sourceAcceptanceCriteriaId || workflow.id,
+            adoNumber: scenario.adoNumber,
+            givenWhenThen: {
+              given: scenario.given,
+              when: scenario.when,
+              then: scenario.then,
+            },
+            acceptanceCriteria: workflow.workflowName,
+            riskScore: workflow.riskScore,
+            testingTier: workflow.testingTier,
+            likelihood: workflow.likelihood,
+            impact: workflow.impact,
+            deliverables: workflow.deliverables,
+            status: 'Draft',
+            notes: workflow.automationReason,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+
+          newTestCases.push(testCase);
+          this.saveTCMTestCase(testCase);
+        }
+      }
+    });
+
+    return newTestCases;
+  }
+
   // Initialize with sample data if empty
   static initializeSampleData(): void {
     if (this.getUserWorkflows().length === 0) {
@@ -215,7 +302,7 @@ export class DataService {
           likelihood: 3,
           impact: 3,
           riskScore: 9,
-          testingTier: 'Tier 3: MEDIUM/LOW',
+          testingTier: 'Tier 3: STANDARD',
           deliverables: 'Manual Testing',
           automationReason: 'Discussion posts are content-dependent, risk score 9 is above automation threshold.',
           createdAt: new Date('2024-01-20'),
@@ -292,27 +379,25 @@ export class DataService {
           testScenarios: [
             {
               id: 'ts1',
+              adoNumber: 'ADO-12345',
               given: 'A student is enrolled in an Ultra course with multiple content folders',
               when: 'They click on a content folder in the course navigation',
               then: 'The folder expands to show all contained items without page reload',
               priority: 'Critical',
               acceptanceCriteria: [
                 {
-                  id: 'AC_001',
+                  id: this.generateTestCaseId(),
                   description: 'Folder icon changes state to indicate expanded/collapsed status',
-                  automationId: 'FOLDER_ICON_STATE_CHANGE',
                   notes: 'Visual indicator for user feedback'
                 },
                 {
-                  id: 'AC_002', 
+                  id: this.generateTestCaseId(), 
                   description: 'All child content items are visible within 2 seconds of clicking',
-                  automationId: 'FOLDER_CONTENT_LOAD_TIME',
                   notes: 'Performance requirement'
                 },
                 {
-                  id: 'AC_003',
+                  id: this.generateTestCaseId(),
                   description: 'Folder content displays in correct hierarchical order',
-                  automationId: 'FOLDER_CONTENT_HIERARCHY',
                   notes: 'Content organization requirement'
                 }
               ],
@@ -320,27 +405,25 @@ export class DataService {
             },
             {
               id: 'ts2',
+              adoNumber: 'ADO-12346',
               given: 'A student wants to download a PDF document from course content',
               when: 'They click the download link on a PDF file',
               then: 'The file downloads successfully and opens in their default PDF viewer',
               priority: 'High',
               acceptanceCriteria: [
                 {
-                  id: 'AC_004',
+                  id: this.generateTestCaseId(),
                   description: 'Download begins immediately upon clicking the download link',
-                  automationId: 'PDF_DOWNLOAD_INITIATE',
                   notes: 'User experience requirement'
                 },
                 {
-                  id: 'AC_005',
+                  id: this.generateTestCaseId(),
                   description: 'Downloaded file maintains original filename and format',
-                  automationId: 'PDF_FILE_INTEGRITY',
                   notes: 'File integrity verification'
                 },
                 {
-                  id: 'AC_006',
+                  id: this.generateTestCaseId(),
                   description: 'Browser handles PDF opening according to user preferences',
-                  automationId: 'PDF_BROWSER_HANDLING',
                   notes: 'Respect user browser settings'
                 }
               ],
@@ -348,27 +431,25 @@ export class DataService {
             },
             {
               id: 'ts3',
+              adoNumber: 'ADO-12347',
               given: 'An instructor accesses their course on a mobile device',
               when: 'They navigate to the course content area',
               then: 'All content is properly formatted and accessible on the mobile interface',
               priority: 'High',
               acceptanceCriteria: [
                 {
-                  id: 'AC_007',
+                  id: this.generateTestCaseId(),
                   description: 'Content area adapts to mobile screen width without horizontal scrolling',
-                  automationId: 'MOBILE_CONTENT_RESPONSIVE',
                   notes: 'Responsive design requirement'
                 },
                 {
-                  id: 'AC_008',
+                  id: this.generateTestCaseId(),
                   description: 'Touch targets for content items are at least 44px in size',
-                  automationId: 'MOBILE_TOUCH_TARGET_SIZE',
                   notes: 'Accessibility requirement for mobile'
                 },
                 {
-                  id: 'AC_009',
+                  id: this.generateTestCaseId(),
                   description: 'All content functions work with touch gestures',
-                  automationId: 'MOBILE_TOUCH_FUNCTIONALITY',
                   notes: 'Mobile interaction requirement'
                 }
               ],
@@ -460,27 +541,25 @@ export class DataService {
           testScenarios: [
             {
               id: 'ts4',
+              adoNumber: 'ADO-12350',
               given: 'A student has completed an assignment and is ready to submit',
               when: 'They upload their file and click submit before the deadline',
               then: 'The submission is recorded with timestamp and confirmation is displayed',
               priority: 'Critical',
               acceptanceCriteria: [
                 {
-                  id: 'AC_010',
+                  id: this.generateTestCaseId(),
                   description: 'File upload progress indicator displays during upload process',
-                  automationId: 'ASSIGNMENT_UPLOAD_PROGRESS',
                   notes: 'User feedback during upload'
                 },
                 {
-                  id: 'AC_011',
+                  id: this.generateTestCaseId(),
                   description: 'Submission timestamp is recorded accurately to the second',
-                  automationId: 'ASSIGNMENT_TIMESTAMP_ACCURACY',
                   notes: 'Critical for deadline enforcement'
                 },
                 {
-                  id: 'AC_012',
+                  id: this.generateTestCaseId(),
                   description: 'Confirmation message displays submission details including timestamp',
-                  automationId: 'ASSIGNMENT_CONFIRMATION_DISPLAY',
                   notes: 'User confirmation requirement'
                 }
               ],
@@ -488,27 +567,25 @@ export class DataService {
             },
             {
               id: 'ts5',
+              adoNumber: 'ADO-12351',
               given: 'An instructor has received multiple student submissions for grading',
               when: 'They access the grade center and provide feedback with grades',
               then: 'Students receive grades and feedback notifications immediately',
               priority: 'High',
               acceptanceCriteria: [
                 {
-                  id: 'AC_013',
+                  id: this.generateTestCaseId(),
                   description: 'Grade entry interface allows both numeric and letter grades',
-                  automationId: 'GRADE_ENTRY_FORMATS',
                   notes: 'Flexible grading support'
                 },
                 {
-                  id: 'AC_014',
+                  id: this.generateTestCaseId(),
                   description: 'Feedback text is saved and associated with the correct student',
-                  automationId: 'FEEDBACK_STUDENT_ASSOCIATION',
                   notes: 'Data integrity requirement'
                 },
                 {
-                  id: 'AC_015',
+                  id: this.generateTestCaseId(),
                   description: 'Email notification is sent within 5 minutes of grade publication',
-                  automationId: 'GRADE_NOTIFICATION_TIMING',
                   notes: 'Timely communication requirement'
                 }
               ],
@@ -516,21 +593,20 @@ export class DataService {
             },
             {
               id: 'ts6',
+              adoNumber: 'ADO-12352',
               given: 'A student attempts to submit an assignment after the deadline',
               when: 'They try to access the submission interface',
               then: 'They see appropriate messaging about late submission policies',
               priority: 'Medium',
               acceptanceCriteria: [
                 {
-                  id: 'AC_016',
+                  id: this.generateTestCaseId(),
                   description: 'Clear message displays explaining the assignment is past due',
-                  automationId: 'LATE_SUBMISSION_MESSAGE',
                   notes: 'Policy communication requirement'
                 },
                 {
-                  id: 'AC_017',
+                  id: this.generateTestCaseId(),
                   description: 'Late submission is blocked unless instructor allows late work',
-                  automationId: 'LATE_SUBMISSION_POLICY_ENFORCEMENT',
                   notes: 'Policy enforcement requirement'
                 }
               ],
@@ -607,27 +683,25 @@ export class DataService {
           testScenarios: [
             {
               id: 'ts7',
+              adoNumber: 'ADO-12360',
               given: 'Multiple students are engaged in a discussion thread',
               when: 'A new student posts a reply to an existing thread',
               then: 'All thread participants receive email notifications about the new post',
               priority: 'High',
               acceptanceCriteria: [
                 {
-                  id: 'AC_018',
+                  id: this.generateTestCaseId(),
                   description: 'Email notification includes thread title and new post preview',
-                  automationId: 'DISCUSSION_EMAIL_CONTENT',
                   notes: 'Informative notification requirement'
                 },
                 {
-                  id: 'AC_019',
+                  id: this.generateTestCaseId(),
                   description: 'Notification is sent to all thread participants within 10 minutes',
-                  automationId: 'DISCUSSION_NOTIFICATION_TIMING',
                   notes: 'Timely engagement requirement'
                 },
                 {
-                  id: 'AC_020',
+                  id: this.generateTestCaseId(),
                   description: 'Users can opt out of thread notifications via preferences',
-                  automationId: 'DISCUSSION_NOTIFICATION_PREFERENCES',
                   notes: 'User control requirement'
                 }
               ],
@@ -635,27 +709,25 @@ export class DataService {
             },
             {
               id: 'ts8',
+              adoNumber: 'ADO-12361',
               given: 'An instructor is monitoring class discussions for inappropriate content',
               when: 'They hide or delete a student post that violates guidelines',
               then: 'The post is immediately removed from all student views and logs the moderation action',
               priority: 'High',
               acceptanceCriteria: [
                 {
-                  id: 'AC_021',
+                  id: this.generateTestCaseId(),
                   description: 'Hidden post becomes invisible to students but remains visible to instructor',
-                  automationId: 'DISCUSSION_POST_HIDE_VISIBILITY',
                   notes: 'Moderation visibility requirement'
                 },
                 {
-                  id: 'AC_022',
+                  id: this.generateTestCaseId(),
                   description: 'Moderation action is logged with timestamp and reason',
-                  automationId: 'DISCUSSION_MODERATION_LOGGING',
                   notes: 'Audit trail requirement'
                 },
                 {
-                  id: 'AC_023',
+                  id: this.generateTestCaseId(),
                   description: 'Student who posted receives notification about moderation action',
-                  automationId: 'DISCUSSION_MODERATION_NOTIFICATION',
                   notes: 'Student communication requirement'
                 }
               ],
