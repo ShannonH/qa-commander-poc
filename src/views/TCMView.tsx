@@ -46,6 +46,7 @@ import {
   CheckCircle as PassedIcon,
   Error as FailedIcon,
   Block as BlockedIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { TCMTestCase, UserWorkflow, TestPlan } from '../types';
 import { DataService } from '../utils/dataService';
@@ -135,6 +136,13 @@ const TCMView: React.FC = () => {
     };
     DataService.saveTCMTestCase(updatedTestCase);
     loadData();
+  };
+
+  const handleDeleteTestCase = (testCaseId: string) => {
+    if (window.confirm('Are you sure you want to delete this test case?')) {
+      DataService.deleteTCMTestCase(testCaseId);
+      loadData();
+    }
   };
 
   const getStatusColor = (status: TCMTestCase['status']) => {
@@ -402,6 +410,15 @@ const TCMView: React.FC = () => {
                             onClick={() => handleUpdateStatus(testCase, 'In Progress')}
                           >
                             <ExecuteIcon />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Delete Test Case">
+                          <IconButton 
+                            size="small" 
+                            color="error"
+                            onClick={() => handleDeleteTestCase(testCase.id)}
+                          >
+                            <DeleteIcon />
                           </IconButton>
                         </Tooltip>
                       </TableCell>

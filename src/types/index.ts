@@ -92,6 +92,7 @@ export interface AcceptanceCriteria {
 
 export interface TestScenario {
   id: string;
+  title?: string; // Optional friendly title for the scenario (used in risk analysis)
   adoNumber?: string; // ADO number to help identify this scenario
   given: string;
   when: string;

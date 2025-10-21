@@ -16,7 +16,7 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Rating,
+  Slider,
   Fab,
   Tabs,
   Tab,
@@ -48,6 +48,7 @@ import {
   GetApp as ExportIcon,
   Edit as EditIcon,
   Search as SearchIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature, TestPlan, TestScenario } from '../types';
 import Fuse from 'fuse.js';
@@ -356,6 +357,20 @@ Export Date: ${new Date().toLocaleString()}
     window.URL.revokeObjectURL(url);
   };
 
+  const handleDeleteDocument = (documentId: string) => {
+    if (window.confirm('Are you sure you want to delete this risk analysis document?')) {
+      DataService.deleteRiskDocument(documentId);
+      loadData();
+    }
+  };
+
+  const handleDeleteWorkflow = (workflowId: string) => {
+    if (window.confirm('Are you sure you want to delete this workflow?')) {
+      DataService.deleteUserWorkflow(workflowId);
+      loadData();
+    }
+  };
+
   const getAutomationRecommendation = (score: number) => {
     return score >= 1 && score <= 6 ? 'Automate' : 'Manual Only';
   };
@@ -530,6 +545,11 @@ Export Date: ${new Date().toLocaleString()}
                           <Tooltip title="Download">
                             <IconButton size="small" onClick={() => handleDownloadDocument(document)}>
                               <ExportIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton size="small" color="error" onClick={() => handleDeleteDocument(document.id)}>
+                              <DeleteIcon />
                             </IconButton>
                           </Tooltip>
                         </Box>
@@ -731,11 +751,18 @@ Export Date: ${new Date().toLocaleString()}
                         </TableCell>
                         <TableCell>{workflow.updatedAt.toLocaleDateString()}</TableCell>
                         <TableCell>
-                          <Tooltip title="Edit Workflow">
-                            <Button size="small" onClick={() => handleEditWorkflow(workflow)}>
-                              Edit
-                            </Button>
-                          </Tooltip>
+                          <Box display="flex" gap={1}>
+                            <Tooltip title="Edit Workflow">
+                              <IconButton size="small" onClick={() => handleEditWorkflow(workflow)}>
+                                <EditIcon />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Delete Workflow">
+                              <IconButton size="small" color="error" onClick={() => handleDeleteWorkflow(workflow.id)}>
+                                <DeleteIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
                         </TableCell>
                       </TableRow>
                     );
@@ -809,8 +836,10 @@ Export Date: ${new Date().toLocaleString()}
                         <Typography variant="body2" gutterBottom>
                           <strong>Impact:</strong> {workflow.impact}/4 (1 = Most Impactful)
                         </Typography>
+                        <Typography variant="body2" gutterBottom>
+                          <strong>Risk Score:</strong> {workflow.riskScore}
+                        </Typography>
                       </Box>
-                      <Rating value={workflow.riskScore / 4} readOnly size="small" max={4} />
                     </Box>
                     <Typography variant="body2" color="text.secondary" gutterBottom>
                       <strong>Deliverables:</strong> {workflow.deliverables}
@@ -827,9 +856,14 @@ Export Date: ${new Date().toLocaleString()}
                       <Typography variant="caption" color="text.secondary">
                         Updated: {workflow.updatedAt.toLocaleDateString()}
                       </Typography>
-                      <Button size="small" onClick={() => handleEditWorkflow(workflow)}>
-                        Edit
-                      </Button>
+                      <Box display="flex" gap={1}>
+                        <IconButton size="small" onClick={() => handleEditWorkflow(workflow)}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton size="small" color="error" onClick={() => handleDeleteWorkflow(workflow.id)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
                     </Box>
                   </CardContent>
                 </Card>
@@ -890,24 +924,46 @@ Export Date: ${new Date().toLocaleString()}
               </FormControl>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Typography gutterBottom>Likelihood of Failure (1-4, 1=Most Likely)</Typography>
-              <Rating
-                value={workflowFormData.likelihood}
-                onChange={(_, value) => setWorkflowFormData({ ...workflowFormData, likelihood: value || 1 })}
-                max={4}
-              />
-              <Typography variant="caption" color="text.secondary">
+              <Typography gutterBottom>Likelihood of Failure</Typography>
+              <Box sx={{ px: 2 }}>
+                <Slider
+                  value={workflowFormData.likelihood}
+                  onChange={(_, value) => setWorkflowFormData({ ...workflowFormData, likelihood: value as number })}
+                  min={1}
+                  max={4}
+                  step={1}
+                  marks={[
+                    { value: 1, label: 'Most Likely' },
+                    { value: 2, label: 'Likely' },
+                    { value: 3, label: 'Unlikely' },
+                    { value: 4, label: 'Very Unlikely' }
+                  ]}
+                  valueLabelDisplay="auto"
+                />
+              </Box>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
                 How likely is this workflow to fail? (1=Most Likely, 4=Very Unlikely)
               </Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Typography gutterBottom>Impact if Failure (1-4, 1=Most Impactful)</Typography>
-              <Rating
-                value={workflowFormData.impact}
-                onChange={(_, value) => setWorkflowFormData({ ...workflowFormData, impact: value || 1 })}
-                max={4}
-              />
-              <Typography variant="caption" color="text.secondary">
+              <Typography gutterBottom>Impact if Failure</Typography>
+              <Box sx={{ px: 2 }}>
+                <Slider
+                  value={workflowFormData.impact}
+                  onChange={(_, value) => setWorkflowFormData({ ...workflowFormData, impact: value as number })}
+                  min={1}
+                  max={4}
+                  step={1}
+                  marks={[
+                    { value: 1, label: 'Critical' },
+                    { value: 2, label: 'High' },
+                    { value: 3, label: 'Medium' },
+                    { value: 4, label: 'Low' }
+                  ]}
+                  valueLabelDisplay="auto"
+                />
+              </Box>
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
                 How severe would a failure be? (1=Most Impactful, 4=Minimal Impact)
               </Typography>
             </Grid>
@@ -1119,9 +1175,23 @@ Export Date: ${new Date().toLocaleString()}
                       },
                     }}
                   >
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                      <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong> {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
-                    </Typography>
+                    <Box sx={{ width: '100%' }}>
+                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                        {group.scenario.title || (
+                          <>
+                            <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong> {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
+                          </>
+                        )}
+                      </Typography>
+                      {group.scenario.title && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                          <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong> {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
+                        </Typography>
+                      )}
+                      {group.scenario.adoNumber && (
+                        <Chip label={group.scenario.adoNumber} size="small" sx={{ mt: 1 }} />
+                      )}
+                    </Box>
                   </AccordionSummary>
                   <AccordionDetails sx={{ p: 0 }}>
                     <TableContainer>

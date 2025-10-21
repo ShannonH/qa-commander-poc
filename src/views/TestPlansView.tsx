@@ -1270,6 +1270,13 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
     setOpen(true);
   };
 
+  const handleDelete = (plan: TestPlan) => {
+    if (window.confirm(`Are you sure you want to delete the test plan "${plan.title}"?`)) {
+      DataService.deleteTestPlan(plan.id);
+      loadData();
+    }
+  };
+
   const handleSubmit = () => {
     if (viewMode === 'create') {
       const newTestPlan: TestPlan = {
@@ -1527,6 +1534,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                               <AnalyticsIcon />
                             </IconButton>
                           </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton size="small" color="error" onClick={() => handleDelete(plan)}>
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
                         </Box>
                       </TableCell>
                     </TableRow>
@@ -1594,6 +1606,16 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                         color="primary"
                       >
                         <AnalyticsIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete Test Plan">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleDelete(plan)}
+                        aria-label={`Delete test plan: ${plan.title}`}
+                        color="error"
+                      >
+                        <DeleteIcon />
                       </IconButton>
                     </Tooltip>
                   </Box>
