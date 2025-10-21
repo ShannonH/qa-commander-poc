@@ -35,6 +35,7 @@ import {
   TablePagination,
   Tooltip,
   IconButton,
+  InputAdornment,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -46,8 +47,10 @@ import {
   Visibility as ViewIcon,
   GetApp as ExportIcon,
   Edit as EditIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature, TestPlan, TestScenario } from '../types';
+import Fuse from 'fuse.js';
 import { DataService } from '../utils/dataService';
 
 interface TabPanelProps {
@@ -81,12 +84,18 @@ function TabPanel(props: TabPanelProps) {
 const RiskAnalysisView: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
   const [workflows, setWorkflows] = useState<UserWorkflow[]>([]);
+  const [filteredWorkflows, setFilteredWorkflows] = useState<UserWorkflow[]>([]);
   const [riskDocuments, setRiskDocuments] = useState<RiskAnalysisDocument[]>([]);
+  const [filteredDocuments, setFilteredDocuments] = useState<RiskAnalysisDocument[]>([]);
   const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
   const [openWorkflowDialog, setOpenWorkflowDialog] = useState(false);
   const [selectedWorkflow, setSelectedWorkflow] = useState<UserWorkflow | null>(null);
   const [openDocumentDialog, setOpenDocumentDialog] = useState(false);
   const [openImportDialog, setOpenImportDialog] = useState(false);
+
+  // Search states
+  const [workflowSearchQuery, setWorkflowSearchQuery] = useState('');
+  const [documentSearchQuery, setDocumentSearchQuery] = useState('');
 
   // View mode states for each tab
   const [documentsViewMode, setDocumentsViewMode] = useState<'cards' | 'table'>('cards');
@@ -126,10 +135,46 @@ const RiskAnalysisView: React.FC = () => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    // Apply workflow search
+    if (workflowSearchQuery.trim()) {
+      const fuse = new Fuse(workflows, {
+        keys: ['workflowName', 'description', 'userStory', 'blackboardFeature', 'id'],
+        threshold: 0.3,
+      });
+      const results = fuse.search(workflowSearchQuery);
+      setFilteredWorkflows(results.map(result => result.item));
+    } else {
+      setFilteredWorkflows(workflows);
+    }
+    setWorkflowsPage(0);
+  }, [workflowSearchQuery, workflows]);
+
+  useEffect(() => {
+    // Apply document search
+    if (documentSearchQuery.trim()) {
+      const fuse = new Fuse(riskDocuments, {
+        keys: ['title', 'description', 'blackboardFeature', 'recommendations'],
+        threshold: 0.3,
+      });
+      const results = fuse.search(documentSearchQuery);
+      setFilteredDocuments(results.map(result => result.item));
+    } else {
+      setFilteredDocuments(riskDocuments);
+    }
+    setDocumentsPage(0);
+  }, [documentSearchQuery, riskDocuments]);
+
   const loadData = () => {
-    setWorkflows(DataService.getUserWorkflows());
-    setRiskDocuments(DataService.getRiskDocuments());
-    setTestPlans(DataService.getTestPlans());
+    const wf = DataService.getUserWorkflows();
+    const rd = DataService.getRiskDocuments();
+    const tp = DataService.getTestPlans();
+    
+    setWorkflows(wf);
+    setFilteredWorkflows(wf);
+    setRiskDocuments(rd);
+    setFilteredDocuments(rd);
+    setTestPlans(tp);
   };
 
   const getTestingTierFromRiskScore = (score: number): UserWorkflow['testingTier'] => {
@@ -410,6 +455,23 @@ Export Date: ${new Date().toLocaleString()}
       </Box>
 
       <TabPanel value={tabValue} index={0}>
+        {/* Search bar for documents */}
+        <Box mb={2}>
+          <TextField
+            fullWidth
+            placeholder="Search risk analysis documents..."
+            value={documentSearchQuery}
+            onChange={(e) => setDocumentSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+        
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <ToggleButtonGroup
             value={documentsViewMode}
@@ -443,7 +505,7 @@ Export Date: ${new Date().toLocaleString()}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {riskDocuments.slice(documentsPage * documentsRowsPerPage, documentsPage * documentsRowsPerPage + documentsRowsPerPage).map((document) => (
+                  {filteredDocuments.slice(documentsPage * documentsRowsPerPage, documentsPage * documentsRowsPerPage + documentsRowsPerPage).map((document) => (
                     <TableRow key={document.id}>
                       <TableCell>
                         <Box>
@@ -480,7 +542,7 @@ Export Date: ${new Date().toLocaleString()}
 
             <TablePagination
               component="div"
-              count={riskDocuments.length}
+              count={filteredDocuments.length}
               page={documentsPage}
               onPageChange={(_, newPage) => setDocumentsPage(newPage)}
               rowsPerPage={documentsRowsPerPage}
@@ -492,7 +554,7 @@ Export Date: ${new Date().toLocaleString()}
           </Box>
         ) : (
           <Box>
-            {riskDocuments.map((document) => (
+            {filteredDocuments.map((document) => (
               <Accordion key={document.id}>
                 <AccordionSummary expandIcon={<ExpandMore />}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
@@ -559,6 +621,23 @@ Export Date: ${new Date().toLocaleString()}
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>
+        {/* Search bar for workflows */}
+        <Box mb={2}>
+          <TextField
+            fullWidth
+            placeholder="Search workflows by name, description, or acceptance criteria..."
+            value={workflowSearchQuery}
+            onChange={(e) => setWorkflowSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+        
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <ToggleButtonGroup
             value={workflowsViewMode}
@@ -608,7 +687,7 @@ Export Date: ${new Date().toLocaleString()}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {workflows.slice(workflowsPage * workflowsRowsPerPage, workflowsPage * workflowsRowsPerPage + workflowsRowsPerPage).map((workflow) => {
+                  {filteredWorkflows.slice(workflowsPage * workflowsRowsPerPage, workflowsPage * workflowsRowsPerPage + workflowsRowsPerPage).map((workflow) => {
                     const riskLevel = getRiskLevelFromScore(workflow.riskScore);
                     const automationStatus = getAutomationRecommendation(workflow.riskScore);
 
@@ -667,7 +746,7 @@ Export Date: ${new Date().toLocaleString()}
 
             <TablePagination
               component="div"
-              count={workflows.length}
+              count={filteredWorkflows.length}
               page={workflowsPage}
               onPageChange={(_, newPage) => setWorkflowsPage(newPage)}
               rowsPerPage={workflowsRowsPerPage}
@@ -679,7 +758,7 @@ Export Date: ${new Date().toLocaleString()}
           </Box>
         ) : (
           <Grid container spacing={3}>
-            {workflows.map((workflow) => {
+            {filteredWorkflows.map((workflow) => {
             const riskLevel = getRiskLevelFromScore(workflow.riskScore);
             const automationStatus = getAutomationRecommendation(workflow.riskScore);
             return (
