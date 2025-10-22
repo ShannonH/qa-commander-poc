@@ -210,7 +210,6 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
             sourceTestPlanId: testPlan.id,
             sourceScenarioId: scenario.id,
             sourceAcceptanceCriteriaId: ac.id,
-            automationId: ac.automationId,
             createdAt: new Date(),
             updatedAt: new Date(),
           };
@@ -429,7 +428,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                       {scenario.acceptanceCriteria.map((ac, acIndex) => (
                         <Box key={ac.id} sx={{ ml: 2, mb: 1, p: 1, backgroundColor: 'background.default', borderRadius: 1 }}>
                           <Typography variant="body2" gutterBottom>
-                            <strong>ID:</strong> {ac.id} {ac.automationId && `(${ac.automationId})`}
+                            <strong>Test Case ID:</strong> {ac.id}
                           </Typography>
                           <Typography variant="body2" gutterBottom>
                             <strong>Description:</strong> {ac.description}
@@ -999,18 +998,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                                 rows={2}
                               />
                             </Grid>
-                            <Grid size={{ xs: 12, md: 6 }}>
-                              <TextField
-                                fullWidth
-                                label="Automation ID"
-                                value={ac.automationId || ''}
-                                onChange={(e) => updateAcceptanceCriteria(index, acIndex, 'automationId', e.target.value)}
-                                disabled={viewMode === 'view'}
-                                placeholder="e.g., FOLDER_ICON_STATE_CHANGE"
-                                helperText="Used in automated test code"
-                              />
-                            </Grid>
-                            <Grid size={{ xs: 12, md: 6 }}>
+                            <Grid size={12}>
                               <TextField
                                 fullWidth
                                 label="Notes"
@@ -1327,9 +1315,8 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
 
   const addAcceptanceCriteria = (scenarioIndex: number) => {
     const newAC: AcceptanceCriteria = {
-      id: DataService.generateWorkflowId(),
+      id: DataService.generateTestCaseId(),
       description: '',
-      automationId: '',
       notes: ''
     };
     
