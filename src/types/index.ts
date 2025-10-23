@@ -125,28 +125,39 @@ export interface TCMTestCase {
   id: string; // Test case ID (matches acceptance criteria ID like "00001")
   title: string;
   description: string;
-  sourceTestPlanId: string;
-  sourceScenarioId: string;
-  sourceAcceptanceCriteriaId: string;
+  sourceTestPlanId?: string; // Optional - not all test cases come from test plans
+  sourceScenarioId?: string;
+  sourceAcceptanceCriteriaId?: string;
   adoNumber?: string; // ADO number from the scenario
-  givenWhenThen: {
+  givenWhenThen?: {
     given: string;
     when: string;
     then: string;
   };
   acceptanceCriteria: string; // The AC description
-  riskScore: number;
-  testingTier: 'Tier 1: CRITICAL' | 'Tier 2: HIGH' | 'Tier 3: STANDARD';
-  likelihood: number;
-  impact: number;
-  deliverables: string;
-  status: 'Draft' | 'Ready' | 'In Progress' | 'Passed' | 'Failed' | 'Blocked';
-  assignee?: string;
+  riskScore?: number;
+  testingTier?: 'Tier 1: CRITICAL' | 'Tier 2: HIGH' | 'Tier 3: STANDARD';
+  likelihood?: number;
+  impact?: number;
+  deliverables?: string;
   testSteps: TestStep[]; // Test steps for executing the test case
+  expectedResult: string; // Overall expected outcome
+  prerequisites?: string[]; // Prerequisites for the test case
+  tags?: string[]; // Tags for categorization
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
-  lastExecuted?: Date;
+}
+
+// Test Case Collection (for organizing and exporting test cases)
+export interface TCMCollection {
+  id: string;
+  name: string;
+  description: string;
+  testCaseIds: string[]; // Array of test case IDs in this collection
+  tags?: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export type TestCategory =
