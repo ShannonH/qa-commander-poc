@@ -687,7 +687,17 @@ Export Date: ${new Date().toLocaleString()}
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Typography paragraph>{document.description}</Typography>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                    <Typography paragraph sx={{ mb: 0 }}>{document.description}</Typography>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<ViewIcon />}
+                      onClick={() => handleViewDocument(document)}
+                    >
+                      View/Edit Details
+                    </Button>
+                  </Box>
 
                   <Typography variant="h6" gutterBottom>
                     Workflow Analysis ({document.workflows.length} workflows)
@@ -702,6 +712,7 @@ Export Date: ${new Date().toLocaleString()}
                           <TableCell align="center">Impact</TableCell>
                           <TableCell align="center">Risk Score</TableCell>
                           <TableCell align="center">Decision</TableCell>
+                          <TableCell align="center">Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -722,6 +733,13 @@ Export Date: ${new Date().toLocaleString()}
                                 {getAutomationIcon(workflow.riskScore)}
                                 {getAutomationRecommendation(workflow.riskScore)}
                               </Box>
+                            </TableCell>
+                            <TableCell align="center">
+                              <Tooltip title="Edit Workflow">
+                                <IconButton size="small" onClick={() => handleEditWorkflow(workflow)}>
+                                  <EditIcon />
+                                </IconButton>
+                              </Tooltip>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -1369,7 +1387,7 @@ Export Date: ${new Date().toLocaleString()}
                                   </TableCell>
                                   <TableCell align="center">
                                     {editingWorkflowId === workflow.id && editingWorkflowData ? (
-                                      <Box sx={{ px: 2, minWidth: 150 }}>
+                                      <Box sx={{ px: 1, minWidth: 200, py: 3 }}>
                                         <Slider
                                           value={editingWorkflowData.impact}
                                           onChange={(_, value) => setEditingWorkflowData({ ...editingWorkflowData, impact: value as number })}
@@ -1383,6 +1401,12 @@ Export Date: ${new Date().toLocaleString()}
                                             { value: 4, label: 'Low' }
                                           ]}
                                           valueLabelDisplay="auto"
+                                          sx={{
+                                            '& .MuiSlider-markLabel': {
+                                              fontSize: '0.7rem',
+                                              whiteSpace: 'nowrap',
+                                            }
+                                          }}
                                         />
                                       </Box>
                                     ) : (
@@ -1393,7 +1417,7 @@ Export Date: ${new Date().toLocaleString()}
                                   </TableCell>
                                   <TableCell align="center">
                                     {editingWorkflowId === workflow.id && editingWorkflowData ? (
-                                      <Box sx={{ px: 2, minWidth: 150 }}>
+                                      <Box sx={{ px: 1, minWidth: 200, py: 3 }}>
                                         <Slider
                                           value={editingWorkflowData.likelihood}
                                           onChange={(_, value) => setEditingWorkflowData({ ...editingWorkflowData, likelihood: value as number })}
@@ -1407,6 +1431,12 @@ Export Date: ${new Date().toLocaleString()}
                                             { value: 4, label: 'Very Unlikely' }
                                           ]}
                                           valueLabelDisplay="auto"
+                                          sx={{
+                                            '& .MuiSlider-markLabel': {
+                                              fontSize: '0.65rem',
+                                              whiteSpace: 'nowrap',
+                                            }
+                                          }}
                                         />
                                       </Box>
                                     ) : (

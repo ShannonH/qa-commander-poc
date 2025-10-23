@@ -1745,38 +1745,88 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 // Comprehensive structured view
                 selectedPlan && renderViewMode(selectedPlan)
               ) : (
-                // Interactive stepper for create/edit
-                <Stepper activeStep={activeStep} orientation="vertical">
-                  {steps.map((label, index) => (
-                    <Step key={label}>
-                      <StepLabel>{label}</StepLabel>
-                      <StepContent>
-                        {renderStepContent(index)}
-                        <Box sx={{ mb: 2, mt: 3 }}>
-                          <div>
-                            <Button
-                              variant="contained"
-                              onClick={index === steps.length - 1 ? handleSubmit : handleNext}
-                              sx={{ mt: 1, mr: 1 }}
-                            >
-                              {index === steps.length - 1 ? 
-                                (viewMode === 'create' ? 'Create Test Plan' : 'Update Test Plan') : 
-                                'Continue'
-                              }
-                            </Button>
-                            <Button
-                              disabled={index === 0}
-                              onClick={handleBack}
-                              sx={{ mt: 1, mr: 1 }}
-                            >
-                              Back
-                            </Button>
-                          </div>
+                // Interactive step navigation for create/edit
+                <Box>
+                  {/* Clickable step indicator */}
+                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+                    {steps.map((label, index) => (
+                      <Tooltip key={label} title={label}>
+                        <Box
+                          onClick={() => setActiveStep(index)}
+                          sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            opacity: activeStep === index ? 1 : 0.6,
+                            '&:hover': {
+                              opacity: 1,
+                            },
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              bgcolor: activeStep === index ? 'primary.main' : 'grey.300',
+                              color: activeStep === index ? 'white' : 'text.secondary',
+                              fontWeight: 'bold',
+                              transition: 'all 0.3s',
+                              border: activeStep === index ? '3px solid' : 'none',
+                              borderColor: 'primary.light',
+                            }}
+                          >
+                            {index + 1}
+                          </Box>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              mt: 0.5,
+                              fontWeight: activeStep === index ? 'bold' : 'normal',
+                              color: activeStep === index ? 'primary.main' : 'text.secondary',
+                              maxWidth: 80,
+                              textAlign: 'center',
+                            }}
+                          >
+                            {label}
+                          </Typography>
                         </Box>
-                      </StepContent>
-                    </Step>
-                  ))}
-                </Stepper>
+                      </Tooltip>
+                    ))}
+                  </Box>
+
+                  {/* Current step content */}
+                  <Box sx={{ mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                      {steps[activeStep]}
+                    </Typography>
+                    {renderStepContent(activeStep)}
+                  </Box>
+
+                  {/* Navigation buttons */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+                    <Button
+                      disabled={activeStep === 0}
+                      onClick={handleBack}
+                      variant="outlined"
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      variant="contained"
+                      onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
+                    >
+                      {activeStep === steps.length - 1 ? 
+                        (viewMode === 'create' ? 'Create Test Plan' : 'Update Test Plan') : 
+                        'Continue'
+                      }
+                    </Button>
+                  </Box>
+                </Box>
               )}
             </Box>
         </DialogContent>
