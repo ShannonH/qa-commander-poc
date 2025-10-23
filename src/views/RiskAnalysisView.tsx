@@ -36,6 +36,7 @@ import {
   Tooltip,
   IconButton,
   InputAdornment,
+  Link,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -53,6 +54,16 @@ import {
 import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature, TestPlan, TestScenario } from '../types';
 import Fuse from 'fuse.js';
 import { DataService } from '../utils/dataService';
+
+// Helper function to generate ADO work item URL from User Story ID
+const getAdoUrl = (userStoryId: string): string => {
+  // Extract the numeric part from the User Story ID (e.g., "AB#1234567" -> "1234567")
+  const match = userStoryId.match(/^AB#(\d{7})$/);
+  if (match) {
+    return `https://dev.azure.com/AnthologyInc-01/Learn/_workitems/edit/${match[1]}`;
+  }
+  return '';
+};
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -975,9 +986,9 @@ Export Date: ${new Date().toLocaleString()}
                 fullWidth
                 value={workflowFormData.userStoryId || ''}
                 onChange={(e) => setWorkflowFormData({ ...workflowFormData, userStoryId: e.target.value.toUpperCase() })}
-                placeholder="e.g., AB12345"
-                helperText="Format: AB##### (e.g., AB12345) - Required for linking"
-                error={workflowFormData.userStoryId && !/^AB\d{5}$/.test(workflowFormData.userStoryId)}
+                placeholder="e.g., AB#1234567"
+                helperText="Format: AB#1234567 (e.g., AB#1234567) - Required for linking"
+                error={workflowFormData.userStoryId && !/^AB#\d{7}$/.test(workflowFormData.userStoryId)}
               />
             </Grid>
             <Grid size={12}>
@@ -1271,7 +1282,15 @@ Export Date: ${new Date().toLocaleString()}
                   {/* User Story ID Header - Level 1 */}
                   <Paper sx={{ p: 2, mb: 2, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
                     <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                      User Story: {userStoryId}
+                      User Story:{' '}
+                      <Link 
+                        href={getAdoUrl(userStoryId)} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        sx={{ color: 'inherit', textDecoration: 'underline' }}
+                      >
+                        {userStoryId}
+                      </Link>
                     </Typography>
                     <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
                       {Object.values(userStoryGroup.scenarios).reduce((sum, s) => sum + s.workflows.length, 0)} acceptance criteria across {Object.keys(userStoryGroup.scenarios).length} scenario(s)

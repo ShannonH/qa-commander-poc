@@ -2,7 +2,7 @@ export interface UserWorkflow {
   id: string; // Matches AcceptanceCriteria.id for linking (test case ID like "00001")
   workflowName: string;
   description: string;
-  userStoryId: string; // User Story ID in format <AB#####> - required for linkage
+  userStoryId: string; // User Story ID in format AB#1234567 - required for linkage
   userStory: string; // Full GIVEN/WHEN/THEN statement for context
   blackboardFeature: BlackboardFeature;
   likelihood: number; // 1-4 scale (1=Most likely to fail, 4=Unlikely)
@@ -95,7 +95,7 @@ export interface AcceptanceCriteria {
 export interface TestScenario {
   id: string;
   title?: string; // Optional friendly title for the scenario (used in risk analysis)
-  userStoryId: string; // User Story ID in format <AB#####> - required for linkage
+  userStoryId: string; // User Story ID in format AB#1234567 - required for linkage
   adoNumber?: string; // ADO number to help identify this scenario
   given: string;
   when: string;

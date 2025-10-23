@@ -42,6 +42,7 @@ import {
   TableHead,
   TableRow,
   TablePagination,
+  Link,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -56,6 +57,16 @@ import {
 } from '@mui/icons-material';
 import { TestPlan, TestCategory, TestScenario, BlackboardFeature, StrategyChecklistItem, AcceptanceCriteria } from '../types';
 import { DataService } from '../utils/dataService';
+
+// Helper function to generate ADO work item URL from User Story ID
+const getAdoUrl = (userStoryId: string): string => {
+  // Extract the numeric part from the User Story ID (e.g., "AB#1234567" -> "1234567")
+  const match = userStoryId.match(/^AB#(\d{7})$/);
+  if (match) {
+    return `https://dev.azure.com/AnthologyInc-01/Learn/_workitems/edit/${match[1]}`;
+  }
+  return '';
+};
 
 const TestPlansView: React.FC = () => {
   const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
@@ -422,7 +433,17 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <AccordionDetails>
                 <Box>
                   {scenario.userStoryId && (
-                    <Typography variant="body2" gutterBottom><strong>User Story ID:</strong> {scenario.userStoryId}</Typography>
+                    <Typography variant="body2" gutterBottom>
+                      <strong>User Story ID:</strong>{' '}
+                      <Link 
+                        href={getAdoUrl(scenario.userStoryId)} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        underline="hover"
+                      >
+                        {scenario.userStoryId}
+                      </Link>
+                    </Typography>
                   )}
                   <Typography variant="body2" gutterBottom><strong>Given:</strong> {scenario.given}</Typography>
                   <Typography variant="body2" gutterBottom><strong>When:</strong> {scenario.when}</Typography>
@@ -913,12 +934,12 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                       <TextField
                         fullWidth
                         label="User Story ID *"
-                        placeholder="e.g., AB12345"
+                        placeholder="e.g., AB#1234567"
                         value={scenario.userStoryId || ''}
                         onChange={(e) => updateTestScenario(index, 'userStoryId', e.target.value.toUpperCase())}
                         disabled={viewMode === 'view'}
-                        helperText="Format: AB##### (e.g., AB12345) - Required for linking to Risk Analysis"
-                        error={scenario.userStoryId && !/^AB\d{5}$/.test(scenario.userStoryId)}
+                        helperText="Format: AB#1234567 (e.g., AB#1234567) - Required for linking to Risk Analysis"
+                        error={scenario.userStoryId && !/^AB#\d{7}$/.test(scenario.userStoryId)}
                       />
                     </Grid>
                     <Grid size={12}>
