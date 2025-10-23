@@ -2,27 +2,28 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AIChatbotView from '../views/AIChatbotView';
+import { vi } from 'vitest';
 
 // Mock scrollIntoView for test environment
 Object.defineProperty(Element.prototype, 'scrollIntoView', {
-  value: jest.fn(),
+  value: vi.fn(),
   writable: true
 });
 
 // Mock the enhanced chatbot service
-jest.mock('../utils/enhancedChatbotService', () => ({
+vi.mock('../utils/enhancedChatbotService', () => ({
   EnhancedChatbotService: {
-    getChatHistory: jest.fn(() => []),
-    saveChatHistory: jest.fn(),
-    clearChatHistory: jest.fn(),
-    createUserMessage: jest.fn((content) => ({
+    getChatHistory: vi.fn(() => []),
+    saveChatHistory: vi.fn(),
+    clearChatHistory: vi.fn(),
+    createUserMessage: vi.fn((content) => ({
       id: 'test-user-msg',
       content,
       isUser: true,
       timestamp: new Date(),
       type: 'text'
     })),
-    processMessage: jest.fn(() => Promise.resolve({
+    processMessage: vi.fn(() => Promise.resolve({
       id: 'test-ai-msg',
       content: 'Enhanced AI response with detailed guidance',
       isUser: false,
@@ -34,7 +35,7 @@ jest.mock('../utils/enhancedChatbotService', () => ({
 
 describe('AIChatbotView', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders AI Assistant interface', () => {

@@ -1,10 +1,11 @@
-import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario, StrategyChecklistItem, AcceptanceCriteria, TCMTestCase } from '../types';
+import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario, StrategyChecklistItem, AcceptanceCriteria, TCMTestCase, TCMCollection } from '../types';
 
 const STORAGE_KEYS = {
   WORKFLOWS: 'qa_commander_workflows',
   RISK_DOCUMENTS: 'qa_commander_risk_documents',
   TEST_PLANS: 'qa_commander_test_plans',
   TCM_TEST_CASES: 'qa_commander_tcm_test_cases',
+  TCM_COLLECTIONS: 'qa_commander_tcm_collections',
   TEST_CASE_COUNTER: 'qa_commander_test_case_counter',
 };
 
@@ -226,7 +227,6 @@ export class DataService {
         ...tc,
         createdAt: new Date(tc.createdAt),
         updatedAt: new Date(tc.updatedAt),
-        lastExecuted: tc.lastExecuted ? new Date(tc.lastExecuted) : undefined,
       }));
     }
     return [];
@@ -248,6 +248,48 @@ export class DataService {
   static deleteTCMTestCase(id: string): void {
     const testCases = this.getTCMTestCases().filter(tc => tc.id !== id);
     localStorage.setItem(STORAGE_KEYS.TCM_TEST_CASES, JSON.stringify(testCases));
+    
+    // Also remove from any collections
+    const collections = this.getTCMCollections();
+    collections.forEach(collection => {
+      if (collection.testCaseIds.includes(id)) {
+        collection.testCaseIds = collection.testCaseIds.filter(tcId => tcId !== id);
+        collection.updatedAt = new Date();
+      }
+    });
+    localStorage.setItem(STORAGE_KEYS.TCM_COLLECTIONS, JSON.stringify(collections));
+  }
+
+  // TCM Collection methods
+  static getTCMCollections(): TCMCollection[] {
+    const data = localStorage.getItem(STORAGE_KEYS.TCM_COLLECTIONS);
+    if (data) {
+      const collections = JSON.parse(data);
+      return collections.map((collection: any) => ({
+        ...collection,
+        createdAt: new Date(collection.createdAt),
+        updatedAt: new Date(collection.updatedAt),
+      }));
+    }
+    return [];
+  }
+
+  static saveTCMCollection(collection: TCMCollection): void {
+    const collections = this.getTCMCollections();
+    const existingIndex = collections.findIndex(c => c.id === collection.id);
+
+    if (existingIndex >= 0) {
+      collections[existingIndex] = collection;
+    } else {
+      collections.push(collection);
+    }
+
+    localStorage.setItem(STORAGE_KEYS.TCM_COLLECTIONS, JSON.stringify(collections));
+  }
+
+  static deleteTCMCollection(id: string): void {
+    const collections = this.getTCMCollections().filter(c => c.id !== id);
+    localStorage.setItem(STORAGE_KEYS.TCM_COLLECTIONS, JSON.stringify(collections));
   }
 
   // Generate TCM test cases from workflows that meet tier threshold (Tier 1 & 2)
@@ -268,12 +310,34 @@ export class DataService {
         const scenario = testPlan?.testScenarios?.find(ts => ts.id === workflow.sourceScenarioId);
 
         if (testPlan && scenario) {
+          // Generate basic test steps from the scenario
+          const testSteps = [
+            {
+              id: '1',
+              stepNumber: 1,
+              action: `Setup: ${scenario.given}`,
+              expectedResult: 'Prerequisites are met'
+            },
+            {
+              id: '2',
+              stepNumber: 2,
+              action: scenario.when,
+              expectedResult: 'Action is performed successfully'
+            },
+            {
+              id: '3',
+              stepNumber: 3,
+              action: 'Verify result',
+              expectedResult: scenario.then
+            }
+          ];
+
           const testCase: TCMTestCase = {
             id: workflow.id,
             title: workflow.workflowName,
             description: workflow.description,
-            sourceTestPlanId: workflow.sourceTestPlanId!,
-            sourceScenarioId: workflow.sourceScenarioId!,
+            sourceTestPlanId: workflow.sourceTestPlanId,
+            sourceScenarioId: workflow.sourceScenarioId,
             sourceAcceptanceCriteriaId: workflow.sourceAcceptanceCriteriaId || workflow.id,
             adoNumber: scenario.adoNumber,
             givenWhenThen: {
@@ -287,8 +351,8 @@ export class DataService {
             likelihood: workflow.likelihood,
             impact: workflow.impact,
             deliverables: workflow.deliverables,
-            status: 'Draft',
-            testSteps: [], // Initialize with empty test steps array
+            testSteps: testSteps,
+            expectedResult: scenario.then,
             notes: workflow.automationReason,
             createdAt: new Date(),
             updatedAt: new Date(),
