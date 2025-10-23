@@ -29,9 +29,6 @@ import {
   Tooltip,
   IconButton,
   InputAdornment,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   List,
   ListItem,
   ListItemText,
@@ -47,7 +44,6 @@ import {
   ViewModule as CardViewIcon,
   ViewList as TableViewIcon,
   Search as SearchIcon,
-  ExpandMore,
   Delete as DeleteIcon,
   GetApp as ExportIcon,
   FolderOpen as CollectionIcon,
@@ -63,7 +59,7 @@ const TCMView: React.FC = () => {
   const [workflows, setWorkflows] = useState<UserWorkflow[]>([]);
   const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
   const [filteredTestCases, setFilteredTestCases] = useState<TCMTestCase[]>([]);
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [searchQuery, setSearchQuery] = useState('');
@@ -405,24 +401,20 @@ const TCMView: React.FC = () => {
     return 'info';
   };
 
-  // Group test cases by Given/When/Then scenario
-  const groupedTestCases = filteredTestCases.reduce((groups, testCase) => {
-    if (!testCase.givenWhenThen) return groups;
-    
-    const key = `${testCase.sourceTestPlanId}-${testCase.sourceScenarioId}`;
-    if (!groups[key]) {
-      groups[key] = {
-        scenario: testCase.givenWhenThen,
-        adoNumber: testCase.adoNumber,
-        testCases: [],
-      };
-    }
-    groups[key].testCases.push(testCase);
-    return groups;
-  }, {} as Record<string, { scenario: { given: string; when: string; then: string }; adoNumber?: string; testCases: TCMTestCase[] }>);
+  // Paginate test cases
+  const paginatedTestCases = filteredTestCases.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
-  // Ungrouped test cases (manually created)
-  const ungroupedTestCases = filteredTestCases.filter(tc => !tc.givenWhenThen);
+  const handleChangePage = (event: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
 
   return (
     <Box>
@@ -472,7 +464,7 @@ const TCMView: React.FC = () => {
                 collection.testCaseIds.includes(tc.id)
               );
               return (
-                <Grid item xs={12} md={6} lg={4} key={collection.id}>
+                <Grid size={{ xs: 12, md: 6, lg: 4 }} key={collection.id}>
                   <Card>
                     <CardContent>
                       <Box display="flex" justifyContent="space-between" alignItems="start">
@@ -517,7 +509,7 @@ const TCMView: React.FC = () => {
       {/* Search and Filters */}
       <Paper sx={{ p: 2, mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <TextField
               fullWidth
               placeholder="Search test cases..."
@@ -532,7 +524,7 @@ const TCMView: React.FC = () => {
               }}
             />
           </Grid>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <FormControl fullWidth>
               <InputLabel>Filter by Tier</InputLabel>
               <Select
@@ -552,7 +544,7 @@ const TCMView: React.FC = () => {
 
       {/* Statistics */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={6} md={3}>
+        <Grid size={{ xs: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Typography variant="h6">{filteredTestCases.length}</Typography>
@@ -562,7 +554,7 @@ const TCMView: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={6} md={3}>
+        <Grid size={{ xs: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Typography variant="h6">{collections.length}</Typography>
@@ -572,7 +564,7 @@ const TCMView: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={6} md={3}>
+        <Grid size={{ xs: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Typography variant="h6">
@@ -584,7 +576,7 @@ const TCMView: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-        <Grid item xs={6} md={3}>
+        <Grid size={{ xs: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Typography variant="h6">
@@ -630,177 +622,189 @@ const TCMView: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Grouped by Scenario View */}
-      {Object.entries(groupedTestCases).map(([key, group]) => (
-        <Accordion key={key} defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMore />}>
-            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: 2 }}>
-              <Box>
-                <Typography variant="h6">
-                  {group.adoNumber && <Chip label={group.adoNumber} size="small" sx={{ mr: 1 }} />}
-                  <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong> {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {group.testCases.length} test case{group.testCases.length !== 1 ? 's' : ''}
-                </Typography>
-              </Box>
-            </Box>
-          </AccordionSummary>
-          <AccordionDetails>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Test Case ID</TableCell>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Acceptance Criteria</TableCell>
-                    <TableCell align="center">Steps</TableCell>
-                    <TableCell align="center">Tier</TableCell>
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {group.testCases.map((testCase) => (
-                    <TableRow key={testCase.id}>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight="bold">
-                          {testCase.id}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {testCase.title}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {testCase.acceptanceCriteria}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip
-                          label={testCase.testSteps.length}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        {testCase.testingTier && (
-                          <Chip
-                            label={testCase.testingTier.split(':')[0]}
-                            size="small"
-                            color={getTierColor(testCase.testingTier) as any}
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell align="center">
-                        <Tooltip title="View Details">
-                          <IconButton size="small" onClick={() => handleViewTestCase(testCase)}>
-                            <ViewIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Edit">
-                          <IconButton size="small" onClick={() => handleEditTestCase(testCase)}>
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton 
-                            size="small" 
-                            color="error"
-                            onClick={() => handleDeleteTestCase(testCase.id)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </AccordionDetails>
-        </Accordion>
-      ))}
+      {/* Test Cases Display */}
+      {viewMode === 'cards' ? (
+        /* Card View */
+        <Grid container spacing={2}>
+          {paginatedTestCases.map((testCase) => (
+            <Grid size={{ xs: 12, md: 6, lg: 4 }} key={testCase.id}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="start" mb={2}>
+                    <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                      {testCase.id}
+                    </Typography>
+                    {testCase.testingTier && (
+                      <Chip
+                        label={testCase.testingTier.split(':')[0]}
+                        size="small"
+                        color={getTierColor(testCase.testingTier) as any}
+                      />
+                    )}
+                  </Box>
+                  
+                  <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>
+                    {testCase.title}
+                  </Typography>
+                  
+                  <Typography variant="body2" color="text.secondary" paragraph sx={{ 
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                  }}>
+                    {testCase.description}
+                  </Typography>
 
-      {/* Ungrouped Test Cases */}
-      {ungroupedTestCases.length > 0 && (
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMore />}>
-            <Box sx={{ width: '100%' }}>
-              <Typography variant="h6">
-                Manual Test Cases
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {ungroupedTestCases.length} test case{ungroupedTestCases.length !== 1 ? 's' : ''}
-              </Typography>
-            </Box>
-          </AccordionSummary>
-          <AccordionDetails>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Test Case ID</TableCell>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Description</TableCell>
-                    <TableCell align="center">Steps</TableCell>
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {ungroupedTestCases.map((testCase) => (
-                    <TableRow key={testCase.id}>
-                      <TableCell>
-                        <Typography variant="body2" fontWeight="bold">
-                          {testCase.id}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {testCase.title}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2">
-                          {testCase.description}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip
-                          label={testCase.testSteps.length}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Tooltip title="View Details">
-                          <IconButton size="small" onClick={() => handleViewTestCase(testCase)}>
-                            <ViewIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Edit">
-                          <IconButton size="small" onClick={() => handleEditTestCase(testCase)}>
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton 
-                            size="small" 
-                            color="error"
-                            onClick={() => handleDeleteTestCase(testCase.id)}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </AccordionDetails>
-        </Accordion>
+                  {testCase.adoNumber && (
+                    <Chip label={testCase.adoNumber} size="small" variant="outlined" sx={{ mb: 1, mr: 1 }} />
+                  )}
+                  
+                  <Box display="flex" gap={1} alignItems="center" mt={2}>
+                    <Chip
+                      label={`${testCase.testSteps.length} steps`}
+                      size="small"
+                      variant="outlined"
+                    />
+                    {testCase.givenWhenThen && (
+                      <Chip label="From scenario" size="small" variant="outlined" color="info" />
+                    )}
+                  </Box>
+                </CardContent>
+                
+                <Box sx={{ p: 2, pt: 0, display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                  <Tooltip title="View Details">
+                    <IconButton size="small" onClick={() => handleViewTestCase(testCase)}>
+                      <ViewIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Edit">
+                    <IconButton size="small" onClick={() => handleEditTestCase(testCase)}>
+                      <EditIcon />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Delete">
+                    <IconButton 
+                      size="small" 
+                      color="error"
+                      onClick={() => handleDeleteTestCase(testCase.id)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        /* List/Table View */
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 'bold' }}>Test Case ID</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Title</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Description</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Steps</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Tier</TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {paginatedTestCases.map((testCase) => (
+                <TableRow key={testCase.id} hover>
+                  <TableCell>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Typography variant="body2" fontWeight="bold" color="primary">
+                        {testCase.id}
+                      </Typography>
+                      {testCase.adoNumber && (
+                        <Chip label={testCase.adoNumber} size="small" variant="outlined" />
+                      )}
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" fontWeight="medium">
+                      {testCase.title}
+                    </Typography>
+                    {testCase.givenWhenThen && (
+                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                        Scenario: {testCase.givenWhenThen.given.substring(0, 50)}...
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ 
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                    }}>
+                      {testCase.description}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="center">
+                    <Chip
+                      label={testCase.testSteps.length}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </TableCell>
+                  <TableCell align="center">
+                    {testCase.testingTier && (
+                      <Chip
+                        label={testCase.testingTier.split(':')[0]}
+                        size="small"
+                        color={getTierColor(testCase.testingTier) as any}
+                      />
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box display="flex" gap={0.5} justifyContent="center">
+                      <Tooltip title="View Details">
+                        <IconButton size="small" onClick={() => handleViewTestCase(testCase)}>
+                          <ViewIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Edit">
+                        <IconButton size="small" onClick={() => handleEditTestCase(testCase)}>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton 
+                          size="small" 
+                          color="error"
+                          onClick={() => handleDeleteTestCase(testCase.id)}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      {/* Pagination */}
+      {filteredTestCases.length > 0 && (
+        <Box display="flex" justifyContent="center" mt={3}>
+          <TablePagination
+            component="div"
+            count={filteredTestCases.length}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[10, 25, 50, 100]}
+          />
+        </Box>
       )}
 
       {filteredTestCases.length === 0 && (
