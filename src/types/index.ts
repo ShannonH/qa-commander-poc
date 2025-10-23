@@ -2,7 +2,8 @@ export interface UserWorkflow {
   id: string; // Matches AcceptanceCriteria.id for linking (test case ID like "00001")
   workflowName: string;
   description: string;
-  userStory: string;
+  userStoryId: string; // User Story ID in format <AB#####> - required for linkage
+  userStory: string; // Full GIVEN/WHEN/THEN statement for context
   blackboardFeature: BlackboardFeature;
   likelihood: number; // 1-4 scale (1=Most likely to fail, 4=Unlikely)
   impact: number; // 1-4 scale (1=Most impactful, 4=Minimal)
@@ -94,12 +95,13 @@ export interface AcceptanceCriteria {
 export interface TestScenario {
   id: string;
   title?: string; // Optional friendly title for the scenario (used in risk analysis)
+  userStoryId: string; // User Story ID in format <AB#####> - required for linkage
   adoNumber?: string; // ADO number to help identify this scenario
   given: string;
   when: string;
   then: string;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
-  acceptanceCriteria: AcceptanceCriteria[]; // These become the workflows
+  acceptanceCriteria: AcceptanceCriteria[]; // These become the workflows - each AC is the atomic unit for risk
   notes?: string;
 }
 

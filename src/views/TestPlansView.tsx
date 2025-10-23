@@ -191,6 +191,12 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       const workflows: any[] = [];
       
       (testPlan.testScenarios || []).forEach(scenario => {
+        // Validate that scenario has userStoryId
+        if (!scenario.userStoryId) {
+          alert(`Error: Scenario "${scenario.given}" is missing a User Story ID. Please add User Story IDs to all scenarios before generating risk analysis.`);
+          throw new Error('Missing User Story ID');
+        }
+        
         (scenario.acceptanceCriteria || []).forEach(ac => {
           const defaultRiskScore = 4; // Medium risk as starting point
           const defaultTier = 'Tier 2: HIGH';
@@ -199,6 +205,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
             id: ac.id, // Use AC ID as workflow ID
             workflowName: ac.description,
             description: `Acceptance criteria from scenario: ${scenario.given} → ${scenario.when} → ${scenario.then}`,
+            userStoryId: scenario.userStoryId, // Link to User Story ID
             userStory: `Given ${scenario.given}, when ${scenario.when}, then ${scenario.then}`,
             blackboardFeature: testPlan.blackboardFeature,
             likelihood: 2,
@@ -245,7 +252,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       alert(`Generated risk analysis with ${workflows.length} acceptance criteria workflows. Check the Risk Analysis section to review and adjust the scoring.`);
     } catch (error) {
       console.error('Error generating risk analysis:', error);
-      alert('Error generating risk analysis');
+      // Error already alerted above
     }
   };
 
@@ -414,6 +421,9 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
+                  {scenario.userStoryId && (
+                    <Typography variant="body2" gutterBottom><strong>User Story ID:</strong> {scenario.userStoryId}</Typography>
+                  )}
                   <Typography variant="body2" gutterBottom><strong>Given:</strong> {scenario.given}</Typography>
                   <Typography variant="body2" gutterBottom><strong>When:</strong> {scenario.when}</Typography>
                   <Typography variant="body2" gutterBottom><strong>Then:</strong> {scenario.then}</Typography>
@@ -902,6 +912,18 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                     <Grid size={12}>
                       <TextField
                         fullWidth
+                        label="User Story ID *"
+                        placeholder="e.g., AB12345"
+                        value={scenario.userStoryId || ''}
+                        onChange={(e) => updateTestScenario(index, 'userStoryId', e.target.value.toUpperCase())}
+                        disabled={viewMode === 'view'}
+                        helperText="Format: AB##### (e.g., AB12345) - Required for linking to Risk Analysis"
+                        error={scenario.userStoryId && !/^AB\d{5}$/.test(scenario.userStoryId)}
+                      />
+                    </Grid>
+                    <Grid size={12}>
+                      <TextField
+                        fullWidth
                         label="Given (Initial condition) *"
                         placeholder="e.g., An instructor has entered a grade into the gradebook cell"
                         value={scenario.given}
@@ -926,14 +948,21 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                     <Grid size={12}>
                       <TextField
                         fullWidth
-                        label="Then (Expected outcome) *"
+                        label="Then (Expected outcome) * - Single Assertion Only"
                         placeholder="e.g., The grade is saved to the database and displayed correctly"
                         value={scenario.then}
                         onChange={(e) => updateTestScenario(index, 'then', e.target.value)}
                         disabled={viewMode === 'view'}
                         multiline
                         rows={2}
+                        helperText="This is the atomic unit for risk assessment. Ensure it describes ONE clear, verifiable outcome."
+                        error={scenario.then && (scenario.then.toLowerCase().includes(' and ') || scenario.then.split(',').length > 2)}
                       />
+                      {scenario.then && (scenario.then.toLowerCase().includes(' and ') || scenario.then.split(',').length > 2) && (
+                        <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                          Warning: 'Then' statement should contain a single assertion. Consider splitting into multiple acceptance criteria.
+                        </Typography>
+                      )}
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <FormControl fullWidth>
@@ -1300,6 +1329,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   const addTestScenario = () => {
     const newScenario: TestScenario = {
       id: Date.now().toString(),
+      userStoryId: '', // Required field
       given: '',
       when: '',
       then: '',
