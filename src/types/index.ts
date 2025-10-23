@@ -110,6 +110,10 @@ export interface TestCase {
   expectedResult: string;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
   relatedScenarioId?: string; // Link to TestScenario
+  blackboardFeature?: BlackboardFeature; // Optional feature association
+  tags?: string[]; // Optional tags for categorization
+  prerequisites?: string; // Optional prerequisites
+  testData?: string; // Optional test data requirements
 }
 
 export interface TestStep {

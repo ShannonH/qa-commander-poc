@@ -25,10 +25,12 @@ import {
   SmartToy,
   Brightness4,
   Brightness7,
+  CheckBox,
 } from '@mui/icons-material';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import RiskAnalysisView from '../views/RiskAnalysisView';
 import TestPlansView from '../views/TestPlansView';
+import TestCaseManagementView from '../views/TestCaseManagementView';
 import UnderConstructionView from '../views/UnderConstructionView';
 import DashboardView from '../views/DashboardView';
 import BlackboardContentView from '../views/BlackboardContentView';
@@ -53,6 +55,7 @@ const Layout: React.FC = () => {
     { text: 'Dashboard', icon: <Dashboard />, path: '/' },
     { text: 'Risk Analysis', icon: <Assessment />, path: '/risk-analysis' },
     { text: 'Test Plans', icon: <Assignment />, path: '/test-plans' },
+    { text: 'Test Case Management', icon: <CheckBox />, path: '/test-cases' },
     { text: 'Blackboard Content', icon: <School />, path: '/blackboard-content' },
     { text: 'AI Assistant', icon: <SmartToy />, path: '/ai-assistant' },
     { text: 'Jenkins Analysis', icon: <Construction />, path: '/jenkins-analysis' },
@@ -194,6 +197,7 @@ const Layout: React.FC = () => {
           <Route path="/" element={<DashboardView />} />
           <Route path="/risk-analysis" element={<RiskAnalysisView />} />
           <Route path="/test-plans" element={<TestPlansView />} />
+          <Route path="/test-cases" element={<TestCaseManagementView />} />
           <Route path="/blackboard-content" element={<BlackboardContentView />} />
           <Route path="/ai-assistant" element={<AIChatbotView />} />
           <Route path="/jenkins-analysis" element={<UnderConstructionView />} />
