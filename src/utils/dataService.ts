@@ -312,32 +312,40 @@ export class DataService {
         const scenario = testPlan?.testScenarios?.find(ts => ts.id === workflow.sourceScenarioId);
 
         if (testPlan && scenario) {
-          // Generate basic test steps from the scenario
+          // Find the specific AC that corresponds to this workflow
+          const acceptanceCriterion = scenario.acceptanceCriteria?.find(ac => ac.id === workflow.sourceAcceptanceCriteriaId);
+          
+          // Title derived from AC description (the 'Then' statement for single assertion)
+          // This is the atomic unit as per the requirements
+          const testTitle = acceptanceCriterion?.description || workflow.workflowName;
+          
+          // Generate test steps from GIVEN/WHEN/THEN
+          // Pull the full context from the scenario for execution steps
           const testSteps = [
             {
               id: '1',
               stepNumber: 1,
-              action: `Setup: ${scenario.given}`,
-              expectedResult: 'Prerequisites are met'
+              action: `Setup preconditions: ${scenario.given}`,
+              expectedResult: 'Test environment is prepared with required preconditions'
             },
             {
               id: '2',
               stepNumber: 2,
-              action: scenario.when,
-              expectedResult: 'Action is performed successfully'
+              action: `Perform action: ${scenario.when}`,
+              expectedResult: 'Action executes without errors'
             },
             {
               id: '3',
               stepNumber: 3,
-              action: 'Verify result',
-              expectedResult: scenario.then
+              action: `Verify acceptance criterion: ${testTitle}`,
+              expectedResult: testTitle
             }
           ];
 
           const testCase: TCMTestCase = {
             id: workflow.id,
-            title: workflow.workflowName,
-            description: workflow.description,
+            title: testTitle, // Test title derived from AC (Then statement)
+            description: `Verify: ${testTitle}. Context: ${scenario.given} → ${scenario.when}`,
             sourceTestPlanId: workflow.sourceTestPlanId,
             sourceScenarioId: workflow.sourceScenarioId,
             sourceAcceptanceCriteriaId: workflow.sourceAcceptanceCriteriaId || workflow.id,
@@ -345,16 +353,16 @@ export class DataService {
             givenWhenThen: {
               given: scenario.given,
               when: scenario.when,
-              then: scenario.then,
+              then: scenario.then, // Full scenario 'then'
             },
-            acceptanceCriteria: workflow.workflowName,
+            acceptanceCriteria: testTitle, // The AC (atomic unit)
             riskScore: workflow.riskScore,
             testingTier: workflow.testingTier,
             likelihood: workflow.likelihood,
             impact: workflow.impact,
             deliverables: workflow.deliverables,
-            testSteps: testSteps,
-            expectedResult: scenario.then,
+            testSteps: testSteps, // Test steps pulled from GIVEN/WHEN content
+            expectedResult: testTitle, // Expected result is the AC
             notes: workflow.automationReason,
             createdAt: new Date(),
             updatedAt: new Date(),
