@@ -835,9 +835,9 @@ Export Date: ${new Date().toLocaleString()}
                           <Box>
                             <Typography variant="subtitle2">{workflow.workflowName}</Typography>
                             <Typography variant="caption" color="text.secondary">
-                              {workflow.description.length > 60
+                              {workflow.description && workflow.description.length > 60
                                 ? `${workflow.description.substring(0, 60)}...`
-                                : workflow.description}
+                                : workflow.description || ''}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -856,8 +856,8 @@ Export Date: ${new Date().toLocaleString()}
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={workflow.testingTier}
-                            color={workflow.testingTier.includes('CRITICAL') ? 'error' : workflow.testingTier.includes('HIGH') ? 'warning' : 'info'}
+                            label={workflow.testingTier || 'N/A'}
+                            color={workflow.testingTier?.includes('CRITICAL') ? 'error' : workflow.testingTier?.includes('HIGH') ? 'warning' : 'info'}
                             size="small"
                           />
                         </TableCell>
@@ -940,8 +940,8 @@ Export Date: ${new Date().toLocaleString()}
                         sx={{ mr: 1, mb: 1 }}
                       />
                       <Chip
-                        label={workflow.testingTier}
-                        color={workflow.testingTier.includes('CRITICAL') ? 'error' : workflow.testingTier.includes('HIGH') ? 'warning' : 'info'}
+                        label={workflow.testingTier || 'N/A'}
+                        color={workflow.testingTier?.includes('CRITICAL') ? 'error' : workflow.testingTier?.includes('HIGH') ? 'warning' : 'info'}
                         size="small"
                         sx={{ mb: 1 }}
                       />
