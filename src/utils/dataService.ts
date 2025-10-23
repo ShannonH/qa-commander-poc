@@ -62,6 +62,49 @@ export class DataService {
     }
 
     localStorage.setItem(STORAGE_KEYS.WORKFLOWS, JSON.stringify(workflows));
+    
+    // Also update the workflow in all risk analysis documents that contain it
+    this.syncWorkflowToRiskDocuments(workflow);
+  }
+  
+  // Sync workflow changes to risk analysis documents
+  private static syncWorkflowToRiskDocuments(updatedWorkflow: UserWorkflow): void {
+    const documents = this.getRiskDocuments();
+    let documentsUpdated = false;
+    
+    documents.forEach(doc => {
+      const workflowIndex = doc.workflows.findIndex(w => w.id === updatedWorkflow.id);
+      if (workflowIndex >= 0) {
+        // Update the workflow in this document
+        doc.workflows[workflowIndex] = {
+          ...updatedWorkflow,
+          updatedAt: new Date()
+        };
+        
+        // Recalculate overall risk metrics for the document
+        const totalRisk = doc.workflows.reduce((sum, wf) => sum + wf.riskScore, 0);
+        doc.totalRiskScore = totalRisk;
+        doc.overallRiskLevel = this.calculateOverallRiskLevel(doc.workflows);
+        doc.updatedAt = new Date();
+        
+        documentsUpdated = true;
+      }
+    });
+    
+    if (documentsUpdated) {
+      localStorage.setItem(STORAGE_KEYS.RISK_DOCUMENTS, JSON.stringify(documents));
+    }
+  }
+  
+  private static calculateOverallRiskLevel(workflows: UserWorkflow[]): 'Low' | 'Medium' | 'High' | 'Critical' {
+    if (workflows.length === 0) return 'Low';
+    
+    const avgRiskScore = workflows.reduce((sum, wf) => sum + wf.riskScore, 0) / workflows.length;
+    
+    if (avgRiskScore <= 4) return 'Critical';
+    if (avgRiskScore <= 8) return 'High';
+    if (avgRiskScore <= 12) return 'Medium';
+    return 'Low';
   }
 
   static deleteUserWorkflow(id: string): void {

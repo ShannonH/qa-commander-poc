@@ -53,8 +53,8 @@ const Layout: React.FC = () => {
 
   const menuItems = [
     { text: 'Dashboard', icon: <Dashboard />, path: '/' },
-    { text: 'Risk Analysis', icon: <Assessment />, path: '/risk-analysis' },
     { text: 'Test Plans', icon: <Assignment />, path: '/test-plans' },
+    { text: 'Risk Analysis', icon: <Assessment />, path: '/risk-analysis' },
     { text: 'Test Case Management', icon: <TCMIcon />, path: '/tcm' },
     { text: 'Blackboard Content', icon: <School />, path: '/blackboard-content' },
     { text: 'AI Assistant', icon: <SmartToy />, path: '/ai-assistant' },

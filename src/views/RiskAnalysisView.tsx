@@ -111,6 +111,8 @@ const RiskAnalysisView: React.FC = () => {
   // Document view modal states
   const [viewDocumentOpen, setViewDocumentOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<RiskAnalysisDocument | null>(null);
+  const [editingWorkflowId, setEditingWorkflowId] = useState<string | null>(null);
+  const [editingWorkflowData, setEditingWorkflowData] = useState<{ impact: number; likelihood: number } | null>(null);
 
   const [workflowFormData, setWorkflowFormData] = useState({
     workflowName: '',
@@ -369,6 +371,42 @@ Export Date: ${new Date().toLocaleString()}
       DataService.deleteUserWorkflow(workflowId);
       loadData();
     }
+  };
+  
+  const handleStartEditingWorkflow = (workflow: UserWorkflow) => {
+    setEditingWorkflowId(workflow.id);
+    setEditingWorkflowData({
+      impact: workflow.impact,
+      likelihood: workflow.likelihood
+    });
+  };
+  
+  const handleCancelEditingWorkflow = () => {
+    setEditingWorkflowId(null);
+    setEditingWorkflowData(null);
+  };
+  
+  const handleSaveWorkflowRiskFactors = (workflow: UserWorkflow) => {
+    if (!editingWorkflowData) return;
+    
+    const riskScore = editingWorkflowData.likelihood * editingWorkflowData.impact;
+    const testingTier = getTestingTierFromRiskScore(riskScore);
+    const deliverables = getDefaultDeliverables(testingTier);
+    
+    const updatedWorkflow: UserWorkflow = {
+      ...workflow,
+      impact: editingWorkflowData.impact,
+      likelihood: editingWorkflowData.likelihood,
+      riskScore,
+      testingTier,
+      deliverables,
+      updatedAt: new Date()
+    };
+    
+    DataService.saveUserWorkflow(updatedWorkflow);
+    setEditingWorkflowId(null);
+    setEditingWorkflowData(null);
+    loadData();
   };
 
   const getAutomationRecommendation = (score: number) => {
@@ -1216,6 +1254,9 @@ Export Date: ${new Date().toLocaleString()}
                             <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                               Deliverables Commitment
                             </TableCell>
+                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                              Actions
+                            </TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -1230,37 +1271,129 @@ Export Date: ${new Date().toLocaleString()}
                                 </Typography>
                               </TableCell>
                               <TableCell align="center">
-                                <Typography variant="body2" fontWeight="bold">
-                                  {workflow.impact}
-                                </Typography>
+                                {editingWorkflowId === workflow.id && editingWorkflowData ? (
+                                  <Box sx={{ px: 2, minWidth: 150 }}>
+                                    <Slider
+                                      value={editingWorkflowData.impact}
+                                      onChange={(_, value) => setEditingWorkflowData({ ...editingWorkflowData, impact: value as number })}
+                                      min={1}
+                                      max={4}
+                                      step={1}
+                                      marks={[
+                                        { value: 1, label: 'Critical' },
+                                        { value: 2, label: 'High' },
+                                        { value: 3, label: 'Medium' },
+                                        { value: 4, label: 'Low' }
+                                      ]}
+                                      valueLabelDisplay="auto"
+                                    />
+                                  </Box>
+                                ) : (
+                                  <Typography variant="body2" fontWeight="bold">
+                                    {workflow.impact}
+                                  </Typography>
+                                )}
                               </TableCell>
                               <TableCell align="center">
-                                <Typography variant="body2" fontWeight="bold">
-                                  {workflow.likelihood}
-                                </Typography>
+                                {editingWorkflowId === workflow.id && editingWorkflowData ? (
+                                  <Box sx={{ px: 2, minWidth: 150 }}>
+                                    <Slider
+                                      value={editingWorkflowData.likelihood}
+                                      onChange={(_, value) => setEditingWorkflowData({ ...editingWorkflowData, likelihood: value as number })}
+                                      min={1}
+                                      max={4}
+                                      step={1}
+                                      marks={[
+                                        { value: 1, label: 'Most Likely' },
+                                        { value: 2, label: 'Likely' },
+                                        { value: 3, label: 'Unlikely' },
+                                        { value: 4, label: 'Very Unlikely' }
+                                      ]}
+                                      valueLabelDisplay="auto"
+                                    />
+                                  </Box>
+                                ) : (
+                                  <Typography variant="body2" fontWeight="bold">
+                                    {workflow.likelihood}
+                                  </Typography>
+                                )}
                               </TableCell>
                               <TableCell align="center">
                                 <Chip 
-                                  label={workflow.riskScore} 
-                                  color={workflow.riskScore <= 4 ? 'error' : workflow.riskScore <= 8 ? 'warning' : 'info'}
+                                  label={editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                    editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
+                                  } 
+                                  color={
+                                    (editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                      editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
+                                    ) <= 4 ? 'error' : 
+                                    (editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                      editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
+                                    ) <= 8 ? 'warning' : 'info'
+                                  }
                                   size="small"
                                   sx={{ fontWeight: 'bold', minWidth: '40px' }}
                                 />
                               </TableCell>
                               <TableCell align="center">
                                 <Chip 
-                                  label={workflow.testingTier} 
+                                  label={
+                                    editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                      getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
+                                      workflow.testingTier
+                                  } 
                                   color={
-                                    workflow.testingTier.includes('CRITICAL') ? 'error' :
-                                    workflow.testingTier.includes('HIGH') ? 'warning' : 'info'
+                                    (editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                      getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
+                                      workflow.testingTier
+                                    ).includes('CRITICAL') ? 'error' :
+                                    (editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                      getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
+                                      workflow.testingTier
+                                    ).includes('HIGH') ? 'warning' : 'info'
                                   }
                                   size="small"
                                 />
                               </TableCell>
                               <TableCell>
                                 <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
-                                  {workflow.deliverables}
+                                  {editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                    getDefaultDeliverables(getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact)) :
+                                    workflow.deliverables
+                                  }
                                 </Typography>
+                              </TableCell>
+                              <TableCell>
+                                {editingWorkflowId === workflow.id ? (
+                                  <Box display="flex" gap={1}>
+                                    <Tooltip title="Save">
+                                      <IconButton 
+                                        size="small" 
+                                        color="primary"
+                                        onClick={() => handleSaveWorkflowRiskFactors(workflow)}
+                                      >
+                                        <ViewIcon />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Cancel">
+                                      <IconButton 
+                                        size="small" 
+                                        onClick={handleCancelEditingWorkflow}
+                                      >
+                                        <DeleteIcon />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </Box>
+                                ) : (
+                                  <Tooltip title="Edit Risk Factors">
+                                    <IconButton 
+                                      size="small" 
+                                      onClick={() => handleStartEditingWorkflow(workflow)}
+                                    >
+                                      <EditIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                )}
                               </TableCell>
                             </TableRow>
                           ))}
