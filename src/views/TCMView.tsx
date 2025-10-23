@@ -364,9 +364,6 @@ const TCMView: React.FC = () => {
                   <TableRow>
                     <TableCell>Test Case ID</TableCell>
                     <TableCell>Acceptance Criteria</TableCell>
-                    <TableCell align="center">Impact</TableCell>
-                    <TableCell align="center">Likelihood</TableCell>
-                    <TableCell align="center">Risk Factor</TableCell>
                     <TableCell align="center">Tier</TableCell>
                     <TableCell align="center">Status</TableCell>
                     <TableCell align="center">Actions</TableCell>
@@ -384,19 +381,6 @@ const TCMView: React.FC = () => {
                         <Typography variant="body2">
                           {testCase.acceptanceCriteria}
                         </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip label={testCase.impact} size="small" variant="outlined" />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip label={testCase.likelihood} size="small" variant="outlined" />
-                      </TableCell>
-                      <TableCell align="center">
-                        <Chip 
-                          label={testCase.riskScore} 
-                          size="small"
-                          color={testCase.riskScore <= 4 ? 'error' : testCase.riskScore <= 8 ? 'warning' : 'info'}
-                        />
                       </TableCell>
                       <TableCell align="center">
                         <Chip

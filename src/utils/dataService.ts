@@ -288,6 +288,7 @@ export class DataService {
             impact: workflow.impact,
             deliverables: workflow.deliverables,
             status: 'Draft',
+            testSteps: [], // Initialize with empty test steps array
             notes: workflow.automationReason,
             createdAt: new Date(),
             updatedAt: new Date(),

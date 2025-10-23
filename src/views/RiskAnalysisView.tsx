@@ -387,7 +387,7 @@ Export Date: ${new Date().toLocaleString()}
   };
   
   const handleSaveWorkflowRiskFactors = (workflow: UserWorkflow) => {
-    if (!editingWorkflowData) return;
+    if (!editingWorkflowData || !selectedDocument) return;
     
     const riskScore = editingWorkflowData.likelihood * editingWorkflowData.impact;
     const testingTier = getTestingTierFromRiskScore(riskScore);
@@ -403,7 +403,33 @@ Export Date: ${new Date().toLocaleString()}
       updatedAt: new Date()
     };
     
+    // Update the workflow in the current document
+    const updatedWorkflows = selectedDocument.workflows.map(wf =>
+      wf.id === workflow.id ? updatedWorkflow : wf
+    );
+    
+    // Recalculate document-level risk metrics
+    const totalRiskScore = updatedWorkflows.reduce((sum, wf) => sum + wf.riskScore, 0);
+    const avgRiskScore = totalRiskScore / updatedWorkflows.length;
+    const overallRiskLevel = avgRiskScore <= 2 ? 'Critical' : avgRiskScore <= 4 ? 'High' : avgRiskScore <= 6 ? 'Medium' : 'Low';
+    
+    const updatedDocument: RiskAnalysisDocument = {
+      ...selectedDocument,
+      workflows: updatedWorkflows,
+      totalRiskScore,
+      overallRiskLevel: overallRiskLevel as 'Low' | 'Medium' | 'High' | 'Critical',
+      updatedAt: new Date()
+    };
+    
+    // Save the updated document
+    DataService.saveRiskDocument(updatedDocument);
+    
+    // Also update the workflow globally and sync to other documents
     DataService.saveUserWorkflow(updatedWorkflow);
+    
+    // Update the selected document in state
+    setSelectedDocument(updatedDocument);
+    
     setEditingWorkflowId(null);
     setEditingWorkflowData(null);
     loadData();

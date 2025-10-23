@@ -142,7 +142,7 @@ export interface TCMTestCase {
   deliverables: string;
   status: 'Draft' | 'Ready' | 'In Progress' | 'Passed' | 'Failed' | 'Blocked';
   assignee?: string;
-  testSteps?: TestStep[];
+  testSteps: TestStep[]; // Test steps for executing the test case
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
