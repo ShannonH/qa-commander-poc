@@ -1001,9 +1001,9 @@ const TCMView: React.FC = () => {
         <DialogTitle>
           {selectedTestCase ? 'Edit Test Case' : 'Create New Test Case'}
         </DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+        <DialogContent dividers sx={{ pt: 3 }}>
+          <Grid container spacing={3}>
+            <Grid size={12}>
               <TextField
                 label="Test Case ID"
                 fullWidth
@@ -1012,7 +1012,7 @@ const TCMView: React.FC = () => {
                 helperText="Auto-generated"
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="Title *"
                 fullWidth
@@ -1020,7 +1020,7 @@ const TCMView: React.FC = () => {
                 onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="Description *"
                 fullWidth
@@ -1030,7 +1030,7 @@ const TCMView: React.FC = () => {
                 onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="Acceptance Criteria"
                 fullWidth
@@ -1041,15 +1041,16 @@ const TCMView: React.FC = () => {
               />
             </Grid>
             
-            <Grid item xs={12}>
-              <Typography variant="h6" gutterBottom>
+            <Grid size={12}>
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
                 Test Steps
               </Typography>
               {(editFormData.testSteps || []).map((step, index) => (
-                <Paper key={step.id} sx={{ p: 2, mb: 2 }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                    <Typography variant="subtitle2">Step {step.stepNumber}</Typography>
-                    <IconButton size="small" onClick={() => removeTestStep(index)}>
+                <Paper key={step.id} sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                    <Typography variant="subtitle2" fontWeight="bold">Step {step.stepNumber}</Typography>
+                    <IconButton size="small" onClick={() => removeTestStep(index)} color="error">
                       <DeleteIcon />
                     </IconButton>
                   </Box>
@@ -1058,22 +1059,32 @@ const TCMView: React.FC = () => {
                     fullWidth
                     value={step.action}
                     onChange={(e) => updateTestStep(index, 'action', e.target.value)}
-                    sx={{ mb: 1 }}
+                    sx={{ mb: 2 }}
+                    multiline
+                    rows={2}
                   />
                   <TextField
                     label="Expected Result"
                     fullWidth
                     value={step.expectedResult}
                     onChange={(e) => updateTestStep(index, 'expectedResult', e.target.value)}
+                    multiline
+                    rows={2}
                   />
                 </Paper>
               ))}
-              <Button startIcon={<AddIcon />} onClick={addTestStep}>
+              <Button 
+                startIcon={<AddIcon />} 
+                onClick={addTestStep}
+                variant="outlined"
+                sx={{ mt: 1 }}
+              >
                 Add Test Step
               </Button>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
+              <Divider sx={{ my: 2 }} />
               <TextField
                 label="Expected Result"
                 fullWidth
@@ -1081,10 +1092,11 @@ const TCMView: React.FC = () => {
                 rows={2}
                 value={editFormData.expectedResult || ''}
                 onChange={(e) => setEditFormData({ ...editFormData, expectedResult: e.target.value })}
+                helperText="Overall expected outcome of the test case"
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="Notes"
                 fullWidth
@@ -1092,11 +1104,12 @@ const TCMView: React.FC = () => {
                 rows={3}
                 value={editFormData.notes || ''}
                 onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                helperText="Additional notes or special considerations"
               />
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleSaveTestCase}>
             {selectedTestCase ? 'Update' : 'Create'}
@@ -1114,9 +1127,9 @@ const TCMView: React.FC = () => {
         <DialogTitle>
           {selectedCollection ? 'Edit Collection' : 'Create New Collection'}
         </DialogTitle>
-        <DialogContent dividers>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+        <DialogContent dividers sx={{ pt: 3 }}>
+          <Grid container spacing={3}>
+            <Grid size={12}>
               <TextField
                 label="Collection Name *"
                 fullWidth
@@ -1124,7 +1137,7 @@ const TCMView: React.FC = () => {
                 onChange={(e) => setCollectionFormData({ ...collectionFormData, name: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 label="Description"
                 fullWidth
@@ -1134,11 +1147,12 @@ const TCMView: React.FC = () => {
                 onChange={(e) => setCollectionFormData({ ...collectionFormData, description: e.target.value })}
               />
             </Grid>
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>
+            <Grid size={12}>
+              <Divider sx={{ my: 1 }} />
+              <Typography variant="subtitle1" gutterBottom sx={{ mt: 2, mb: 1 }}>
                 Select Test Cases
               </Typography>
-              <Box sx={{ maxHeight: 300, overflowY: 'auto', border: 1, borderColor: 'divider', borderRadius: 1, p: 1 }}>
+              <Box sx={{ maxHeight: 300, overflowY: 'auto', border: 1, borderColor: 'divider', borderRadius: 1, p: 2 }}>
                 {testCases.map(tc => (
                   <FormControlLabel
                     key={tc.id}
@@ -1157,13 +1171,14 @@ const TCMView: React.FC = () => {
                       />
                     }
                     label={`${tc.id} - ${tc.title}`}
+                    sx={{ display: 'block', mb: 1 }}
                   />
                 ))}
               </Box>
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={() => setCollectionDialogOpen(false)}>Cancel</Button>
           <Button variant="contained" onClick={handleSaveCollection}>
             {selectedCollection ? 'Update' : 'Create'}
