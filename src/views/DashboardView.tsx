@@ -20,6 +20,7 @@ const DashboardView: React.FC = () => {
   const [stats, setStats] = useState({
     totalWorkflows: 0,
     totalTestPlans: 0,
+    totalTestCases: 0,
     automationCandidates: 0,
     activeTestPlans: 0,
   });
@@ -39,19 +40,19 @@ const DashboardView: React.FC = () => {
       color: '#1976d2',
     },
     {
+      title: 'Test Cases',
+      value: stats.totalTestCases.toString(),
+      icon: <Assignment />,
+      color: '#f57c00',
+    },
+    {
       title: 'Automation Candidates',
       value: stats.automationCandidates.toString(),
       icon: <AutoAwesome />,
       color: '#388e3c',
     },
     {
-      title: 'Test Plans',
-      value: stats.totalTestPlans.toString(),
-      icon: <Assignment />,
-      color: '#f57c00',
-    },
-    {
-      title: 'Active Tests',
+      title: 'Active Test Plans',
       value: stats.activeTestPlans.toString(),
       icon: <PlayArrow />,
       color: '#9c27b0',

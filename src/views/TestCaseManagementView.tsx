@@ -59,15 +59,8 @@ const TestCaseManagementView: React.FC = () => {
   }, []);
 
   const loadData = () => {
-    // Get all test cases from all test plans
-    const allTestPlans = DataService.getTestPlans();
-    const allTestCases: TestCase[] = [];
-    allTestPlans.forEach(plan => {
-      if (plan.testCases && plan.testCases.length > 0) {
-        allTestCases.push(...plan.testCases);
-      }
-    });
-    setTestCases(allTestCases);
+    // Get all test cases (standalone + from test plans)
+    setTestCases(DataService.getAllTestCases());
   };
 
   const [formData, setFormData] = useState({
@@ -145,36 +138,22 @@ const TestCaseManagementView: React.FC = () => {
         ...(formData.testData && { testData: formData.testData }),
       } as TestCase;
       
-      // For now, we'll add it to the first test plan or create a default one
-      const testPlans = DataService.getTestPlans();
-      if (testPlans.length > 0) {
-        const firstPlan = testPlans[0];
-        firstPlan.testCases = [...(firstPlan.testCases || []), newTestCase];
-        DataService.saveTestPlan(firstPlan);
-      }
+      // Save as standalone test case
+      DataService.saveStandaloneTestCase(newTestCase);
     } else if (viewMode === 'edit' && selectedTestCase) {
-      // Update the test case in its parent test plan
-      const testPlans = DataService.getTestPlans();
-      for (const plan of testPlans) {
-        const index = plan.testCases?.findIndex(tc => tc.id === selectedTestCase.id);
-        if (index !== undefined && index >= 0) {
-          const updatedTestCase: TestCase = {
-            ...selectedTestCase,
-            title: formData.title,
-            description: formData.description,
-            steps: formData.steps,
-            expectedResult: formData.expectedResult,
-            priority: formData.priority,
-            ...(formData.blackboardFeature && { blackboardFeature: formData.blackboardFeature }),
-            ...(formData.tags && { tags: formData.tags }),
-            ...(formData.prerequisites && { prerequisites: formData.prerequisites }),
-            ...(formData.testData && { testData: formData.testData }),
-          };
-          plan.testCases[index] = updatedTestCase;
-          DataService.saveTestPlan(plan);
-          break;
-        }
-      }
+      const updatedTestCase: TestCase = {
+        ...selectedTestCase,
+        title: formData.title,
+        description: formData.description,
+        steps: formData.steps,
+        expectedResult: formData.expectedResult,
+        priority: formData.priority,
+        ...(formData.blackboardFeature && { blackboardFeature: formData.blackboardFeature }),
+        ...(formData.tags && { tags: formData.tags }),
+        ...(formData.prerequisites && { prerequisites: formData.prerequisites }),
+        ...(formData.testData && { testData: formData.testData }),
+      };
+      DataService.updateTestCase(updatedTestCase);
     }
     loadData();
     setOpen(false);
@@ -182,15 +161,7 @@ const TestCaseManagementView: React.FC = () => {
 
   const handleDelete = (testCase: TestCase) => {
     if (window.confirm(`Are you sure you want to delete test case "${testCase.title}"?`)) {
-      const testPlans = DataService.getTestPlans();
-      for (const plan of testPlans) {
-        const index = plan.testCases?.findIndex(tc => tc.id === testCase.id);
-        if (index !== undefined && index >= 0) {
-          plan.testCases.splice(index, 1);
-          DataService.saveTestPlan(plan);
-          break;
-        }
-      }
+      DataService.deleteTestCase(testCase.id);
       loadData();
     }
   };

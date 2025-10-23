@@ -1,9 +1,10 @@
-import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario, StrategyChecklistItem, AcceptanceCriteria } from '../types';
+import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestCase, TestScenario, StrategyChecklistItem, AcceptanceCriteria } from '../types';
 
 const STORAGE_KEYS = {
   WORKFLOWS: 'qa_commander_workflows',
   RISK_DOCUMENTS: 'qa_commander_risk_documents',
   TEST_PLANS: 'qa_commander_test_plans',
+  TEST_CASES: 'qa_commander_test_cases',
   WORKFLOW_COUNTER: 'qa_commander_workflow_counter',
 };
 
@@ -150,16 +151,109 @@ export class DataService {
     localStorage.setItem(STORAGE_KEYS.TEST_PLANS, JSON.stringify(plans));
   }
 
+  // Standalone Test Case methods
+  static getStandaloneTestCases(): TestCase[] {
+    const data = localStorage.getItem(STORAGE_KEYS.TEST_CASES);
+    if (data) {
+      return JSON.parse(data);
+    }
+    return [];
+  }
+
+  static getAllTestCases(): TestCase[] {
+    // Get standalone test cases
+    const standaloneTestCases = this.getStandaloneTestCases();
+    
+    // Get test cases from test plans
+    const testPlans = this.getTestPlans();
+    const planTestCases: TestCase[] = [];
+    testPlans.forEach(plan => {
+      if (plan.testCases && plan.testCases.length > 0) {
+        planTestCases.push(...plan.testCases);
+      }
+    });
+    
+    return [...standaloneTestCases, ...planTestCases];
+  }
+
+  static saveStandaloneTestCase(testCase: TestCase): void {
+    const testCases = this.getStandaloneTestCases();
+    const existingIndex = testCases.findIndex(tc => tc.id === testCase.id);
+
+    if (existingIndex >= 0) {
+      testCases[existingIndex] = testCase;
+    } else {
+      testCases.push(testCase);
+    }
+
+    localStorage.setItem(STORAGE_KEYS.TEST_CASES, JSON.stringify(testCases));
+  }
+
+  static deleteStandaloneTestCase(id: string): void {
+    const testCases = this.getStandaloneTestCases().filter(tc => tc.id !== id);
+    localStorage.setItem(STORAGE_KEYS.TEST_CASES, JSON.stringify(testCases));
+  }
+
+  static deleteTestCase(id: string): boolean {
+    // Try to delete from standalone test cases first
+    const standaloneTestCases = this.getStandaloneTestCases();
+    const standaloneIndex = standaloneTestCases.findIndex(tc => tc.id === id);
+    
+    if (standaloneIndex >= 0) {
+      this.deleteStandaloneTestCase(id);
+      return true;
+    }
+
+    // Try to delete from test plans
+    const testPlans = this.getTestPlans();
+    for (const plan of testPlans) {
+      const index = plan.testCases?.findIndex(tc => tc.id === id);
+      if (index !== undefined && index >= 0) {
+        plan.testCases.splice(index, 1);
+        this.saveTestPlan(plan);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  static updateTestCase(testCase: TestCase): boolean {
+    // Try to update in standalone test cases first
+    const standaloneTestCases = this.getStandaloneTestCases();
+    const standaloneIndex = standaloneTestCases.findIndex(tc => tc.id === testCase.id);
+    
+    if (standaloneIndex >= 0) {
+      this.saveStandaloneTestCase(testCase);
+      return true;
+    }
+
+    // Try to update in test plans
+    const testPlans = this.getTestPlans();
+    for (const plan of testPlans) {
+      const index = plan.testCases?.findIndex(tc => tc.id === testCase.id);
+      if (index !== undefined && index >= 0) {
+        plan.testCases[index] = testCase;
+        this.saveTestPlan(plan);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // Statistics methods
   static getStats() {
     const workflows = this.getUserWorkflows();
     const riskDocuments = this.getRiskDocuments();
     const testPlans = this.getTestPlans();
+    const allTestCases = this.getAllTestCases();
 
     return {
       totalWorkflows: workflows.length,
       totalRiskDocuments: riskDocuments.length,
       totalTestPlans: testPlans.length,
+      totalTestCases: allTestCases.length,
       highRiskWorkflows: workflows.filter(w => w.riskScore <= 6).length, // Risk scores 1-6 are considered high priority
       automationCandidates: workflows.filter(w => w.riskScore >= 1 && w.riskScore <= 6).length,
       activeTestPlans: testPlans.filter(p => p.status === 'In Progress' || p.status === 'Review').length,
