@@ -45,6 +45,7 @@ export class DataService {
       const workflows = JSON.parse(data);
       return workflows.map((workflow: any) => ({
         ...workflow,
+        userStoryId: workflow.userStoryId || 'NO_USER_STORY', // Handle legacy data
         createdAt: new Date(workflow.createdAt),
         updatedAt: new Date(workflow.updatedAt),
       }));
@@ -166,6 +167,7 @@ export class DataService {
         strategyChecklist: plan.strategyChecklist || [],
         testScenarios: (plan.testScenarios || []).map((scenario: any) => ({
           ...scenario,
+          userStoryId: scenario.userStoryId || 'NO_USER_STORY', // Handle legacy data
           acceptanceCriteria: scenario.acceptanceCriteria || []
         })),
         testEnvironmentRequirements: plan.testEnvironmentRequirements || [],
@@ -375,6 +377,7 @@ export class DataService {
           id: '1',
           workflowName: 'Student Login to Course',
           description: 'Student accesses course through Blackboard login',
+          userStoryId: 'AB12345',
           userStory: 'As a student, I want to log into my course so that I can access course materials',
           blackboardFeature: 'Course Management',
           likelihood: 2,
@@ -390,6 +393,7 @@ export class DataService {
           id: '2',
           workflowName: 'Instructor Creates Assignment',
           description: 'Instructor creates and publishes a new assignment',
+          userStoryId: 'AB12346',
           userStory: 'As an instructor, I want to create assignments so that students can submit their work',
           blackboardFeature: 'Assignments',
           likelihood: 2,
@@ -405,6 +409,7 @@ export class DataService {
           id: '3',
           workflowName: 'Student Submits Discussion Post',
           description: 'Student creates and submits a post in discussion forum',
+          userStoryId: 'AB12347',
           userStory: 'As a student, I want to participate in discussions so that I can engage with course content',
           blackboardFeature: 'Discussion Forums',
           likelihood: 3,
@@ -487,6 +492,7 @@ export class DataService {
           testScenarios: [
             {
               id: 'ts1',
+              userStoryId: 'AB10001',
               adoNumber: 'ADO-12345',
               given: 'A student is enrolled in an Ultra course with multiple content folders',
               when: 'They click on a content folder in the course navigation',
@@ -513,6 +519,7 @@ export class DataService {
             },
             {
               id: 'ts2',
+              userStoryId: 'AB10002',
               adoNumber: 'ADO-12346',
               given: 'A student wants to download a PDF document from course content',
               when: 'They click the download link on a PDF file',
@@ -539,6 +546,7 @@ export class DataService {
             },
             {
               id: 'ts3',
+              userStoryId: 'AB10003',
               adoNumber: 'ADO-12347',
               given: 'An instructor accesses their course on a mobile device',
               when: 'They navigate to the course content area',
