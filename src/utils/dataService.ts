@@ -349,7 +349,7 @@ export class DataService {
             sourceTestPlanId: workflow.sourceTestPlanId,
             sourceScenarioId: workflow.sourceScenarioId,
             sourceAcceptanceCriteriaId: workflow.sourceAcceptanceCriteriaId || workflow.id,
-            adoNumber: scenario.adoNumber,
+            userStoryId: scenario.userStoryId,
             givenWhenThen: {
               given: scenario.given,
               when: scenario.when,
@@ -501,7 +501,6 @@ export class DataService {
             {
               id: 'ts1',
               userStoryId: 'AB#1000001',
-              adoNumber: 'ADO-12345',
               given: 'A student is enrolled in an Ultra course with multiple content folders',
               when: 'They click on a content folder in the course navigation',
               then: 'The folder expands to show all contained items without page reload',
@@ -528,7 +527,6 @@ export class DataService {
             {
               id: 'ts2',
               userStoryId: 'AB#1000002',
-              adoNumber: 'ADO-12346',
               given: 'A student wants to download a PDF document from course content',
               when: 'They click the download link on a PDF file',
               then: 'The file downloads successfully and opens in their default PDF viewer',
@@ -555,7 +553,6 @@ export class DataService {
             {
               id: 'ts3',
               userStoryId: 'AB#1000003',
-              adoNumber: 'ADO-12347',
               given: 'An instructor accesses their course on a mobile device',
               when: 'They navigate to the course content area',
               then: 'All content is properly formatted and accessible on the mobile interface',
@@ -665,7 +662,7 @@ export class DataService {
           testScenarios: [
             {
               id: 'ts4',
-              adoNumber: 'ADO-12350',
+              userStoryId: 'AB#2000001',
               given: 'A student has completed an assignment and is ready to submit',
               when: 'They upload their file and click submit before the deadline',
               then: 'The submission is recorded with timestamp and confirmation is displayed',
@@ -691,7 +688,7 @@ export class DataService {
             },
             {
               id: 'ts5',
-              adoNumber: 'ADO-12351',
+              userStoryId: 'AB#2000002',
               given: 'An instructor has received multiple student submissions for grading',
               when: 'They access the grade center and provide feedback with grades',
               then: 'Students receive grades and feedback notifications immediately',
@@ -717,7 +714,7 @@ export class DataService {
             },
             {
               id: 'ts6',
-              adoNumber: 'ADO-12352',
+              userStoryId: 'AB#2000003',
               given: 'A student attempts to submit an assignment after the deadline',
               when: 'They try to access the submission interface',
               then: 'They see appropriate messaging about late submission policies',
@@ -807,7 +804,7 @@ export class DataService {
           testScenarios: [
             {
               id: 'ts7',
-              adoNumber: 'ADO-12360',
+              userStoryId: 'AB#3000001',
               given: 'Multiple students are engaged in a discussion thread',
               when: 'A new student posts a reply to an existing thread',
               then: 'All thread participants receive email notifications about the new post',
@@ -833,7 +830,7 @@ export class DataService {
             },
             {
               id: 'ts8',
-              adoNumber: 'ADO-12361',
+              userStoryId: 'AB#3000002',
               given: 'An instructor is monitoring class discussions for inappropriate content',
               when: 'They hide or delete a student post that violates guidelines',
               then: 'The post is immediately removed from all student views and logs the moderation action',

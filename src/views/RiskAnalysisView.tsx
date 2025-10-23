@@ -1340,9 +1340,6 @@ Export Date: ${new Date().toLocaleString()}
                           <Typography variant="body2" color="text.secondary">
                             <strong>THEN</strong> {group.scenario.then}
                           </Typography>
-                          {group.scenario.adoNumber && (
-                            <Chip label={group.scenario.adoNumber} size="small" sx={{ mt: 1 }} />
-                          )}
                         </Box>
                       </AccordionSummary>
                       <AccordionDetails sx={{ p: 0 }}>

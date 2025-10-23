@@ -95,8 +95,7 @@ export interface AcceptanceCriteria {
 export interface TestScenario {
   id: string;
   title?: string; // Optional friendly title for the scenario (used in risk analysis)
-  userStoryId: string; // User Story ID in format AB#1234567 - required for linkage
-  adoNumber?: string; // ADO number to help identify this scenario
+  userStoryId: string; // User Story ID in format AB#1234567 - required for linkage (links to ADO work item)
   given: string;
   when: string;
   then: string;
@@ -130,7 +129,7 @@ export interface TCMTestCase {
   sourceTestPlanId?: string; // Optional - not all test cases come from test plans
   sourceScenarioId?: string;
   sourceAcceptanceCriteriaId?: string;
-  adoNumber?: string; // ADO number from the scenario
+  userStoryId?: string; // User Story ID in format AB#1234567 - links to ADO work item
   givenWhenThen?: {
     given: string;
     when: string;
