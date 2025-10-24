@@ -36,6 +36,7 @@ import {
   Tooltip,
   IconButton,
   InputAdornment,
+  Link,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -53,6 +54,16 @@ import {
 import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature, TestPlan, TestScenario } from '../types';
 import Fuse from 'fuse.js';
 import { DataService } from '../utils/dataService';
+
+// Helper function to generate ADO work item URL from User Story ID
+const getAdoUrl = (userStoryId: string): string => {
+  // Extract the numeric part from the User Story ID (e.g., "AB#1234567" -> "1234567")
+  const match = userStoryId.match(/^AB#(\d{7})$/);
+  if (match) {
+    return `https://dev.azure.com/AnthologyInc-01/Learn/_workitems/edit/${match[1]}`;
+  }
+  return '';
+};
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -115,6 +126,7 @@ const RiskAnalysisView: React.FC = () => {
   const [editingWorkflowData, setEditingWorkflowData] = useState<{ impact: number; likelihood: number } | null>(null);
 
   const [workflowFormData, setWorkflowFormData] = useState({
+    userStoryId: '', // User Story ID
     workflowName: '',
     description: '',
     userStory: '',
@@ -211,6 +223,7 @@ const RiskAnalysisView: React.FC = () => {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       workflowName: `${scenario.given} → ${scenario.when} → ${scenario.then}`,
       description: `Imported from test plan: ${testPlan.title}`,
+      userStoryId: scenario.userStoryId || '', // Link to User Story ID
       userStory: `Given ${scenario.given}, when ${scenario.when}, then ${scenario.then}`,
       blackboardFeature: testPlan.blackboardFeature,
       likelihood: 2,
@@ -232,6 +245,7 @@ const RiskAnalysisView: React.FC = () => {
   const handleCreateWorkflow = () => {
     setSelectedWorkflow(null);
     setWorkflowFormData({
+      userStoryId: '',
       workflowName: '',
       description: '',
       userStory: '',
@@ -248,6 +262,7 @@ const RiskAnalysisView: React.FC = () => {
   const handleEditWorkflow = (workflow: UserWorkflow) => {
     setSelectedWorkflow(workflow);
     setWorkflowFormData({
+      userStoryId: workflow.userStoryId,
       workflowName: workflow.workflowName,
       description: workflow.description,
       userStory: workflow.userStory,
@@ -483,26 +498,47 @@ Export Date: ${new Date().toLocaleString()}
     return 'success';
   };
 
-  const groupWorkflowsByScenario = (workflows: UserWorkflow[], testPlans: TestPlan[]) => {
-    const grouped: { [scenarioKey: string]: { scenario: TestScenario; workflows: UserWorkflow[] } } = {};
+  const groupWorkflowsByUserStoryAndScenario = (workflows: UserWorkflow[], testPlans: TestPlan[]) => {
+    // First group by User Story ID (Level 1)
+    const userStoryGroups: { 
+      [userStoryId: string]: { 
+        userStoryId: string;
+        scenarios: { [scenarioKey: string]: { scenario: TestScenario; workflows: UserWorkflow[] } }
+      } 
+    } = {};
     
     workflows.forEach(workflow => {
+      const userStoryId = workflow.userStoryId || 'NO_USER_STORY';
+      
+      // Initialize user story group if it doesn't exist
+      if (!userStoryGroups[userStoryId]) {
+        userStoryGroups[userStoryId] = {
+          userStoryId,
+          scenarios: {}
+        };
+      }
+      
       if (workflow.sourceTestPlanId && workflow.sourceScenarioId) {
         const testPlan = testPlans.find(tp => tp.id === workflow.sourceTestPlanId);
         if (testPlan) {
           const scenario = testPlan.testScenarios?.find(ts => ts.id === workflow.sourceScenarioId);
           if (scenario) {
-            const key = `${workflow.sourceTestPlanId}-${workflow.sourceScenarioId}`;
-            if (!grouped[key]) {
-              grouped[key] = { scenario, workflows: [] };
+            const scenarioKey = `${workflow.sourceTestPlanId}-${workflow.sourceScenarioId}`;
+            
+            if (!userStoryGroups[userStoryId].scenarios[scenarioKey]) {
+              userStoryGroups[userStoryId].scenarios[scenarioKey] = { 
+                scenario, 
+                workflows: [] 
+              };
             }
-            grouped[key].workflows.push(workflow);
+            
+            userStoryGroups[userStoryId].scenarios[scenarioKey].workflows.push(workflow);
           }
         }
       }
     });
     
-    return Object.values(grouped);
+    return userStoryGroups;
   };
 
   const blackboardFeatures: BlackboardFeature[] = [
@@ -651,7 +687,17 @@ Export Date: ${new Date().toLocaleString()}
                   </Box>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Typography paragraph>{document.description}</Typography>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                    <Typography paragraph sx={{ mb: 0 }}>{document.description}</Typography>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<ViewIcon />}
+                      onClick={() => handleViewDocument(document)}
+                    >
+                      View/Edit Details
+                    </Button>
+                  </Box>
 
                   <Typography variant="h6" gutterBottom>
                     Workflow Analysis ({document.workflows.length} workflows)
@@ -666,6 +712,7 @@ Export Date: ${new Date().toLocaleString()}
                           <TableCell align="center">Impact</TableCell>
                           <TableCell align="center">Risk Score</TableCell>
                           <TableCell align="center">Decision</TableCell>
+                          <TableCell align="center">Actions</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -686,6 +733,13 @@ Export Date: ${new Date().toLocaleString()}
                                 {getAutomationIcon(workflow.riskScore)}
                                 {getAutomationRecommendation(workflow.riskScore)}
                               </Box>
+                            </TableCell>
+                            <TableCell align="center">
+                              <Tooltip title="Edit Workflow">
+                                <IconButton size="small" onClick={() => handleEditWorkflow(workflow)}>
+                                  <EditIcon />
+                                </IconButton>
+                              </Tooltip>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -781,9 +835,9 @@ Export Date: ${new Date().toLocaleString()}
                           <Box>
                             <Typography variant="subtitle2">{workflow.workflowName}</Typography>
                             <Typography variant="caption" color="text.secondary">
-                              {workflow.description.length > 60
+                              {workflow.description && workflow.description.length > 60
                                 ? `${workflow.description.substring(0, 60)}...`
-                                : workflow.description}
+                                : workflow.description || ''}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -802,8 +856,8 @@ Export Date: ${new Date().toLocaleString()}
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={workflow.testingTier}
-                            color={workflow.testingTier.includes('CRITICAL') ? 'error' : workflow.testingTier.includes('HIGH') ? 'warning' : 'info'}
+                            label={workflow.testingTier || 'N/A'}
+                            color={workflow.testingTier?.includes('CRITICAL') ? 'error' : workflow.testingTier?.includes('HIGH') ? 'warning' : 'info'}
                             size="small"
                           />
                         </TableCell>
@@ -886,8 +940,8 @@ Export Date: ${new Date().toLocaleString()}
                         sx={{ mr: 1, mb: 1 }}
                       />
                       <Chip
-                        label={workflow.testingTier}
-                        color={workflow.testingTier.includes('CRITICAL') ? 'error' : workflow.testingTier.includes('HIGH') ? 'warning' : 'info'}
+                        label={workflow.testingTier || 'N/A'}
+                        color={workflow.testingTier?.includes('CRITICAL') ? 'error' : workflow.testingTier?.includes('HIGH') ? 'warning' : 'info'}
                         size="small"
                         sx={{ mb: 1 }}
                       />
@@ -946,6 +1000,17 @@ Export Date: ${new Date().toLocaleString()}
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid size={12}>
               <TextField
+                label="User Story ID *"
+                fullWidth
+                value={workflowFormData.userStoryId || ''}
+                onChange={(e) => setWorkflowFormData({ ...workflowFormData, userStoryId: e.target.value.toUpperCase() })}
+                placeholder="e.g., AB#1234567"
+                helperText="Format: AB#1234567 (e.g., AB#1234567) - Required for linking"
+                error={workflowFormData.userStoryId && !/^AB#\d{7}$/.test(workflowFormData.userStoryId)}
+              />
+            </Grid>
+            <Grid size={12}>
+              <TextField
                 label="Workflow Name"
                 fullWidth
                 value={workflowFormData.workflowName}
@@ -955,11 +1020,12 @@ Export Date: ${new Date().toLocaleString()}
             </Grid>
             <Grid size={12}>
               <TextField
-                label="User Story"
+                label="User Story (Full GIVEN/WHEN/THEN)"
                 fullWidth
                 value={workflowFormData.userStory}
                 onChange={(e) => setWorkflowFormData({ ...workflowFormData, userStory: e.target.value })}
-                placeholder="As a [user], I want to [action] so that [benefit]"
+                placeholder="Given [context], when [action], then [outcome]"
+                helperText="Provide the full scenario context"
               />
             </Grid>
             <Grid size={12}>
@@ -1228,176 +1294,208 @@ Export Date: ${new Date().toLocaleString()}
                 <strong>Created:</strong> {selectedDocument.createdAt.toLocaleDateString()}
               </Typography>
               
-              {groupWorkflowsByScenario(selectedDocument.workflows, testPlans).map((group, index) => (
-                <Accordion key={index} defaultExpanded sx={{ mb: 3 }}>
-                  <AccordionSummary 
-                    expandIcon={<ExpandMore />}
-                    sx={{ 
-                      bgcolor: 'grey.50',
-                      '&:hover': {
-                        bgcolor: 'grey.100',
-                      },
-                    }}
-                  >
-                    <Box sx={{ width: '100%' }}>
-                      <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                        {group.scenario.title || (
-                          <>
-                            <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong> {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
-                          </>
-                        )}
-                      </Typography>
-                      {group.scenario.title && (
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                          <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong> {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
-                        </Typography>
-                      )}
-                      {group.scenario.adoNumber && (
-                        <Chip label={group.scenario.adoNumber} size="small" sx={{ mt: 1 }} />
-                      )}
-                    </Box>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ p: 0 }}>
-                    <TableContainer>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow sx={{ bgcolor: 'grey.50' }}>
-                            <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Workflow / AC Item
-                            </TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Impact (1-4)
-                            </TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Likelihood (1-4)
-                            </TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Risk Factor (I x L)
-                            </TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Mandatory Testing Tier
-                            </TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Deliverables Commitment
-                            </TableCell>
-                            <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                              Actions
-                            </TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {group.workflows.map((workflow) => (
-                            <TableRow key={workflow.id} sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.25' } }}>
-                              <TableCell>
-                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                  {workflow.workflowName}
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                  Test Case ID: {workflow.id}
-                                </Typography>
-                              </TableCell>
-                              <TableCell align="center">
-                                {editingWorkflowId === workflow.id && editingWorkflowData ? (
-                                  <Box sx={{ px: 2, minWidth: 150 }}>
-                                    <Slider
-                                      value={editingWorkflowData.impact}
-                                      onChange={(_, value) => setEditingWorkflowData({ ...editingWorkflowData, impact: value as number })}
-                                      min={1}
-                                      max={4}
-                                      step={1}
-                                      marks={[
-                                        { value: 1, label: 'Critical' },
-                                        { value: 2, label: 'High' },
-                                        { value: 3, label: 'Medium' },
-                                        { value: 4, label: 'Low' }
-                                      ]}
-                                      valueLabelDisplay="auto"
+              {/* Level 1 Grouping: By User Story ID */}
+              {Object.entries(groupWorkflowsByUserStoryAndScenario(selectedDocument.workflows, testPlans)).map(([userStoryId, userStoryGroup]) => (
+                <Box key={userStoryId} sx={{ mb: 4 }}>
+                  {/* User Story ID Header - Level 1 */}
+                  <Paper sx={{ p: 2, mb: 2, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                      User Story:{' '}
+                      <Link 
+                        href={getAdoUrl(userStoryId)} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        sx={{ color: 'inherit', textDecoration: 'underline' }}
+                      >
+                        {userStoryId}
+                      </Link>
+                    </Typography>
+                    <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+                      {Object.values(userStoryGroup.scenarios).reduce((sum, s) => sum + s.workflows.length, 0)} acceptance criteria across {Object.keys(userStoryGroup.scenarios).length} scenario(s)
+                    </Typography>
+                  </Paper>
+                  
+                  {/* Level 2 Grouping: By Scenario (GIVEN/WHEN/THEN) */}
+                  {Object.entries(userStoryGroup.scenarios).map(([scenarioKey, group]) => (
+                    <Accordion key={scenarioKey} defaultExpanded sx={{ mb: 2, ml: 3 }}>
+                      <AccordionSummary 
+                        expandIcon={<ExpandMore />}
+                        sx={{ 
+                          bgcolor: 'grey.50',
+                          '&:hover': {
+                            bgcolor: 'grey.100',
+                          },
+                        }}
+                      >
+                        <Box sx={{ width: '100%' }}>
+                          <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                            Scenario: {group.scenario.title || 'Full Workflow'}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                            <strong>GIVEN</strong> {group.scenario.given}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>WHEN</strong> {group.scenario.when}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            <strong>THEN</strong> {group.scenario.then}
+                          </Typography>
+                        </Box>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ p: 0 }}>
+                        {/* Assessment Unit: Acceptance Criteria (AC) - The atomic unit for risk */}
+                        <TableContainer>
+                          <Table size="small">
+                            <TableHead>
+                              <TableRow sx={{ bgcolor: 'grey.50' }}>
+                                <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                  Acceptance Criterion (AC) - Atomic Risk Unit
+                                </TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                  Impact (I)<br/>(1-4)
+                                </TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                  Likelihood (L)<br/>(1-4)
+                                </TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                  Risk Factor<br/>(I × L)
+                                </TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                  Mandatory Tier
+                                </TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                  Deliverables
+                                </TableCell>
+                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                  Actions
+                                </TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {group.workflows.map((workflow) => (
+                                <TableRow key={workflow.id} sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.25' } }}>
+                                  <TableCell>
+                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                      {workflow.workflowName}
+                                    </Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      Test Case ID: {workflow.id}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {editingWorkflowId === workflow.id && editingWorkflowData ? (
+                                      <Box sx={{ px: 1, minWidth: 200, py: 3 }}>
+                                        <Slider
+                                          value={editingWorkflowData.impact}
+                                          onChange={(_, value) => setEditingWorkflowData({ ...editingWorkflowData, impact: value as number })}
+                                          min={1}
+                                          max={4}
+                                          step={1}
+                                          marks={[
+                                            { value: 1, label: 'Critical' },
+                                            { value: 2, label: 'High' },
+                                            { value: 3, label: 'Medium' },
+                                            { value: 4, label: 'Low' }
+                                          ]}
+                                          valueLabelDisplay="auto"
+                                          sx={{
+                                            '& .MuiSlider-markLabel': {
+                                              fontSize: '0.7rem',
+                                              whiteSpace: 'nowrap',
+                                            }
+                                          }}
+                                        />
+                                      </Box>
+                                    ) : (
+                                      <Typography variant="body2" fontWeight="bold">
+                                        {workflow.impact}
+                                      </Typography>
+                                    )}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    {editingWorkflowId === workflow.id && editingWorkflowData ? (
+                                      <Box sx={{ px: 1, minWidth: 200, py: 3 }}>
+                                        <Slider
+                                          value={editingWorkflowData.likelihood}
+                                          onChange={(_, value) => setEditingWorkflowData({ ...editingWorkflowData, likelihood: value as number })}
+                                          min={1}
+                                          max={4}
+                                          step={1}
+                                          marks={[
+                                            { value: 1, label: 'Most Likely' },
+                                            { value: 2, label: 'Likely' },
+                                            { value: 3, label: 'Unlikely' },
+                                            { value: 4, label: 'Very Unlikely' }
+                                          ]}
+                                          valueLabelDisplay="auto"
+                                          sx={{
+                                            '& .MuiSlider-markLabel': {
+                                              fontSize: '0.65rem',
+                                              whiteSpace: 'nowrap',
+                                            }
+                                          }}
+                                        />
+                                      </Box>
+                                    ) : (
+                                      <Typography variant="body2" fontWeight="bold">
+                                        {workflow.likelihood}
+                                      </Typography>
+                                    )}
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <Chip 
+                                      label={editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                        editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
+                                      } 
+                                      color={
+                                        (editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                          editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
+                                        ) <= 4 ? 'error' : 
+                                        (editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                          editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
+                                        ) <= 8 ? 'warning' : 'info'
+                                      }
+                                      size="small"
+                                      sx={{ fontWeight: 'bold', minWidth: '40px' }}
                                     />
-                                  </Box>
-                                ) : (
-                                  <Typography variant="body2" fontWeight="bold">
-                                    {workflow.impact}
-                                  </Typography>
-                                )}
-                              </TableCell>
-                              <TableCell align="center">
-                                {editingWorkflowId === workflow.id && editingWorkflowData ? (
-                                  <Box sx={{ px: 2, minWidth: 150 }}>
-                                    <Slider
-                                      value={editingWorkflowData.likelihood}
-                                      onChange={(_, value) => setEditingWorkflowData({ ...editingWorkflowData, likelihood: value as number })}
-                                      min={1}
-                                      max={4}
-                                      step={1}
-                                      marks={[
-                                        { value: 1, label: 'Most Likely' },
-                                        { value: 2, label: 'Likely' },
-                                        { value: 3, label: 'Unlikely' },
-                                        { value: 4, label: 'Very Unlikely' }
-                                      ]}
-                                      valueLabelDisplay="auto"
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <Chip 
+                                      label={
+                                        editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                          getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
+                                          workflow.testingTier
+                                      } 
+                                      color={
+                                        (editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                          getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
+                                          workflow.testingTier
+                                        ).includes('CRITICAL') ? 'error' :
+                                        (editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                          getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
+                                          workflow.testingTier
+                                        ).includes('HIGH') ? 'warning' : 'info'
+                                      }
+                                      size="small"
                                     />
-                                  </Box>
-                                ) : (
-                                  <Typography variant="body2" fontWeight="bold">
-                                    {workflow.likelihood}
-                                  </Typography>
-                                )}
-                              </TableCell>
-                              <TableCell align="center">
-                                <Chip 
-                                  label={editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                    editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
-                                  } 
-                                  color={
-                                    (editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                      editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
-                                    ) <= 4 ? 'error' : 
-                                    (editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                      editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
-                                    ) <= 8 ? 'warning' : 'info'
-                                  }
-                                  size="small"
-                                  sx={{ fontWeight: 'bold', minWidth: '40px' }}
-                                />
-                              </TableCell>
-                              <TableCell align="center">
-                                <Chip 
-                                  label={
-                                    editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                      getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
-                                      workflow.testingTier
-                                  } 
-                                  color={
-                                    (editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                      getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
-                                      workflow.testingTier
-                                    ).includes('CRITICAL') ? 'error' :
-                                    (editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                      getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
-                                      workflow.testingTier
-                                    ).includes('HIGH') ? 'warning' : 'info'
-                                  }
-                                  size="small"
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
-                                  {editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                    getDefaultDeliverables(getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact)) :
-                                    workflow.deliverables
-                                  }
-                                </Typography>
-                              </TableCell>
-                              <TableCell>
-                                {editingWorkflowId === workflow.id ? (
-                                  <Box display="flex" gap={1}>
-                                    <Tooltip title="Save">
-                                      <IconButton 
-                                        size="small" 
-                                        color="primary"
-                                        onClick={() => handleSaveWorkflowRiskFactors(workflow)}
-                                      >
+                                  </TableCell>
+                                  <TableCell>
+                                    <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
+                                      {editingWorkflowId === workflow.id && editingWorkflowData ? 
+                                        getDefaultDeliverables(getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact)) :
+                                        workflow.deliverables
+                                      }
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    {editingWorkflowId === workflow.id ? (
+                                      <Box display="flex" gap={1}>
+                                        <Tooltip title="Save">
+                                          <IconButton 
+                                            size="small" 
+                                            color="primary"
+                                            onClick={() => handleSaveWorkflowRiskFactors(workflow)}
+                                          >
                                         <ViewIcon />
                                       </IconButton>
                                     </Tooltip>
@@ -1429,6 +1527,8 @@ Export Date: ${new Date().toLocaleString()}
                   </AccordionDetails>
                 </Accordion>
               ))}
+            </Box>
+          ))}
               
               {selectedDocument.recommendations && (
                 <Box mt={3}>

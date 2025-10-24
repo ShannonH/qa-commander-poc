@@ -112,7 +112,7 @@ const TCMView: React.FC = () => {
     // Apply search
     if (searchQuery.trim()) {
       const fuse = new Fuse(filtered, {
-        keys: ['title', 'description', 'acceptanceCriteria', 'adoNumber', 'id', 'tags'],
+        keys: ['title', 'description', 'acceptanceCriteria', 'userStoryId', 'id', 'tags'],
         threshold: 0.3,
       });
       const results = fuse.search(searchQuery);
@@ -170,7 +170,7 @@ const TCMView: React.FC = () => {
       sourceTestPlanId: editFormData.sourceTestPlanId,
       sourceScenarioId: editFormData.sourceScenarioId,
       sourceAcceptanceCriteriaId: editFormData.sourceAcceptanceCriteriaId,
-      adoNumber: editFormData.adoNumber,
+      userStoryId: editFormData.userStoryId,
       givenWhenThen: editFormData.givenWhenThen,
       acceptanceCriteria: editFormData.acceptanceCriteria || '',
       riskScore: editFormData.riskScore,
@@ -265,8 +265,8 @@ const TCMView: React.FC = () => {
         md += `**Test Case ID:** ${tc.id}\n\n`;
         md += `**Description:** ${tc.description}\n\n`;
         
-        if (tc.adoNumber) {
-          md += `**ADO Number:** ${tc.adoNumber}\n\n`;
+        if (tc.userStoryId) {
+          md += `**User Story ID:** ${tc.userStoryId}\n\n`;
         }
         
         if (tc.givenWhenThen) {
@@ -310,8 +310,8 @@ const TCMView: React.FC = () => {
         text += `Test Case ID: ${tc.id}\n`;
         text += `Description: ${tc.description}\n`;
         
-        if (tc.adoNumber) {
-          text += `ADO Number: ${tc.adoNumber}\n`;
+        if (tc.userStoryId) {
+          text += `User Story ID: ${tc.userStoryId}\n`;
         }
         
         if (tc.givenWhenThen) {
@@ -657,8 +657,8 @@ const TCMView: React.FC = () => {
                     {testCase.description}
                   </Typography>
 
-                  {testCase.adoNumber && (
-                    <Chip label={testCase.adoNumber} size="small" variant="outlined" sx={{ mb: 1, mr: 1 }} />
+                  {testCase.userStoryId && (
+                    <Chip label={testCase.userStoryId} size="small" variant="outlined" sx={{ mb: 1, mr: 1 }} />
                   )}
                   
                   <Box display="flex" gap={1} alignItems="center" mt={2}>

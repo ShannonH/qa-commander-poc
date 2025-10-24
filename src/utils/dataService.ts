@@ -45,6 +45,7 @@ export class DataService {
       const workflows = JSON.parse(data);
       return workflows.map((workflow: any) => ({
         ...workflow,
+        userStoryId: workflow.userStoryId || 'NO_USER_STORY', // Handle legacy data
         createdAt: new Date(workflow.createdAt),
         updatedAt: new Date(workflow.updatedAt),
       }));
@@ -166,6 +167,7 @@ export class DataService {
         strategyChecklist: plan.strategyChecklist || [],
         testScenarios: (plan.testScenarios || []).map((scenario: any) => ({
           ...scenario,
+          userStoryId: scenario.userStoryId || 'NO_USER_STORY', // Handle legacy data
           acceptanceCriteria: scenario.acceptanceCriteria || []
         })),
         testEnvironmentRequirements: plan.testEnvironmentRequirements || [],
@@ -310,49 +312,57 @@ export class DataService {
         const scenario = testPlan?.testScenarios?.find(ts => ts.id === workflow.sourceScenarioId);
 
         if (testPlan && scenario) {
-          // Generate basic test steps from the scenario
+          // Find the specific AC that corresponds to this workflow
+          const acceptanceCriterion = scenario.acceptanceCriteria?.find(ac => ac.id === workflow.sourceAcceptanceCriteriaId);
+          
+          // Title derived from AC description (the 'Then' statement for single assertion)
+          // This is the atomic unit as per the requirements
+          const testTitle = acceptanceCriterion?.description || workflow.workflowName;
+          
+          // Generate test steps from GIVEN/WHEN/THEN
+          // Pull the full context from the scenario for execution steps
           const testSteps = [
             {
               id: '1',
               stepNumber: 1,
-              action: `Setup: ${scenario.given}`,
-              expectedResult: 'Prerequisites are met'
+              action: `Setup preconditions: ${scenario.given}`,
+              expectedResult: 'Test environment is prepared with required preconditions'
             },
             {
               id: '2',
               stepNumber: 2,
-              action: scenario.when,
-              expectedResult: 'Action is performed successfully'
+              action: `Perform action: ${scenario.when}`,
+              expectedResult: 'Action executes without errors'
             },
             {
               id: '3',
               stepNumber: 3,
-              action: 'Verify result',
-              expectedResult: scenario.then
+              action: `Verify acceptance criterion: ${testTitle}`,
+              expectedResult: testTitle
             }
           ];
 
           const testCase: TCMTestCase = {
             id: workflow.id,
-            title: workflow.workflowName,
-            description: workflow.description,
+            title: testTitle, // Test title derived from AC (Then statement)
+            description: `Verify: ${testTitle}. Context: ${scenario.given} → ${scenario.when}`,
             sourceTestPlanId: workflow.sourceTestPlanId,
             sourceScenarioId: workflow.sourceScenarioId,
             sourceAcceptanceCriteriaId: workflow.sourceAcceptanceCriteriaId || workflow.id,
-            adoNumber: scenario.adoNumber,
+            userStoryId: scenario.userStoryId,
             givenWhenThen: {
               given: scenario.given,
               when: scenario.when,
-              then: scenario.then,
+              then: scenario.then, // Full scenario 'then'
             },
-            acceptanceCriteria: workflow.workflowName,
+            acceptanceCriteria: testTitle, // The AC (atomic unit)
             riskScore: workflow.riskScore,
             testingTier: workflow.testingTier,
             likelihood: workflow.likelihood,
             impact: workflow.impact,
             deliverables: workflow.deliverables,
-            testSteps: testSteps,
-            expectedResult: scenario.then,
+            testSteps: testSteps, // Test steps pulled from GIVEN/WHEN content
+            expectedResult: testTitle, // Expected result is the AC
             notes: workflow.automationReason,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -375,6 +385,7 @@ export class DataService {
           id: '1',
           workflowName: 'Student Login to Course',
           description: 'Student accesses course through Blackboard login',
+          userStoryId: 'AB#1234567',
           userStory: 'As a student, I want to log into my course so that I can access course materials',
           blackboardFeature: 'Course Management',
           likelihood: 2,
@@ -390,6 +401,7 @@ export class DataService {
           id: '2',
           workflowName: 'Instructor Creates Assignment',
           description: 'Instructor creates and publishes a new assignment',
+          userStoryId: 'AB#2345678',
           userStory: 'As an instructor, I want to create assignments so that students can submit their work',
           blackboardFeature: 'Assignments',
           likelihood: 2,
@@ -405,6 +417,7 @@ export class DataService {
           id: '3',
           workflowName: 'Student Submits Discussion Post',
           description: 'Student creates and submits a post in discussion forum',
+          userStoryId: 'AB#3456789',
           userStory: 'As a student, I want to participate in discussions so that I can engage with course content',
           blackboardFeature: 'Discussion Forums',
           likelihood: 3,
@@ -487,7 +500,7 @@ export class DataService {
           testScenarios: [
             {
               id: 'ts1',
-              adoNumber: 'ADO-12345',
+              userStoryId: 'AB#1000001',
               given: 'A student is enrolled in an Ultra course with multiple content folders',
               when: 'They click on a content folder in the course navigation',
               then: 'The folder expands to show all contained items without page reload',
@@ -513,7 +526,7 @@ export class DataService {
             },
             {
               id: 'ts2',
-              adoNumber: 'ADO-12346',
+              userStoryId: 'AB#1000002',
               given: 'A student wants to download a PDF document from course content',
               when: 'They click the download link on a PDF file',
               then: 'The file downloads successfully and opens in their default PDF viewer',
@@ -539,7 +552,7 @@ export class DataService {
             },
             {
               id: 'ts3',
-              adoNumber: 'ADO-12347',
+              userStoryId: 'AB#1000003',
               given: 'An instructor accesses their course on a mobile device',
               when: 'They navigate to the course content area',
               then: 'All content is properly formatted and accessible on the mobile interface',
@@ -649,7 +662,7 @@ export class DataService {
           testScenarios: [
             {
               id: 'ts4',
-              adoNumber: 'ADO-12350',
+              userStoryId: 'AB#2000001',
               given: 'A student has completed an assignment and is ready to submit',
               when: 'They upload their file and click submit before the deadline',
               then: 'The submission is recorded with timestamp and confirmation is displayed',
@@ -675,7 +688,7 @@ export class DataService {
             },
             {
               id: 'ts5',
-              adoNumber: 'ADO-12351',
+              userStoryId: 'AB#2000002',
               given: 'An instructor has received multiple student submissions for grading',
               when: 'They access the grade center and provide feedback with grades',
               then: 'Students receive grades and feedback notifications immediately',
@@ -701,7 +714,7 @@ export class DataService {
             },
             {
               id: 'ts6',
-              adoNumber: 'ADO-12352',
+              userStoryId: 'AB#2000003',
               given: 'A student attempts to submit an assignment after the deadline',
               when: 'They try to access the submission interface',
               then: 'They see appropriate messaging about late submission policies',
@@ -791,7 +804,7 @@ export class DataService {
           testScenarios: [
             {
               id: 'ts7',
-              adoNumber: 'ADO-12360',
+              userStoryId: 'AB#3000001',
               given: 'Multiple students are engaged in a discussion thread',
               when: 'A new student posts a reply to an existing thread',
               then: 'All thread participants receive email notifications about the new post',
@@ -817,7 +830,7 @@ export class DataService {
             },
             {
               id: 'ts8',
-              adoNumber: 'ADO-12361',
+              userStoryId: 'AB#3000002',
               given: 'An instructor is monitoring class discussions for inappropriate content',
               when: 'They hide or delete a student post that violates guidelines',
               then: 'The post is immediately removed from all student views and logs the moderation action',
