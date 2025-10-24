@@ -64,16 +64,16 @@ export class DataService {
     }
 
     localStorage.setItem(STORAGE_KEYS.WORKFLOWS, JSON.stringify(workflows));
-    
+
     // Also update the workflow in all risk analysis documents that contain it
     this.syncWorkflowToRiskDocuments(workflow);
   }
-  
+
   // Sync workflow changes to risk analysis documents
   private static syncWorkflowToRiskDocuments(updatedWorkflow: UserWorkflow): void {
     const documents = this.getRiskDocuments();
     let documentsUpdated = false;
-    
+
     documents.forEach(doc => {
       const workflowIndex = doc.workflows.findIndex(w => w.id === updatedWorkflow.id);
       if (workflowIndex >= 0) {
@@ -82,27 +82,27 @@ export class DataService {
           ...updatedWorkflow,
           updatedAt: new Date()
         };
-        
+
         // Recalculate overall risk metrics for the document
         const totalRisk = doc.workflows.reduce((sum, wf) => sum + wf.riskScore, 0);
         doc.totalRiskScore = totalRisk;
         doc.overallRiskLevel = this.calculateOverallRiskLevel(doc.workflows);
         doc.updatedAt = new Date();
-        
+
         documentsUpdated = true;
       }
     });
-    
+
     if (documentsUpdated) {
       localStorage.setItem(STORAGE_KEYS.RISK_DOCUMENTS, JSON.stringify(documents));
     }
   }
-  
+
   private static calculateOverallRiskLevel(workflows: UserWorkflow[]): 'Low' | 'Medium' | 'High' | 'Critical' {
     if (workflows.length === 0) return 'Low';
-    
+
     const avgRiskScore = workflows.reduce((sum, wf) => sum + wf.riskScore, 0) / workflows.length;
-    
+
     if (avgRiskScore <= 4) return 'Critical';
     if (avgRiskScore <= 8) return 'High';
     if (avgRiskScore <= 12) return 'Medium';
@@ -250,7 +250,7 @@ export class DataService {
   static deleteTCMTestCase(id: string): void {
     const testCases = this.getTCMTestCases().filter(tc => tc.id !== id);
     localStorage.setItem(STORAGE_KEYS.TCM_TEST_CASES, JSON.stringify(testCases));
-    
+
     // Also remove from any collections
     const collections = this.getTCMCollections();
     collections.forEach(collection => {
@@ -297,7 +297,7 @@ export class DataService {
   // Generate TCM test cases from workflows that meet tier threshold (Tier 1 & 2)
   static generateTCMTestCasesFromWorkflows(workflows: UserWorkflow[], testPlans: TestPlan[]): TCMTestCase[] {
     const newTestCases: TCMTestCase[] = [];
-    
+
     workflows.forEach(workflow => {
       // Only create TCM test cases for Tier 1 and Tier 2
       if (workflow.testingTier === 'Tier 1: CRITICAL' || workflow.testingTier === 'Tier 2: HIGH') {
@@ -314,11 +314,11 @@ export class DataService {
         if (testPlan && scenario) {
           // Find the specific AC that corresponds to this workflow
           const acceptanceCriterion = scenario.acceptanceCriteria?.find(ac => ac.id === workflow.sourceAcceptanceCriteriaId);
-          
+
           // Title derived from AC description (the 'Then' statement for single assertion)
           // This is the atomic unit as per the requirements
           const testTitle = acceptanceCriterion?.description || workflow.workflowName;
-          
+
           // Generate test steps from GIVEN/WHEN/THEN
           // Pull the full context from the scenario for execution steps
           const testSteps = [
@@ -394,8 +394,8 @@ export class DataService {
           testingTier: 'Tier 2: HIGH',
           deliverables: 'UI Automation, Exploratory Testing',
           automationReason: 'Login is critical and stable, risk score 4 qualifies for automation.',
-          createdAt: new Date('2024-01-15'),
-          updatedAt: new Date('2024-01-15'),
+          createdAt: new Date('2025-10-15'),
+          updatedAt: new Date('2025-10-15'),
         },
         {
           id: '2',
@@ -410,8 +410,8 @@ export class DataService {
           testingTier: 'Tier 2: HIGH',
           deliverables: 'UI Automation, Exploratory Testing',
           automationReason: 'Assignment creation is frequently used, risk score 6 qualifies for automation.',
-          createdAt: new Date('2024-01-18'),
-          updatedAt: new Date('2024-01-18'),
+          createdAt: new Date('2025-10-18'),
+          updatedAt: new Date('2025-10-18'),
         },
         {
           id: '3',
@@ -426,8 +426,8 @@ export class DataService {
           testingTier: 'Tier 3: STANDARD',
           deliverables: 'Manual Testing',
           automationReason: 'Discussion posts are content-dependent, risk score 9 is above automation threshold.',
-          createdAt: new Date('2024-01-20'),
-          updatedAt: new Date('2024-01-20'),
+          createdAt: new Date('2025-10-20'),
+          updatedAt: new Date('2025-10-20'),
         },
       ];
 
@@ -445,8 +445,8 @@ export class DataService {
         overallRiskLevel: 'Medium',
         totalRiskScore: workflows.filter(w => w.blackboardFeature === 'Course Management').reduce((sum, w) => sum + w.riskScore, 0),
         recommendations: 'Automate high-impact workflows, focus manual testing on content-dependent features',
-        createdAt: new Date('2024-01-15'),
-        updatedAt: new Date('2024-01-15'),
+        createdAt: new Date('2025-10-15'),
+        updatedAt: new Date('2025-10-15'),
       };
 
       this.saveRiskDocument(sampleRiskDocument);
@@ -512,7 +512,7 @@ export class DataService {
                   notes: 'Visual indicator for user feedback'
                 },
                 {
-                  id: this.generateTestCaseId(), 
+                  id: this.generateTestCaseId(),
                   description: 'All child content items are visible within 2 seconds of clicking',
                   notes: 'Performance requirement'
                 },
@@ -614,9 +614,9 @@ export class DataService {
           ],
           estimatedHours: 32,
           status: 'Draft',
-          assignee: 'Sarah Chen',
-          createdAt: new Date('2024-02-01'),
-          updatedAt: new Date('2024-02-01'),
+          assignee: 'Shannon Harris',
+          createdAt: new Date('2025-02-01'),
+          updatedAt: new Date('2025-02-01'),
         },
         {
           id: '2',
@@ -756,9 +756,9 @@ export class DataService {
           ],
           estimatedHours: 28,
           status: 'In Progress',
-          assignee: 'Michael Rodriguez',
-          createdAt: new Date('2024-02-05'),
-          updatedAt: new Date('2024-02-07'),
+          assignee: 'Alejandro Alvarez',
+          createdAt: new Date('2025-02-05'),
+          updatedAt: new Date('2025-02-07'),
         },
         {
           id: '3',
@@ -877,9 +877,9 @@ export class DataService {
           ],
           estimatedHours: 20,
           status: 'Draft',
-          assignee: 'Jennifer Liu',
-          createdAt: new Date('2024-02-08'),
-          updatedAt: new Date('2024-02-08'),
+          assignee: 'Sasikala Thoomati',
+          createdAt: new Date('2025-02-08'),
+          updatedAt: new Date('2025-02-08'),
         }
       ];
 
