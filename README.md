@@ -29,7 +29,7 @@ A comprehensive Quality Assurance Management Platform for Blackboard Learn/Ultra
 ## 🛠️ Getting Started
 
 ### Prerequisites
-- Node.js 22+
+- Node.js 20+
 - npm 10+
 
 ### Installation

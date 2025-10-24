@@ -15,6 +15,7 @@ const craEnvVars = Object.keys(process.env)
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/qa-commander-poc/',
   build: {
     outDir: './dist/qa-commander-poc'
   },
