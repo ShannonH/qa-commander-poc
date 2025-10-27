@@ -1535,15 +1535,16 @@ Export Date: ${new Date().toLocaleString()}
                   <Typography variant="h6" gutterBottom>
                     Recommendations
                   </Typography>
-                  <Typography variant="body2" sx={{ 
-                    bgcolor: 'background.default', 
+                  <Paper sx={{ 
                     p: 2, 
                     borderRadius: 1,
                     border: '1px solid',
                     borderColor: 'divider'
                   }}>
-                    {selectedDocument.recommendations}
-                  </Typography>
+                    <Typography variant="body2">
+                      {selectedDocument.recommendations}
+                    </Typography>
+                  </Paper>
                 </Box>
               )}
             </Box>

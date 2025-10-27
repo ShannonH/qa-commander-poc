@@ -1772,7 +1772,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              bgcolor: activeStep === index ? 'primary.main' : 'grey.300',
+                              bgcolor: activeStep === index ? 'primary.main' : 'action.disabledBackground',
                               color: activeStep === index ? 'white' : 'text.secondary',
                               fontWeight: 'bold',
                               transition: 'all 0.3s',
