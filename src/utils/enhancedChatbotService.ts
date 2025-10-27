@@ -5,7 +5,7 @@ import {
   BlackboardHelpArticle,
   BlackboardFeature,
   TestPlan,
-  TestCategory
+  TestCategory,
 } from '../types';
 
 interface KnowledgeBase {
@@ -40,8 +40,12 @@ interface TestScenario {
 }
 
 // Utility to call an external AI API (OpenAI, mock server, or Bedrock proxy)
-async function callChatbotAPI(userMessage: string, context: ChatbotContext): Promise<string | null> {
-  const endpoint = process.env.REACT_APP_CHATBOT_API_URL || 'https://mock-api-for-demo.example.com/chatbot';
+async function callChatbotAPI(
+  userMessage: string,
+  context: ChatbotContext
+): Promise<string | null> {
+  const endpoint =
+    process.env.REACT_APP_CHATBOT_API_URL || 'https://mock-api-for-demo.example.com/chatbot';
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -112,7 +116,7 @@ export class EnhancedChatbotService {
 - Use consistent naming conventions`,
         feature: 'Assessment Tools',
         category: 'Step-by-Step Guide',
-        tags: ['assessment', 'test', 'quiz', 'create', 'questions', 'grading']
+        tags: ['assessment', 'test', 'quiz', 'create', 'questions', 'grading'],
       },
       {
         id: 'bb_gradebook_mgmt',
@@ -156,7 +160,7 @@ export class EnhancedChatbotService {
 - Review calculated totals for accuracy`,
         feature: 'Gradebook',
         category: 'Advanced Guide',
-        tags: ['gradebook', 'grades', 'calculation', 'weighted', 'schema', 'total']
+        tags: ['gradebook', 'grades', 'calculation', 'weighted', 'schema', 'total'],
       },
       {
         id: 'bb_discussion_setup',
@@ -201,7 +205,7 @@ export class EnhancedChatbotService {
 - Encourage critical thinking and analysis`,
         feature: 'Discussion Forums',
         category: 'Complete Guide',
-        tags: ['discussion', 'forum', 'participation', 'grading', 'moderation', 'engagement']
+        tags: ['discussion', 'forum', 'participation', 'grading', 'moderation', 'engagement'],
       },
       {
         id: 'bb_content_organization',
@@ -241,7 +245,7 @@ export class EnhancedChatbotService {
 - Test accessibility and mobile compatibility`,
         feature: 'Content Areas',
         category: 'Organization Guide',
-        tags: ['content', 'organization', 'modules', 'folders', 'structure', 'navigation']
+        tags: ['content', 'organization', 'modules', 'folders', 'structure', 'navigation'],
       },
       {
         id: 'bb_ultra_features',
@@ -285,8 +289,8 @@ export class EnhancedChatbotService {
 - Gradual rollout recommended`,
         feature: 'Ultra Course View',
         category: 'Platform Overview',
-        tags: ['ultra', 'modern', 'responsive', 'activity stream', 'mobile', 'collaboration']
-      }
+        tags: ['ultra', 'modern', 'responsive', 'activity stream', 'mobile', 'collaboration'],
+      },
     ],
     procedures: [
       {
@@ -304,22 +308,22 @@ export class EnhancedChatbotService {
           'Set up answer randomization if needed',
           'Configure feedback and auto-grading options',
           'Preview the assessment',
-          'Make assessment available to students'
+          'Make assessment available to students',
         ],
         tips: [
           'Use clear, descriptive assessment names',
           'Always preview before making available',
           'Test time limits with sample content',
           'Provide detailed instructions and examples',
-          'Consider accessibility requirements'
+          'Consider accessibility requirements',
         ],
         commonIssues: [
           'Students cannot see assessment - check availability settings',
           'Time limit too restrictive - review based on content complexity',
           'Auto-grading not working - verify question setup',
-          'Students getting different question sets - check randomization settings'
-        ]
-      }
+          'Students getting different question sets - check randomization settings',
+        ],
+      },
     ],
     testStrategies: [
       {
@@ -337,10 +341,16 @@ export class EnhancedChatbotService {
               'Configure availability and submission settings',
               'Set up grading and feedback options',
               'Preview assessment as student',
-              'Publish assessment'
+              'Publish assessment',
             ],
-            expectedResult: 'Assessment is created successfully and visible to students according to availability settings',
-            testData: ['Valid course ID', 'Different question types', 'Various time limit settings', 'Multiple availability configurations']
+            expectedResult:
+              'Assessment is created successfully and visible to students according to availability settings',
+            testData: [
+              'Valid course ID',
+              'Different question types',
+              'Various time limit settings',
+              'Multiple availability configurations',
+            ],
           },
           {
             name: 'Student Assessment Taking Experience',
@@ -352,11 +362,16 @@ export class EnhancedChatbotService {
               'Answer questions of different types',
               'Test time limit functionality',
               'Submit assessment',
-              'Verify submission confirmation'
+              'Verify submission confirmation',
             ],
-            expectedResult: 'Student can complete and submit assessment successfully within time limits',
-            testData: ['Valid student account', 'Sample answers for each question type', 'Time limit test scenarios']
-          }
+            expectedResult:
+              'Student can complete and submit assessment successfully within time limits',
+            testData: [
+              'Valid student account',
+              'Sample answers for each question type',
+              'Time limit test scenarios',
+            ],
+          },
         ],
         riskAreas: [
           'Time limit enforcement and warnings',
@@ -364,10 +379,10 @@ export class EnhancedChatbotService {
           'Question randomization accuracy',
           'Grade calculation and recording',
           'Accessibility compliance',
-          'Mobile device compatibility'
-        ]
-      }
-    ]
+          'Mobile device compatibility',
+        ],
+      },
+    ],
   };
 
   private static ensureInitialized(): void {
@@ -386,7 +401,7 @@ export class EnhancedChatbotService {
         content: article.content,
         feature: article.feature,
         tags: article.tags,
-        data: article
+        data: article,
       })),
       ...this.knowledgeBase.procedures.map(proc => ({
         type: 'procedure',
@@ -394,16 +409,17 @@ export class EnhancedChatbotService {
         content: proc.steps.join(' ') + ' ' + proc.tips.join(' '),
         feature: proc.feature,
         tags: [],
-        data: proc
+        data: proc,
       })),
       ...this.knowledgeBase.testStrategies.map(strategy => ({
         type: 'testStrategy',
         title: `${strategy.feature} Testing Strategy`,
-        content: strategy.scenarios.map(s => s.description).join(' ') + ' ' + strategy.riskAreas.join(' '),
+        content:
+          strategy.scenarios.map(s => s.description).join(' ') + ' ' + strategy.riskAreas.join(' '),
         feature: strategy.feature,
         tags: strategy.testTypes,
-        data: strategy
-      }))
+        data: strategy,
+      })),
     ];
 
     this.fuse = new Fuse(searchableData, {
@@ -411,11 +427,11 @@ export class EnhancedChatbotService {
         { name: 'title', weight: 0.3 },
         { name: 'content', weight: 0.4 },
         { name: 'feature', weight: 0.2 },
-        { name: 'tags', weight: 0.1 }
+        { name: 'tags', weight: 0.1 },
       ],
       threshold: 0.4,
       includeScore: true,
-      includeMatches: true
+      includeMatches: true,
     });
   }
 
@@ -428,7 +444,7 @@ export class EnhancedChatbotService {
       const messages = JSON.parse(stored);
       return messages.map((msg: any) => ({
         ...msg,
-        timestamp: new Date(msg.timestamp)
+        timestamp: new Date(msg.timestamp),
       }));
     } catch {
       return [];
@@ -443,10 +459,7 @@ export class EnhancedChatbotService {
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
-  static async processMessage(
-    message: string,
-    context: ChatbotContext = {}
-  ): Promise<ChatMessage> {
+  static async processMessage(message: string, context: ChatbotContext = {}): Promise<ChatMessage> {
     this.ensureInitialized();
     // Simulate AI processing delay
     await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
@@ -483,30 +496,45 @@ export class EnhancedChatbotService {
       ...response,
       id: messageId,
       isUser: false,
-      timestamp
+      timestamp,
     };
   }
 
   private static isTestPlanRequest(message: string): boolean {
     const testPlanKeywords = [
-      'test plan', 'testing', 'test case', 'assessment test',
-      'create test', 'generate test', 'test strategy', 'qa plan',
-      'test scenario', 'test automation', 'regression test'
+      'test plan',
+      'testing',
+      'test case',
+      'assessment test',
+      'create test',
+      'generate test',
+      'test strategy',
+      'qa plan',
+      'test scenario',
+      'test automation',
+      'regression test',
     ];
-    return testPlanKeywords.some(keyword =>
-      message.toLowerCase().includes(keyword.toLowerCase())
-    );
+    return testPlanKeywords.some(keyword => message.toLowerCase().includes(keyword.toLowerCase()));
   }
 
   private static isHelpRequest(message: string): boolean {
     const helpKeywords = [
-      'how to', 'help with', 'guide', 'tutorial', 'documentation',
-      'learn about', 'explain', 'what is', 'how do I', 'steps to',
-      'instructions', 'procedure', 'setup', 'configure'
+      'how to',
+      'help with',
+      'guide',
+      'tutorial',
+      'documentation',
+      'learn about',
+      'explain',
+      'what is',
+      'how do I',
+      'steps to',
+      'instructions',
+      'procedure',
+      'setup',
+      'configure',
     ];
-    return helpKeywords.some(keyword =>
-      message.toLowerCase().includes(keyword.toLowerCase())
-    );
+    return helpKeywords.some(keyword => message.toLowerCase().includes(keyword.toLowerCase()));
   }
 
   private static async generateEnhancedTestPlanResponse(
@@ -514,12 +542,12 @@ export class EnhancedChatbotService {
     context: ChatbotContext,
     searchResults: any[]
   ): Promise<Omit<ChatMessage, 'id' | 'isUser' | 'timestamp'>> {
-    const feature = this.extractBlackboardFeature(message) || context.selectedFeature || 'Assessment Tools';
+    const feature =
+      this.extractBlackboardFeature(message) || context.selectedFeature || 'Assessment Tools';
 
     // Find relevant test strategy from knowledge base
-    const testStrategy = searchResults.find(result =>
-      result.item.type === 'testStrategy' &&
-      result.item.feature === feature
+    const testStrategy = searchResults.find(
+      result => result.item.type === 'testStrategy' && result.item.feature === feature
     )?.item.data as TestStrategyDocument;
 
     let detailedTestPlan: Partial<TestPlan>;
@@ -539,7 +567,7 @@ export class EnhancedChatbotService {
           'Test course with enrolled instructor and student accounts',
           'Sample content and assessment materials',
           'Various file types for upload testing',
-          'Different browser and device configurations'
+          'Different browser and device configurations',
         ],
         blackboardFeature: feature,
         testCases: testStrategy.scenarios.map((scenario, index) => ({
@@ -550,11 +578,14 @@ export class EnhancedChatbotService {
             id: `s${stepIndex + 1}`,
             stepNumber: stepIndex + 1,
             action: step,
-            expectedResult: stepIndex === scenario.steps.length - 1 ? scenario.expectedResult : 'Step completed successfully'
+            expectedResult:
+              stepIndex === scenario.steps.length - 1
+                ? scenario.expectedResult
+                : 'Step completed successfully',
           })),
           expectedResult: scenario.expectedResult,
-          priority: 'High' as const
-        }))
+          priority: 'High' as const,
+        })),
       };
 
       content = `I've generated a comprehensive test plan for **${feature}** based on current Blackboard Learn testing strategies:
@@ -591,10 +622,10 @@ This test plan is based on real-world Blackboard Learn testing experience and co
         prerequisites: [
           'Test environment with admin access',
           'Sample course with enrolled users',
-          'Various file types for testing uploads'
+          'Various file types for testing uploads',
         ],
         blackboardFeature: feature,
-        testCases: []
+        testCases: [],
       };
 
       content = `I've generated a test plan for **${feature}** testing:
@@ -623,8 +654,8 @@ Would you like me to provide more specific test scenarios for this feature?`;
       type: 'test-plan',
       metadata: {
         testPlan: detailedTestPlan,
-        blackboardFeature: feature
-      }
+        blackboardFeature: feature,
+      },
     };
   }
 
@@ -653,8 +684,8 @@ This information comes directly from Blackboard Learn help documentation. Is the
           type: 'help-article',
           metadata: {
             helpUrl: article.url,
-            blackboardFeature: article.feature
-          }
+            blackboardFeature: article.feature,
+          },
         };
       } else if (matchedItem.type === 'procedure') {
         const procedure = matchedItem.data as ProcedureDocument;
@@ -673,8 +704,8 @@ ${procedure.commonIssues.map(issue => `• ${issue}`).join('\n')}
 Would you like me to elaborate on any of these steps or help you create a test plan for this process?`,
           type: 'help-article',
           metadata: {
-            blackboardFeature: procedure.feature
-          }
+            blackboardFeature: procedure.feature,
+          },
         };
       }
     }
@@ -690,7 +721,7 @@ Would you like me to elaborate on any of these steps or help you create a test p
 🚀 **Ultra Experience** - Modern interface features and capabilities
 
 Could you provide more specific details about what you're trying to accomplish? I can then give you detailed, step-by-step guidance.`,
-      type: 'text'
+      type: 'text',
     };
   }
 
@@ -700,9 +731,7 @@ Could you provide more specific details about what you're trying to accomplish? 
     searchResults: any[]
   ): Promise<Omit<ChatMessage, 'id' | 'isUser' | 'timestamp'>> {
     const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon'];
-    const isGreeting = greetings.some(greeting =>
-      message.toLowerCase().includes(greeting)
-    );
+    const isGreeting = greetings.some(greeting => message.toLowerCase().includes(greeting));
 
     if (isGreeting) {
       return {
@@ -718,7 +747,7 @@ My knowledge base includes detailed information about:
 ${this.knowledgeBase.articles.map(article => `• ${article.feature}`).join('\n')}
 
 What specific Blackboard Learn topic would you like help with today?`,
-        type: 'text'
+        type: 'text',
       };
     }
 
@@ -728,9 +757,9 @@ What specific Blackboard Learn topic would you like help with today?`,
       return {
         content: `I found several relevant topics based on your question:
 
-${topResults.map((result, index) => 
-  `${index + 1}. **${result.item.title}** (${result.item.feature})`
-).join('\n')}
+${topResults
+  .map((result, index) => `${index + 1}. **${result.item.title}** (${result.item.feature})`)
+  .join('\n')}
 
 I can provide detailed guidance on any of these topics. Which one would you like to explore further? Or ask me:
 
@@ -739,7 +768,7 @@ I can provide detailed guidance on any of these topics. Which one would you like
 • "Explain [concept]" for detailed explanations
 
 What specific help do you need?`,
-        type: 'text'
+        type: 'text',
       };
     }
 
@@ -753,7 +782,7 @@ Try asking me questions like:
 • "Explain the Ultra course experience features"
 
 I can provide detailed, step-by-step guidance based on official Blackboard documentation and real-world testing experience. What would you like to know?`,
-      type: 'text'
+      type: 'text',
     };
   }
 
@@ -770,16 +799,31 @@ I can provide detailed, step-by-step guidance based on official Blackboard docum
     // Estimate testing hours based on scenario complexity
     const baseHours = 8;
     const hoursPerScenario = 4;
-    return baseHours + (scenarioCount * hoursPerScenario);
+    return baseHours + scenarioCount * hoursPerScenario;
   }
 
   private static extractBlackboardFeature(message: string): BlackboardFeature | null {
     const features: BlackboardFeature[] = [
-      'Course Management', 'Gradebook', 'Discussion Forums', 'Assignments',
-      'Content Areas', 'Announcements', 'Calendar', 'Messages', 'Group Management',
-      'Assessment Tools', 'Rubrics', 'SafeAssign', 'Attendance', 'Grade Center',
-      'Ultra Course View', 'Original Course View', 'Mobile App', 'Integration Tools',
-      'Reports', 'System Administration'
+      'Course Management',
+      'Gradebook',
+      'Discussion Forums',
+      'Assignments',
+      'Content Areas',
+      'Announcements',
+      'Calendar',
+      'Messages',
+      'Group Management',
+      'Assessment Tools',
+      'Rubrics',
+      'SafeAssign',
+      'Attendance',
+      'Grade Center',
+      'Ultra Course View',
+      'Original Course View',
+      'Mobile App',
+      'Integration Tools',
+      'Reports',
+      'System Administration',
     ];
 
     const messageLower = message.toLowerCase();
@@ -793,17 +837,17 @@ I can provide detailed, step-by-step guidance based on official Blackboard docum
 
     // Keyword-based feature detection
     const featureKeywords: { [key: string]: BlackboardFeature } = {
-      'test': 'Assessment Tools',
-      'quiz': 'Assessment Tools',
-      'assessment': 'Assessment Tools',
-      'exam': 'Assessment Tools',
-      'grade': 'Gradebook',
-      'grading': 'Gradebook',
-      'gradebook': 'Gradebook',
-      'discussion': 'Discussion Forums',
-      'forum': 'Discussion Forums',
-      'content': 'Content Areas',
-      'ultra': 'Ultra Course View'
+      test: 'Assessment Tools',
+      quiz: 'Assessment Tools',
+      assessment: 'Assessment Tools',
+      exam: 'Assessment Tools',
+      grade: 'Gradebook',
+      grading: 'Gradebook',
+      gradebook: 'Gradebook',
+      discussion: 'Discussion Forums',
+      forum: 'Discussion Forums',
+      content: 'Content Areas',
+      ultra: 'Ultra Course View',
     };
 
     for (const [keyword, feature] of Object.entries(featureKeywords)) {
@@ -821,7 +865,7 @@ I can provide detailed, step-by-step guidance based on official Blackboard docum
       content,
       isUser: true,
       timestamp: new Date(),
-      type: 'text'
+      type: 'text',
     };
   }
 }

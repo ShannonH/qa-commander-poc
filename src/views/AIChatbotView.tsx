@@ -42,7 +42,7 @@ const AIChatbotView: React.FC = () => {
 
   const context: ChatbotContext = {
     currentView: 'ai-chatbot',
-    userGoal: 'general-help'
+    userGoal: 'general-help',
   };
 
   const theme = useTheme();
@@ -81,7 +81,7 @@ Try asking me:
 What would you like help with today?`,
         isUser: false,
         timestamp: new Date(),
-        type: 'text'
+        type: 'text',
       };
       setMessages([welcomeMessage]);
     }
@@ -124,7 +124,7 @@ What would you like help with today?`,
         content: 'Sorry, I encountered an error processing your request. Please try again.',
         isUser: false,
         timestamp: new Date(),
-        type: 'text'
+        type: 'text',
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -217,7 +217,10 @@ What would you like help with today?`,
                   {message.metadata.testPlan && (
                     <Accordion sx={{ mt: 1 }}>
                       <AccordionSummary expandIcon={<ExpandMore />}>
-                        <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                        >
                           <TestPlanIcon fontSize="small" />
                           View Generated Test Plan Details
                         </Typography>
@@ -232,7 +235,9 @@ What would you like help with today?`,
                           </Typography>
                           {message.metadata.testPlan.prerequisites && (
                             <Box>
-                              <Typography variant="body2" fontWeight="medium">Prerequisites:</Typography>
+                              <Typography variant="body2" fontWeight="medium">
+                                Prerequisites:
+                              </Typography>
                               {message.metadata.testPlan.prerequisites.map((prereq, index) => (
                                 <Typography key={index} variant="body2" sx={{ ml: 2 }}>
                                   • {prereq}
@@ -284,11 +289,12 @@ What would you like help with today?`,
           overflow: 'hidden',
         }}
       >
-        {messages.length > 1 && messages[messages.length - 1]?.content && !messages[messages.length - 1]?.isUser &&
-          `New AI response received`
-        }
+        {messages.length > 1 &&
+          messages[messages.length - 1]?.content &&
+          !messages[messages.length - 1]?.isUser &&
+          `New AI response received`}
       </Box>
-      
+
       {/* Header */}
       <Paper
         sx={{
@@ -335,7 +341,11 @@ What would you like help with today?`,
             size="small"
             variant="outlined"
             startIcon={<HelpIcon />}
-            onClick={() => setInputMessage('How do I create an assessment with different question types in Blackboard?')}
+            onClick={() =>
+              setInputMessage(
+                'How do I create an assessment with different question types in Blackboard?'
+              )
+            }
           >
             Assessment Creation
           </Button>
@@ -343,7 +353,11 @@ What would you like help with today?`,
             size="small"
             variant="outlined"
             startIcon={<TestPlanIcon />}
-            onClick={() => setInputMessage('Generate a comprehensive test plan for gradebook functionality with detailed scenarios')}
+            onClick={() =>
+              setInputMessage(
+                'Generate a comprehensive test plan for gradebook functionality with detailed scenarios'
+              )
+            }
           >
             Gradebook Test Plan
           </Button>
@@ -351,7 +365,11 @@ What would you like help with today?`,
             size="small"
             variant="outlined"
             startIcon={<HelpIcon />}
-            onClick={() => setInputMessage('What are the step-by-step procedures for setting up discussion forums?')}
+            onClick={() =>
+              setInputMessage(
+                'What are the step-by-step procedures for setting up discussion forums?'
+              )
+            }
           >
             Discussion Setup
           </Button>
@@ -412,7 +430,7 @@ What would you like help with today?`,
               maxRows={4}
               placeholder="Ask me about Blackboard Learn procedures, testing strategies, or request detailed guidance..."
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
+              onChange={e => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               disabled={isLoading}
               variant="outlined"
@@ -441,4 +459,3 @@ What would you like help with today?`,
 };
 
 export default AIChatbotView;
-

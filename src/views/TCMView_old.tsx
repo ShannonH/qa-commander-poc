@@ -78,7 +78,7 @@ const TCMView: React.FC = () => {
     const tcmCases = DataService.getTCMTestCases();
     const wf = DataService.getUserWorkflows();
     const tp = DataService.getTestPlans();
-    
+
     setTestCases(tcmCases);
     setWorkflows(wf);
     setTestPlans(tp);
@@ -131,7 +131,8 @@ const TCMView: React.FC = () => {
     const updatedTestCase = {
       ...testCase,
       status: newStatus,
-      lastExecuted: newStatus === 'Passed' || newStatus === 'Failed' ? new Date() : testCase.lastExecuted,
+      lastExecuted:
+        newStatus === 'Passed' || newStatus === 'Failed' ? new Date() : testCase.lastExecuted,
       updatedAt: new Date(),
     };
     DataService.saveTCMTestCase(updatedTestCase);
@@ -147,12 +148,18 @@ const TCMView: React.FC = () => {
 
   const getStatusColor = (status: TCMTestCase['status']) => {
     switch (status) {
-      case 'Passed': return 'success';
-      case 'Failed': return 'error';
-      case 'Blocked': return 'warning';
-      case 'In Progress': return 'info';
-      case 'Ready': return 'primary';
-      default: return 'default';
+      case 'Passed':
+        return 'success';
+      case 'Failed':
+        return 'error';
+      case 'Blocked':
+        return 'warning';
+      case 'In Progress':
+        return 'info';
+      case 'Ready':
+        return 'primary';
+      default:
+        return 'default';
     }
   };
 
@@ -164,26 +171,40 @@ const TCMView: React.FC = () => {
 
   const getStatusIcon = (status: TCMTestCase['status']) => {
     switch (status) {
-      case 'Passed': return <PassedIcon />;
-      case 'Failed': return <FailedIcon />;
-      case 'Blocked': return <BlockedIcon />;
-      default: return null;
+      case 'Passed':
+        return <PassedIcon />;
+      case 'Failed':
+        return <FailedIcon />;
+      case 'Blocked':
+        return <BlockedIcon />;
+      default:
+        return null;
     }
   };
 
   // Group test cases by Given/When/Then scenario
-  const groupedTestCases = filteredTestCases.reduce((groups, testCase) => {
-    const key = `${testCase.sourceTestPlanId}-${testCase.sourceScenarioId}`;
-    if (!groups[key]) {
-      groups[key] = {
-        scenario: testCase.givenWhenThen,
-        adoNumber: testCase.adoNumber,
-        testCases: [],
-      };
-    }
-    groups[key].testCases.push(testCase);
-    return groups;
-  }, {} as Record<string, { scenario: { given: string; when: string; then: string }; adoNumber?: string; testCases: TCMTestCase[] }>);
+  const groupedTestCases = filteredTestCases.reduce(
+    (groups, testCase) => {
+      const key = `${testCase.sourceTestPlanId}-${testCase.sourceScenarioId}`;
+      if (!groups[key]) {
+        groups[key] = {
+          scenario: testCase.givenWhenThen,
+          adoNumber: testCase.adoNumber,
+          testCases: [],
+        };
+      }
+      groups[key].testCases.push(testCase);
+      return groups;
+    },
+    {} as Record<
+      string,
+      {
+        scenario: { given: string; when: string; then: string };
+        adoNumber?: string;
+        testCases: TCMTestCase[];
+      }
+    >
+  );
 
   return (
     <Box>
@@ -196,11 +217,7 @@ const TCMView: React.FC = () => {
             Manage test cases generated from Tier 1 & 2 acceptance criteria
           </Typography>
         </div>
-        <Button
-          variant="contained"
-          startIcon={<RefreshIcon />}
-          onClick={handleGenerateTestCases}
-        >
+        <Button variant="contained" startIcon={<RefreshIcon />} onClick={handleGenerateTestCases}>
           Generate Test Cases
         </Button>
       </Box>
@@ -213,7 +230,7 @@ const TCMView: React.FC = () => {
               fullWidth
               placeholder="Search test cases..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -229,7 +246,7 @@ const TCMView: React.FC = () => {
               <Select
                 value={filterTier}
                 label="Filter by Tier"
-                onChange={(e) => setFilterTier(e.target.value)}
+                onChange={e => setFilterTier(e.target.value)}
               >
                 <MenuItem value="all">All Tiers</MenuItem>
                 <MenuItem value="Tier 1: CRITICAL">Tier 1: CRITICAL</MenuItem>
@@ -243,7 +260,7 @@ const TCMView: React.FC = () => {
               <Select
                 value={filterStatus}
                 label="Filter by Status"
-                onChange={(e) => setFilterStatus(e.target.value)}
+                onChange={e => setFilterStatus(e.target.value)}
               >
                 <MenuItem value="all">All Statuses</MenuItem>
                 <MenuItem value="Draft">Draft</MenuItem>
@@ -310,9 +327,7 @@ const TCMView: React.FC = () => {
 
       {/* View Mode Toggle */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h6">
-          Test Cases ({filteredTestCases.length})
-        </Typography>
+        <Typography variant="h6">Test Cases ({filteredTestCases.length})</Typography>
         <ToggleButtonGroup
           value={viewMode}
           exclusive
@@ -332,21 +347,30 @@ const TCMView: React.FC = () => {
       {Object.entries(groupedTestCases).map(([key, group]) => (
         <Accordion key={key} defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', pr: 2 }}>
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                pr: 2,
+              }}
+            >
               <Box>
                 <Typography variant="h6">
                   {group.adoNumber && <Chip label={group.adoNumber} size="small" sx={{ mr: 1 }} />}
-                  <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong> {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
+                  <strong>GIVEN</strong> {group.scenario.given} <strong>WHEN</strong>{' '}
+                  {group.scenario.when} <strong>THEN</strong> {group.scenario.then}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {group.testCases.length} test case{group.testCases.length !== 1 ? 's' : ''}
                 </Typography>
               </Box>
-              <Box onClick={(e) => e.stopPropagation()}>
-                {group.testCases.map((testCase) => (
+              <Box onClick={e => e.stopPropagation()}>
+                {group.testCases.map(testCase => (
                   <Tooltip key={testCase.id} title={`Delete test case ${testCase.id}`}>
-                    <IconButton 
-                      size="small" 
+                    <IconButton
+                      size="small"
                       color="error"
                       onClick={() => handleDeleteTestCase(testCase.id)}
                     >
@@ -370,7 +394,7 @@ const TCMView: React.FC = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {group.testCases.map((testCase) => (
+                  {group.testCases.map(testCase => (
                     <TableRow key={testCase.id}>
                       <TableCell>
                         <Typography variant="body2" fontWeight="bold">
@@ -378,9 +402,7 @@ const TCMView: React.FC = () => {
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2">
-                          {testCase.acceptanceCriteria}
-                        </Typography>
+                        <Typography variant="body2">{testCase.acceptanceCriteria}</Typography>
                       </TableCell>
                       <TableCell align="center">
                         <Chip
@@ -404,8 +426,8 @@ const TCMView: React.FC = () => {
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Execute Test">
-                          <IconButton 
-                            size="small" 
+                          <IconButton
+                            size="small"
                             onClick={() => handleUpdateStatus(testCase, 'In Progress')}
                           >
                             <ExecuteIcon />
@@ -458,7 +480,7 @@ const TCMView: React.FC = () => {
               <Typography variant="subtitle1" gutterBottom>
                 <strong>Title:</strong> {selectedTestCase.title}
               </Typography>
-              
+
               {selectedTestCase.adoNumber && (
                 <Typography variant="body2" gutterBottom>
                   <strong>ADO Number:</strong> {selectedTestCase.adoNumber}
@@ -466,7 +488,9 @@ const TCMView: React.FC = () => {
               )}
 
               <Paper sx={{ p: 2, my: 2, bgcolor: 'grey.50' }}>
-                <Typography variant="subtitle2" gutterBottom>Scenario</Typography>
+                <Typography variant="subtitle2" gutterBottom>
+                  Scenario
+                </Typography>
                 <Typography variant="body2" gutterBottom>
                   <strong>GIVEN:</strong> {selectedTestCase.givenWhenThen.given}
                 </Typography>

@@ -4,8 +4,6 @@ import {
   Typography,
   Button,
   Grid,
-  Card,
-  CardContent,
   Chip,
   Dialog,
   DialogTitle,
@@ -18,8 +16,6 @@ import {
   Select,
   Slider,
   Fab,
-  Tabs,
-  Tab,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -50,8 +46,15 @@ import {
   Edit as EditIcon,
   Search as SearchIcon,
   Delete as DeleteIcon,
+  Save as SaveIcon,
 } from '@mui/icons-material';
-import { UserWorkflow, RiskAnalysisDocument, BlackboardFeature, TestPlan, TestScenario } from '../types';
+import {
+  UserWorkflow,
+  RiskAnalysisDocument,
+  BlackboardFeature,
+  TestPlan,
+  TestScenario,
+} from '../types';
 import Fuse from 'fuse.js';
 import { DataService } from '../utils/dataService';
 
@@ -65,38 +68,8 @@ const getAdoUrl = (userStoryId: string): string => {
   return '';
 };
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
-    </div>
-  );
-}
-
 const RiskAnalysisView: React.FC = () => {
-  const [tabValue, setTabValue] = useState(0);
   const [workflows, setWorkflows] = useState<UserWorkflow[]>([]);
-  const [filteredWorkflows, setFilteredWorkflows] = useState<UserWorkflow[]>([]);
   const [riskDocuments, setRiskDocuments] = useState<RiskAnalysisDocument[]>([]);
   const [filteredDocuments, setFilteredDocuments] = useState<RiskAnalysisDocument[]>([]);
   const [testPlans, setTestPlans] = useState<TestPlan[]>([]);
@@ -106,36 +79,36 @@ const RiskAnalysisView: React.FC = () => {
   const [openImportDialog, setOpenImportDialog] = useState(false);
 
   // Search states
-  const [workflowSearchQuery, setWorkflowSearchQuery] = useState('');
   const [documentSearchQuery, setDocumentSearchQuery] = useState('');
 
   // View mode states for each tab
   const [documentsViewMode, setDocumentsViewMode] = useState<'cards' | 'table'>('cards');
-  const [workflowsViewMode, setWorkflowsViewMode] = useState<'cards' | 'table'>('cards');
 
   // Pagination states
   const [documentsPage, setDocumentsPage] = useState(0);
   const [documentsRowsPerPage, setDocumentsRowsPerPage] = useState(10);
-  const [workflowsPage, setWorkflowsPage] = useState(0);
-  const [workflowsRowsPerPage, setWorkflowsRowsPerPage] = useState(10);
 
   // Document view modal states
   const [viewDocumentOpen, setViewDocumentOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<RiskAnalysisDocument | null>(null);
   const [editingWorkflowId, setEditingWorkflowId] = useState<string | null>(null);
-  const [editingWorkflowData, setEditingWorkflowData] = useState<{ impact: number; likelihood: number } | null>(null);
+  const [editingWorkflowData, setEditingWorkflowData] = useState<{
+    impact: number;
+    likelihood: number;
+  } | null>(null);
 
   const [workflowFormData, setWorkflowFormData] = useState({
     userStoryId: '', // User Story ID
     workflowName: '',
     description: '',
-    userStory: '',
+    riskStatement: '',
+    businessImpact: '',
     blackboardFeature: 'Course Management' as BlackboardFeature,
     likelihood: 2,
     impact: 2,
     testingTier: 'Tier 2: HIGH' as UserWorkflow['testingTier'],
     deliverables: 'UI Automation, Exploratory Testing',
-    automationReason: '',
+    automationRationale: '',
   });
 
   const [documentFormData, setDocumentFormData] = useState({
@@ -149,21 +122,6 @@ const RiskAnalysisView: React.FC = () => {
     DataService.initializeSampleData();
     loadData();
   }, []);
-
-  useEffect(() => {
-    // Apply workflow search
-    if (workflowSearchQuery.trim()) {
-      const fuse = new Fuse(workflows, {
-        keys: ['workflowName', 'description', 'userStory', 'blackboardFeature', 'id'],
-        threshold: 0.3,
-      });
-      const results = fuse.search(workflowSearchQuery);
-      setFilteredWorkflows(results.map(result => result.item));
-    } else {
-      setFilteredWorkflows(workflows);
-    }
-    setWorkflowsPage(0);
-  }, [workflowSearchQuery, workflows]);
 
   useEffect(() => {
     // Apply document search
@@ -184,9 +142,8 @@ const RiskAnalysisView: React.FC = () => {
     const wf = DataService.getUserWorkflows();
     const rd = DataService.getRiskDocuments();
     const tp = DataService.getTestPlans();
-    
+
     setWorkflows(wf);
-    setFilteredWorkflows(wf);
     setRiskDocuments(rd);
     setFilteredDocuments(rd);
     setTestPlans(tp);
@@ -211,10 +168,6 @@ const RiskAnalysisView: React.FC = () => {
     }
   };
 
-  const handleImportFromTestPlans = () => {
-    setOpenImportDialog(true);
-  };
-
   const importTestScenario = (testPlan: TestPlan, scenario: TestScenario) => {
     const riskScore = 2 * 2; // Default values
     const testingTier = getTestingTierFromRiskScore(riskScore);
@@ -224,14 +177,16 @@ const RiskAnalysisView: React.FC = () => {
       workflowName: `${scenario.given} → ${scenario.when} → ${scenario.then}`,
       description: `Imported from test plan: ${testPlan.title}`,
       userStoryId: scenario.userStoryId || '', // Link to User Story ID
-      userStory: `Given ${scenario.given}, when ${scenario.when}, then ${scenario.then}`,
       blackboardFeature: testPlan.blackboardFeature,
+      riskStatement: 'Imported from test plan - requires risk assessment',
+      businessImpact: 'Imported from test plan - requires impact assessment',
       likelihood: 2,
       impact: 2,
       riskScore,
       testingTier,
       deliverables: getDefaultDeliverables(testingTier),
-      automationReason: 'Imported from test plan, needs review',
+      automationRecommendation: riskScore <= 6 ? 'Automate' : 'Manual Only',
+      automationRationale: 'Imported from test plan, needs review',
       sourceTestPlanId: testPlan.id,
       sourceScenarioId: scenario.id,
       createdAt: new Date(),
@@ -248,13 +203,14 @@ const RiskAnalysisView: React.FC = () => {
       userStoryId: '',
       workflowName: '',
       description: '',
-      userStory: '',
+      riskStatement: '',
+      businessImpact: '',
       blackboardFeature: 'Course Management',
       likelihood: 2,
       impact: 2,
       testingTier: 'Tier 2: HIGH',
       deliverables: 'UI Automation, Exploratory Testing',
-      automationReason: '',
+      automationRationale: '',
     });
     setOpenWorkflowDialog(true);
   };
@@ -265,13 +221,14 @@ const RiskAnalysisView: React.FC = () => {
       userStoryId: workflow.userStoryId,
       workflowName: workflow.workflowName,
       description: workflow.description,
-      userStory: workflow.userStory,
+      riskStatement: workflow.riskStatement,
+      businessImpact: workflow.businessImpact,
       blackboardFeature: workflow.blackboardFeature,
       likelihood: workflow.likelihood,
       impact: workflow.impact,
       testingTier: workflow.testingTier,
       deliverables: workflow.deliverables,
-      automationReason: workflow.automationReason,
+      automationRationale: workflow.automationRationale,
     });
     setOpenWorkflowDialog(true);
   };
@@ -280,13 +237,23 @@ const RiskAnalysisView: React.FC = () => {
     const riskScore = workflowFormData.likelihood * workflowFormData.impact;
     const testingTier = getTestingTierFromRiskScore(riskScore);
     const deliverables = workflowFormData.deliverables || getDefaultDeliverables(testingTier);
+    const automationRecommendation = riskScore <= 6 ? 'Automate' : 'Manual Only';
 
     const workflow: UserWorkflow = {
       id: selectedWorkflow?.id || Date.now().toString(),
-      ...workflowFormData,
+      userStoryId: workflowFormData.userStoryId,
+      workflowName: workflowFormData.workflowName,
+      description: workflowFormData.description,
+      riskStatement: workflowFormData.riskStatement,
+      businessImpact: workflowFormData.businessImpact,
+      blackboardFeature: workflowFormData.blackboardFeature,
+      likelihood: workflowFormData.likelihood,
+      impact: workflowFormData.impact,
       riskScore,
       testingTier,
       deliverables,
+      automationRecommendation,
+      automationRationale: workflowFormData.automationRationale,
       sourceTestPlanId: selectedWorkflow?.sourceTestPlanId,
       sourceScenarioId: selectedWorkflow?.sourceScenarioId,
       createdAt: selectedWorkflow?.createdAt || new Date(),
@@ -304,10 +271,12 @@ const RiskAnalysisView: React.FC = () => {
   };
 
   const handleSubmitDocument = () => {
-    const selectedWorkflows = workflows.filter(wf => documentFormData.selectedWorkflowIds.includes(wf.id));
+    const selectedWorkflows = workflows.filter(wf =>
+      documentFormData.selectedWorkflowIds.includes(wf.id)
+    );
     if (selectedWorkflows.length === 0) return;
     const totalRiskScore = selectedWorkflows.reduce((sum, wf) => sum + wf.riskScore, 0);
-    let overallRiskLevel: RiskAnalysisDocument['overallRiskLevel'] = 'Low';
+    let overallRiskLevel: RiskAnalysisDocument['overallRiskLevel'];
     if (totalRiskScore <= 2) overallRiskLevel = 'Critical';
     else if (totalRiskScore <= 4) overallRiskLevel = 'High';
     else if (totalRiskScore <= 6) overallRiskLevel = 'Medium';
@@ -334,43 +303,49 @@ const RiskAnalysisView: React.FC = () => {
     setViewDocumentOpen(true);
   };
 
-  const handleDownloadDocument = (document: RiskAnalysisDocument) => {
+  const handleDownloadDocument = (doc: RiskAnalysisDocument) => {
     const content = `
 Risk Analysis Document Export
 ============================
 
-Title: ${document.title}
-Description: ${document.description}
-Feature: ${document.blackboardFeature}
-Overall Risk Level: ${document.overallRiskLevel}
-Total Risk Score: ${document.totalRiskScore}
-Created: ${document.createdAt.toLocaleDateString()}
+Title: ${doc.title}
+Description: ${doc.description}
+Feature: ${doc.blackboardFeature}
+Overall Risk Level: ${doc.overallRiskLevel}
+Total Risk Score: ${doc.totalRiskScore}
+Created: ${doc.createdAt.toLocaleDateString()}
 
 Workflows Summary:
-${document.workflows.map((wf, index) => `
+${doc.workflows
+  .map(
+    (wf, index) => `
 ${index + 1}. ${wf.workflowName}
    - Description: ${wf.description}
-   - User Story: ${wf.userStory}
+   - Risk Statement: ${wf.riskStatement}
+   - Business Impact: ${wf.businessImpact}
    - Risk Score: ${wf.riskScore} (Impact: ${wf.impact}, Likelihood: ${wf.likelihood})
    - Testing Tier: ${wf.testingTier}
    - Deliverables: ${wf.deliverables}
-   - Automation Recommendation: ${wf.automationRecommendation || 'N/A'}
-`).join('')}
+   - Automation: ${wf.automationRecommendation}
+   - Rationale: ${wf.automationRationale || 'N/A'}
+`
+  )
+  .join('')}
 
 Recommendations:
-${document.recommendations}
+${doc.recommendations}
 
 Export Date: ${new Date().toLocaleString()}
     `.trim();
 
     const blob = new Blob([content], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = window.document.createElement('a');
     link.href = url;
-    link.download = `risk-analysis-${document.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
-    document.body.appendChild(link);
+    link.download = `risk-analysis-${doc.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
+    window.document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    window.document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   };
 
@@ -381,33 +356,26 @@ Export Date: ${new Date().toLocaleString()}
     }
   };
 
-  const handleDeleteWorkflow = (workflowId: string) => {
-    if (window.confirm('Are you sure you want to delete this workflow?')) {
-      DataService.deleteUserWorkflow(workflowId);
-      loadData();
-    }
-  };
-  
   const handleStartEditingWorkflow = (workflow: UserWorkflow) => {
     setEditingWorkflowId(workflow.id);
     setEditingWorkflowData({
       impact: workflow.impact,
-      likelihood: workflow.likelihood
+      likelihood: workflow.likelihood,
     });
   };
-  
+
   const handleCancelEditingWorkflow = () => {
     setEditingWorkflowId(null);
     setEditingWorkflowData(null);
   };
-  
+
   const handleSaveWorkflowRiskFactors = (workflow: UserWorkflow) => {
     if (!editingWorkflowData || !selectedDocument) return;
-    
+
     const riskScore = editingWorkflowData.likelihood * editingWorkflowData.impact;
     const testingTier = getTestingTierFromRiskScore(riskScore);
     const deliverables = getDefaultDeliverables(testingTier);
-    
+
     const updatedWorkflow: UserWorkflow = {
       ...workflow,
       impact: editingWorkflowData.impact,
@@ -415,36 +383,43 @@ Export Date: ${new Date().toLocaleString()}
       riskScore,
       testingTier,
       deliverables,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
-    
+
     // Update the workflow in the current document
     const updatedWorkflows = selectedDocument.workflows.map(wf =>
       wf.id === workflow.id ? updatedWorkflow : wf
     );
-    
+
     // Recalculate document-level risk metrics
     const totalRiskScore = updatedWorkflows.reduce((sum, wf) => sum + wf.riskScore, 0);
     const avgRiskScore = totalRiskScore / updatedWorkflows.length;
-    const overallRiskLevel = avgRiskScore <= 2 ? 'Critical' : avgRiskScore <= 4 ? 'High' : avgRiskScore <= 6 ? 'Medium' : 'Low';
-    
+    const overallRiskLevel =
+      avgRiskScore <= 2
+        ? 'Critical'
+        : avgRiskScore <= 4
+          ? 'High'
+          : avgRiskScore <= 6
+            ? 'Medium'
+            : 'Low';
+
     const updatedDocument: RiskAnalysisDocument = {
       ...selectedDocument,
       workflows: updatedWorkflows,
       totalRiskScore,
       overallRiskLevel: overallRiskLevel as 'Low' | 'Medium' | 'High' | 'Critical',
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
-    
+
     // Save the updated document
     DataService.saveRiskDocument(updatedDocument);
-    
+
     // Also update the workflow globally and sync to other documents
     DataService.saveUserWorkflow(updatedWorkflow);
-    
+
     // Update the selected document in state
     setSelectedDocument(updatedDocument);
-    
+
     setEditingWorkflowId(null);
     setEditingWorkflowData(null);
     loadData();
@@ -462,28 +437,6 @@ Export Date: ${new Date().toLocaleString()}
     return score >= 1 && score <= 6 ? 'primary' : 'secondary';
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'critical': return 'error';
-      case 'high': return 'warning';
-      case 'medium': return 'info';
-      case 'low': return 'success';
-      default: return 'default';
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'completed': return 'success';
-      case 'in progress': return 'info';
-      case 'review': return 'warning';
-      case 'draft': return 'default';
-      case 'approved': return 'primary';
-      case 'archived': return 'default';
-      default: return 'default';
-    }
-  };
-
   const getRiskLevelFromScore = (score: number) => {
     if (score <= 2) return { level: 'Critical', color: 'error' };
     if (score <= 4) return { level: 'High', color: 'warning' };
@@ -493,60 +446,94 @@ Export Date: ${new Date().toLocaleString()}
 
   const getRiskColor = (score: number) => {
     if (score <= 2) return 'error';
-    if (score <= 4) return 'warning'; 
+    if (score <= 4) return 'warning';
     if (score <= 6) return 'info';
     return 'success';
   };
 
-  const groupWorkflowsByUserStoryAndScenario = (workflows: UserWorkflow[], testPlans: TestPlan[]) => {
+  const groupWorkflowsByUserStoryAndScenario = (
+    workflows: UserWorkflow[],
+    testPlans: TestPlan[]
+  ) => {
     // First group by User Story ID (Level 1)
-    const userStoryGroups: { 
-      [userStoryId: string]: { 
+    const userStoryGroups: {
+      [userStoryId: string]: {
         userStoryId: string;
-        scenarios: { [scenarioKey: string]: { scenario: TestScenario; workflows: UserWorkflow[] } }
-      } 
+        scenarios: {
+          [scenarioKey: string]: { scenario: TestScenario | null; workflows: UserWorkflow[] };
+        };
+      };
     } = {};
-    
+
     workflows.forEach(workflow => {
       const userStoryId = workflow.userStoryId || 'NO_USER_STORY';
-      
+
       // Initialize user story group if it doesn't exist
       if (!userStoryGroups[userStoryId]) {
         userStoryGroups[userStoryId] = {
           userStoryId,
-          scenarios: {}
+          scenarios: {},
         };
       }
-      
+
+      // If workflow has source test plan and scenario, group by those
       if (workflow.sourceTestPlanId && workflow.sourceScenarioId) {
         const testPlan = testPlans.find(tp => tp.id === workflow.sourceTestPlanId);
         if (testPlan) {
           const scenario = testPlan.testScenarios?.find(ts => ts.id === workflow.sourceScenarioId);
           if (scenario) {
             const scenarioKey = `${workflow.sourceTestPlanId}-${workflow.sourceScenarioId}`;
-            
+
             if (!userStoryGroups[userStoryId].scenarios[scenarioKey]) {
-              userStoryGroups[userStoryId].scenarios[scenarioKey] = { 
-                scenario, 
-                workflows: [] 
+              userStoryGroups[userStoryId].scenarios[scenarioKey] = {
+                scenario,
+                workflows: [],
               };
             }
-            
+
             userStoryGroups[userStoryId].scenarios[scenarioKey].workflows.push(workflow);
           }
         }
+      } else {
+        // Workflow was created manually (not from test plan)
+        // Group it under a "Manual Workflows" scenario
+        const scenarioKey = 'manual-workflows';
+
+        if (!userStoryGroups[userStoryId].scenarios[scenarioKey]) {
+          userStoryGroups[userStoryId].scenarios[scenarioKey] = {
+            scenario: null, // No source scenario for manually created workflows
+            workflows: [],
+          };
+        }
+
+        userStoryGroups[userStoryId].scenarios[scenarioKey].workflows.push(workflow);
       }
     });
-    
+
     return userStoryGroups;
   };
 
   const blackboardFeatures: BlackboardFeature[] = [
-    'Course Management', 'Gradebook', 'Discussion Forums', 'Assignments',
-    'Content Areas', 'Announcements', 'Calendar', 'Messages', 'Group Management',
-    'Assessment Tools', 'Rubrics', 'SafeAssign', 'Attendance', 'Grade Center',
-    'Ultra Course View', 'Original Course View', 'Mobile App', 'Integration Tools',
-    'Reports', 'System Administration'
+    'Course Management',
+    'Gradebook',
+    'Discussion Forums',
+    'Assignments',
+    'Content Areas',
+    'Announcements',
+    'Calendar',
+    'Messages',
+    'Group Management',
+    'Assessment Tools',
+    'Rubrics',
+    'SafeAssign',
+    'Attendance',
+    'Grade Center',
+    'Ultra Course View',
+    'Original Course View',
+    'Mobile App',
+    'Integration Tools',
+    'Reports',
+    'System Administration',
   ];
 
   return (
@@ -562,65 +549,70 @@ Export Date: ${new Date().toLocaleString()}
         </div>
       </Box>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} aria-label="Risk analysis sections">
-          <Tab label="Risk Analysis Documents" {...a11yProps(0)} />
-          <Tab label="User Workflows" {...a11yProps(1)} />
-        </Tabs>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Typography variant="h5" sx={{ pb: 2 }}>
+          Risk Analysis Documents
+        </Typography>
       </Box>
 
-      <TabPanel value={tabValue} index={0}>
-        {/* Search bar for documents */}
-        <Box mb={2}>
-          <TextField
-            fullWidth
-            placeholder="Search risk analysis documents..."
-            value={documentSearchQuery}
-            onChange={(e) => setDocumentSearchQuery(e.target.value)}
-            InputProps={{
+      {/* Search bar for documents */}
+      <Box mb={2}>
+        <TextField
+          fullWidth
+          placeholder="Search risk analysis documents..."
+          value={documentSearchQuery}
+          onChange={e => setDocumentSearchQuery(e.target.value)}
+          slotProps={{
+            input: {
               startAdornment: (
                 <InputAdornment position="start">
                   <SearchIcon />
                 </InputAdornment>
               ),
-            }}
-          />
-        </Box>
-        
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <ToggleButtonGroup
-            value={documentsViewMode}
-            exclusive
-            onChange={(_, newMode) => newMode && setDocumentsViewMode(newMode)}
-            aria-label="documents view mode"
-          >
-            <ToggleButton value="cards" aria-label="card view">
-              <CardViewIcon />
-            </ToggleButton>
-            <ToggleButton value="table" aria-label="table view">
-              <TableViewIcon />
-            </ToggleButton>
-          </ToggleButtonGroup>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateDocument}>
-            Add Risk Analysis Document
-          </Button>
-        </Box>
+            },
+          }}
+        />
+      </Box>
 
-        {documentsViewMode === 'table' ? (
-          <Box>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Title</TableCell>
-                    <TableCell>Feature</TableCell>
-                    <TableCell>Workflows Count</TableCell>
-                    <TableCell>Created</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredDocuments.slice(documentsPage * documentsRowsPerPage, documentsPage * documentsRowsPerPage + documentsRowsPerPage).map((document) => (
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <ToggleButtonGroup
+          value={documentsViewMode}
+          exclusive
+          onChange={(_, newMode) => newMode && setDocumentsViewMode(newMode)}
+          aria-label="documents view mode"
+        >
+          <ToggleButton value="cards" aria-label="card view">
+            <CardViewIcon />
+          </ToggleButton>
+          <ToggleButton value="table" aria-label="table view">
+            <TableViewIcon />
+          </ToggleButton>
+        </ToggleButtonGroup>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateDocument}>
+          Add Risk Analysis Document
+        </Button>
+      </Box>
+
+      {documentsViewMode === 'table' ? (
+        <Box>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Title</TableCell>
+                  <TableCell>Feature</TableCell>
+                  <TableCell>Workflows Count</TableCell>
+                  <TableCell>Created</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredDocuments
+                  .slice(
+                    documentsPage * documentsRowsPerPage,
+                    documentsPage * documentsRowsPerPage + documentsRowsPerPage
+                  )
+                  .map(document => (
                     <TableRow key={document.id}>
                       <TableCell>
                         <Box>
@@ -643,12 +635,19 @@ Export Date: ${new Date().toLocaleString()}
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Download">
-                            <IconButton size="small" onClick={() => handleDownloadDocument(document)}>
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDownloadDocument(document)}
+                            >
                               <ExportIcon />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Delete">
-                            <IconButton size="small" color="error" onClick={() => handleDeleteDocument(document.id)}>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDeleteDocument(document.id)}
+                            >
                               <DeleteIcon />
                             </IconButton>
                           </Tooltip>
@@ -656,343 +655,113 @@ Export Date: ${new Date().toLocaleString()}
                       </TableCell>
                     </TableRow>
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+              </TableBody>
+            </Table>
+          </TableContainer>
 
-            <TablePagination
-              component="div"
-              count={filteredDocuments.length}
-              page={documentsPage}
-              onPageChange={(_, newPage) => setDocumentsPage(newPage)}
-              rowsPerPage={documentsRowsPerPage}
-              onRowsPerPageChange={(event) => {
-                setDocumentsRowsPerPage(parseInt(event.target.value, 10));
-                setDocumentsPage(0);
-              }}
-            />
-          </Box>
-        ) : (
-          <Box>
-            {filteredDocuments.map((document) => (
-              <Accordion key={document.id}>
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-                    <Typography variant="h6">{document.title}</Typography>
-                    <Chip
-                      label={`${document.overallRiskLevel} Risk`}
-                      color={getRiskLevelFromScore(document.totalRiskScore).color as any}
-                      size="small"
-                    />
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                    <Typography paragraph sx={{ mb: 0 }}>{document.description}</Typography>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      startIcon={<ViewIcon />}
-                      onClick={() => handleViewDocument(document)}
-                    >
-                      View/Edit Details
-                    </Button>
-                  </Box>
-
-                  <Typography variant="h6" gutterBottom>
-                    Workflow Analysis ({document.workflows.length} workflows)
-                  </Typography>
-
-                  <TableContainer component={Paper} sx={{ mb: 3 }}>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Workflow</TableCell>
-                          <TableCell align="center">Likelihood</TableCell>
-                          <TableCell align="center">Impact</TableCell>
-                          <TableCell align="center">Risk Score</TableCell>
-                          <TableCell align="center">Decision</TableCell>
-                          <TableCell align="center">Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {document.workflows.map((workflow) => (
-                          <TableRow key={workflow.id}>
-                            <TableCell>{workflow.workflowName}</TableCell>
-                            <TableCell align="center">{workflow.likelihood}</TableCell>
-                            <TableCell align="center">{workflow.impact}</TableCell>
-                            <TableCell align="center">
-                              <Chip
-                                label={workflow.riskScore}
-                                color={getRiskLevelFromScore(workflow.riskScore).color as any}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell align="center">
-                              <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-                                {getAutomationIcon(workflow.riskScore)}
-                                {getAutomationRecommendation(workflow.riskScore)}
-                              </Box>
-                            </TableCell>
-                            <TableCell align="center">
-                              <Tooltip title="Edit Workflow">
-                                <IconButton size="small" onClick={() => handleEditWorkflow(workflow)}>
-                                  <EditIcon />
-                                </IconButton>
-                              </Tooltip>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-
-                  <Typography variant="h6" gutterBottom>
-                    Recommendations
-                  </Typography>
-                  <Typography>{document.recommendations}</Typography>
-                </AccordionDetails>
-              </Accordion>
-            ))}
-          </Box>
-        )}
-      </TabPanel>
-
-      <TabPanel value={tabValue} index={1}>
-        {/* Search bar for workflows */}
-        <Box mb={2}>
-          <TextField
-            fullWidth
-            placeholder="Search workflows by name, description, or acceptance criteria..."
-            value={workflowSearchQuery}
-            onChange={(e) => setWorkflowSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
+          <TablePagination
+            component="div"
+            count={filteredDocuments.length}
+            page={documentsPage}
+            onPageChange={(_, newPage) => setDocumentsPage(newPage)}
+            rowsPerPage={documentsRowsPerPage}
+            onRowsPerPageChange={event => {
+              setDocumentsRowsPerPage(parseInt(event.target.value, 10));
+              setDocumentsPage(0);
             }}
           />
         </Box>
-        
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <ToggleButtonGroup
-            value={workflowsViewMode}
-            exclusive
-            onChange={(_, newMode) => newMode && setWorkflowsViewMode(newMode)}
-            aria-label="workflows view mode"
-          >
-            <ToggleButton value="cards" aria-label="card view">
-              <CardViewIcon />
-            </ToggleButton>
-            <ToggleButton value="table" aria-label="table view">
-              <TableViewIcon />
-            </ToggleButton>
-          </ToggleButtonGroup>
-          <Box display="flex" gap={2}>
-            <Button
-              variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={handleImportFromTestPlans}
-            >
-              Import from Test Plans
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={handleCreateWorkflow}
-            >
-              Add User Workflow
-            </Button>
-          </Box>
-        </Box>
+      ) : (
+        <Box>
+          {filteredDocuments.map(document => (
+            <Accordion key={document.id}>
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
+                  <Typography variant="h6">{document.title}</Typography>
+                  <Chip
+                    label={`${document.overallRiskLevel} Risk`}
+                    color={getRiskLevelFromScore(document.totalRiskScore).color as any}
+                    size="small"
+                  />
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography sx={{ mb: 0 }}>{document.description}</Typography>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<ViewIcon />}
+                    onClick={() => handleViewDocument(document)}
+                  >
+                    View/Edit Details
+                  </Button>
+                </Box>
 
-        {workflowsViewMode === 'table' ? (
-          <Box>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Workflow Name</TableCell>
-                    <TableCell>Feature</TableCell>
-                    <TableCell>Priority</TableCell>
-                    <TableCell>Risk Score</TableCell>
-                    <TableCell>Testing Tier</TableCell>
-                    <TableCell>Automation</TableCell>
-                    <TableCell>Updated</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredWorkflows.slice(workflowsPage * workflowsRowsPerPage, workflowsPage * workflowsRowsPerPage + workflowsRowsPerPage).map((workflow) => {
-                    const riskLevel = getRiskLevelFromScore(workflow.riskScore);
-                    const automationStatus = getAutomationRecommendation(workflow.riskScore);
+                <Typography variant="h6" gutterBottom>
+                  Workflow Analysis ({document.workflows.length} workflows)
+                </Typography>
 
-                    return (
-                      <TableRow key={workflow.id}>
-                        <TableCell>
-                          <Box>
-                            <Typography variant="subtitle2">{workflow.workflowName}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {workflow.description && workflow.description.length > 60
-                                ? `${workflow.description.substring(0, 60)}...`
-                                : workflow.description || ''}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell>{workflow.blackboardFeature}</TableCell>
-                        <TableCell>
-                          <Chip
-                            label={riskLevel.level}
-                            color={riskLevel.color as any}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" fontWeight="bold">
-                            {workflow.riskScore}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={workflow.testingTier || 'N/A'}
-                            color={workflow.testingTier?.includes('CRITICAL') ? 'error' : workflow.testingTier?.includes('HIGH') ? 'warning' : 'info'}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Box display="flex" alignItems="center" gap={1}>
-                            {getAutomationIcon(workflow.riskScore)}
-                            <Typography variant="body2">{automationStatus}</Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell>{workflow.updatedAt.toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <Box display="flex" gap={1}>
+                <TableContainer component={Paper} sx={{ mb: 3 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Workflow</TableCell>
+                        <TableCell align="center">Likelihood</TableCell>
+                        <TableCell align="center">Impact</TableCell>
+                        <TableCell align="center">Risk Score</TableCell>
+                        <TableCell align="center">Decision</TableCell>
+                        <TableCell align="center">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {document.workflows.map(workflow => (
+                        <TableRow key={workflow.id}>
+                          <TableCell>{workflow.workflowName}</TableCell>
+                          <TableCell align="center">{workflow.likelihood}</TableCell>
+                          <TableCell align="center">{workflow.impact}</TableCell>
+                          <TableCell align="center">
+                            <Chip
+                              label={workflow.riskScore}
+                              color={getRiskLevelFromScore(workflow.riskScore).color as any}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                              {getAutomationIcon(workflow.riskScore)}
+                              {getAutomationRecommendation(workflow.riskScore)}
+                            </Box>
+                          </TableCell>
+                          <TableCell align="center">
                             <Tooltip title="Edit Workflow">
                               <IconButton size="small" onClick={() => handleEditWorkflow(workflow)}>
                                 <EditIcon />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="Delete Workflow">
-                              <IconButton size="small" color="error" onClick={() => handleDeleteWorkflow(workflow.id)}>
-                                <DeleteIcon />
-                              </IconButton>
-                            </Tooltip>
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
 
-            <TablePagination
-              component="div"
-              count={filteredWorkflows.length}
-              page={workflowsPage}
-              onPageChange={(_, newPage) => setWorkflowsPage(newPage)}
-              rowsPerPage={workflowsRowsPerPage}
-              onRowsPerPageChange={(event) => {
-                setWorkflowsRowsPerPage(parseInt(event.target.value, 10));
-                setWorkflowsPage(0);
-              }}
-            />
-          </Box>
-        ) : (
-          <Grid container spacing={3}>
-            {filteredWorkflows.map((workflow) => {
-            const riskLevel = getRiskLevelFromScore(workflow.riskScore);
-            const automationStatus = getAutomationRecommendation(workflow.riskScore);
-            return (
-              <Grid size={{ xs: 12, md: 6, lg: 4 }} key={workflow.id}>
-                <Card>
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                      <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        {workflow.workflowName}
-                      </Typography>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        {getAutomationIcon(workflow.riskScore)}
-                        <Chip
-                          label={automationStatus}
-                          color={getAutomationColor(workflow.riskScore) as any}
-                          size="small"
-                        />
-                      </Box>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      {workflow.userStory}
-                    </Typography>
-                    <Box mt={2} mb={2}>
-                      <Chip
-                        label={workflow.blackboardFeature}
-                        variant="outlined"
-                        size="small"
-                        sx={{ mr: 1, mb: 1 }}
-                      />
-                      <Chip
-                        label={`Risk: ${riskLevel.level} (${workflow.riskScore})`}
-                        color={riskLevel.color as any}
-                        size="small"
-                        sx={{ mr: 1, mb: 1 }}
-                      />
-                      <Chip
-                        label={workflow.testingTier || 'N/A'}
-                        color={workflow.testingTier?.includes('CRITICAL') ? 'error' : workflow.testingTier?.includes('HIGH') ? 'warning' : 'info'}
-                        size="small"
-                        sx={{ mb: 1 }}
-                      />
-                    </Box>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                      <Box>
-                        <Typography variant="body2" gutterBottom>
-                          <strong>Likelihood:</strong> {workflow.likelihood}/4 (1 = Most Likely)
-                        </Typography>
-                        <Typography variant="body2" gutterBottom>
-                          <strong>Impact:</strong> {workflow.impact}/4 (1 = Most Impactful)
-                        </Typography>
-                        <Typography variant="body2" gutterBottom>
-                          <strong>Risk Score:</strong> {workflow.riskScore}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      <strong>Deliverables:</strong> {workflow.deliverables}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
-                      <strong>Automation Rule:</strong> {automationStatus === 'Automate' ? 'Score 1-6: Automate' : 'Score 7-16: Manual Only'}
-                    </Typography>
-                    {workflow.automationReason && (
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        <strong>Reasoning:</strong> {workflow.automationReason}
-                      </Typography>
-                    )}
-                    <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
-                      <Typography variant="caption" color="text.secondary">
-                        Updated: {workflow.updatedAt.toLocaleDateString()}
-                      </Typography>
-                      <Box display="flex" gap={1}>
-                        <IconButton size="small" onClick={() => handleEditWorkflow(workflow)}>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton size="small" color="error" onClick={() => handleDeleteWorkflow(workflow.id)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
-          </Grid>
-        )}
-      </TabPanel>
+                <Typography variant="h6" gutterBottom>
+                  Recommendations
+                </Typography>
+                <Typography>{document.recommendations}</Typography>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </Box>
+      )}
 
-      <Dialog open={openWorkflowDialog} onClose={() => setOpenWorkflowDialog(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={openWorkflowDialog}
+        onClose={() => setOpenWorkflowDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>
           {selectedWorkflow ? 'Edit User Workflow' : 'Create New User Workflow'}
         </DialogTitle>
@@ -1003,10 +772,19 @@ Export Date: ${new Date().toLocaleString()}
                 label="User Story ID *"
                 fullWidth
                 value={workflowFormData.userStoryId || ''}
-                onChange={(e) => setWorkflowFormData({ ...workflowFormData, userStoryId: e.target.value.toUpperCase() })}
+                onChange={e =>
+                  setWorkflowFormData({
+                    ...workflowFormData,
+                    userStoryId: e.target.value.toUpperCase(),
+                  })
+                }
                 placeholder="e.g., AB#1234567"
                 helperText="Format: AB#1234567 (e.g., AB#1234567) - Required for linking"
-                error={workflowFormData.userStoryId && !/^AB#\d{7}$/.test(workflowFormData.userStoryId)}
+                error={
+                  !!(
+                    workflowFormData.userStoryId && !/^AB#\d{7}$/.test(workflowFormData.userStoryId)
+                  )
+                }
               />
             </Grid>
             <Grid size={12}>
@@ -1014,18 +792,34 @@ Export Date: ${new Date().toLocaleString()}
                 label="Workflow Name"
                 fullWidth
                 value={workflowFormData.workflowName}
-                onChange={(e) => setWorkflowFormData({ ...workflowFormData, workflowName: e.target.value })}
+                onChange={e =>
+                  setWorkflowFormData({ ...workflowFormData, workflowName: e.target.value })
+                }
                 placeholder="e.g., Student Login to Course"
               />
             </Grid>
             <Grid size={12}>
               <TextField
-                label="User Story (Full GIVEN/WHEN/THEN)"
+                label="Risk Statement"
                 fullWidth
-                value={workflowFormData.userStory}
-                onChange={(e) => setWorkflowFormData({ ...workflowFormData, userStory: e.target.value })}
-                placeholder="Given [context], when [action], then [outcome]"
-                helperText="Provide the full scenario context"
+                value={workflowFormData.riskStatement}
+                onChange={e =>
+                  setWorkflowFormData({ ...workflowFormData, riskStatement: e.target.value })
+                }
+                placeholder="What could go wrong? (e.g., Students unable to submit assignments)"
+                helperText="Describe the potential failure or risk"
+              />
+            </Grid>
+            <Grid size={12}>
+              <TextField
+                label="Business Impact"
+                fullWidth
+                value={workflowFormData.businessImpact}
+                onChange={e =>
+                  setWorkflowFormData({ ...workflowFormData, businessImpact: e.target.value })
+                }
+                placeholder="Why does it matter? (e.g., Lost grades, support tickets, student complaints)"
+                helperText="Explain the business consequences if this fails"
               />
             </Grid>
             <Grid size={12}>
@@ -1035,7 +829,9 @@ Export Date: ${new Date().toLocaleString()}
                 multiline
                 rows={3}
                 value={workflowFormData.description}
-                onChange={(e) => setWorkflowFormData({ ...workflowFormData, description: e.target.value })}
+                onChange={e =>
+                  setWorkflowFormData({ ...workflowFormData, description: e.target.value })
+                }
                 placeholder="Detailed description of the workflow steps"
               />
             </Grid>
@@ -1045,10 +841,17 @@ Export Date: ${new Date().toLocaleString()}
                 <Select
                   value={workflowFormData.blackboardFeature}
                   label="Blackboard Feature"
-                  onChange={(e) => setWorkflowFormData({ ...workflowFormData, blackboardFeature: e.target.value as BlackboardFeature })}
+                  onChange={e =>
+                    setWorkflowFormData({
+                      ...workflowFormData,
+                      blackboardFeature: e.target.value as BlackboardFeature,
+                    })
+                  }
                 >
-                  {blackboardFeatures.map((feature) => (
-                    <MenuItem key={feature} value={feature}>{feature}</MenuItem>
+                  {blackboardFeatures.map(feature => (
+                    <MenuItem key={feature} value={feature}>
+                      {feature}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -1058,7 +861,9 @@ Export Date: ${new Date().toLocaleString()}
               <Box sx={{ px: 2 }}>
                 <Slider
                   value={workflowFormData.likelihood}
-                  onChange={(_, value) => setWorkflowFormData({ ...workflowFormData, likelihood: value as number })}
+                  onChange={(_, value) =>
+                    setWorkflowFormData({ ...workflowFormData, likelihood: value as number })
+                  }
                   min={1}
                   max={4}
                   step={1}
@@ -1066,7 +871,7 @@ Export Date: ${new Date().toLocaleString()}
                     { value: 1, label: 'Most Likely' },
                     { value: 2, label: 'Likely' },
                     { value: 3, label: 'Unlikely' },
-                    { value: 4, label: 'Very Unlikely' }
+                    { value: 4, label: 'Very Unlikely' },
                   ]}
                   valueLabelDisplay="auto"
                 />
@@ -1080,7 +885,9 @@ Export Date: ${new Date().toLocaleString()}
               <Box sx={{ px: 2 }}>
                 <Slider
                   value={workflowFormData.impact}
-                  onChange={(_, value) => setWorkflowFormData({ ...workflowFormData, impact: value as number })}
+                  onChange={(_, value) =>
+                    setWorkflowFormData({ ...workflowFormData, impact: value as number })
+                  }
                   min={1}
                   max={4}
                   step={1}
@@ -1088,7 +895,7 @@ Export Date: ${new Date().toLocaleString()}
                     { value: 1, label: 'Critical' },
                     { value: 2, label: 'High' },
                     { value: 3, label: 'Medium' },
-                    { value: 4, label: 'Low' }
+                    { value: 4, label: 'Low' },
                   ]}
                   valueLabelDisplay="auto"
                 />
@@ -1098,18 +905,38 @@ Export Date: ${new Date().toLocaleString()}
               </Typography>
             </Grid>
             <Grid size={12}>
-              <Box sx={{ p: 2, backgroundColor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
+              <Box
+                sx={{
+                  p: 2,
+                  backgroundColor: 'background.paper',
+                  borderRadius: 1,
+                  border: 1,
+                  borderColor: 'divider',
+                }}
+              >
                 <Typography variant="h6" gutterBottom>
                   Risk Score: {workflowFormData.likelihood * workflowFormData.impact}
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Risk Level: {getRiskLevelFromScore(workflowFormData.likelihood * workflowFormData.impact).level}
+                  Risk Level:{' '}
+                  {
+                    getRiskLevelFromScore(workflowFormData.likelihood * workflowFormData.impact)
+                      .level
+                  }
                 </Typography>
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Testing Tier: {getTestingTierFromRiskScore(workflowFormData.likelihood * workflowFormData.impact)}
+                  Testing Tier:{' '}
+                  {getTestingTierFromRiskScore(
+                    workflowFormData.likelihood * workflowFormData.impact
+                  )}
                 </Typography>
-                <Typography variant="body2" color={getAutomationColor(workflowFormData.likelihood * workflowFormData.impact)}>
-                  {getAutomationRecommendation(workflowFormData.likelihood * workflowFormData.impact) === 'Automate'
+                <Typography
+                  variant="body2"
+                  color={getAutomationColor(workflowFormData.likelihood * workflowFormData.impact)}
+                >
+                  {getAutomationRecommendation(
+                    workflowFormData.likelihood * workflowFormData.impact
+                  ) === 'Automate'
                     ? 'Score 1-6: Automate'
                     : 'Score 7-16: Manual Only'}
                 </Typography>
@@ -1122,20 +949,25 @@ Export Date: ${new Date().toLocaleString()}
                 multiline
                 rows={2}
                 value={workflowFormData.deliverables}
-                onChange={(e) => setWorkflowFormData({ ...workflowFormData, deliverables: e.target.value })}
+                onChange={e =>
+                  setWorkflowFormData({ ...workflowFormData, deliverables: e.target.value })
+                }
                 placeholder="e.g., Unit Test, UI Automation, Exploratory Testing"
                 helperText="Specify the testing deliverables required for this workflow"
               />
             </Grid>
             <Grid size={12}>
               <TextField
-                label="Automation Reasoning"
+                label="Automation Rationale"
                 fullWidth
                 multiline
                 rows={3}
-                value={workflowFormData.automationReason}
-                onChange={(e) => setWorkflowFormData({ ...workflowFormData, automationReason: e.target.value })}
-                placeholder="Explain the rationale for the automation recommendation (optional)"
+                value={workflowFormData.automationRationale}
+                onChange={e =>
+                  setWorkflowFormData({ ...workflowFormData, automationRationale: e.target.value })
+                }
+                placeholder="Explain why this should/shouldn't be automated (optional)"
+                helperText="Provide reasoning for automation recommendation"
               />
             </Grid>
           </Grid>
@@ -1148,7 +980,12 @@ Export Date: ${new Date().toLocaleString()}
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openDocumentDialog} onClose={() => setOpenDocumentDialog(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={openDocumentDialog}
+        onClose={() => setOpenDocumentDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Create New Risk Analysis Document</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
@@ -1167,13 +1004,26 @@ Export Date: ${new Date().toLocaleString()}
                 multiline
                 rows={2}
                 value={documentFormData.description}
-                onChange={e => setDocumentFormData({ ...documentFormData, description: e.target.value })}
+                onChange={e =>
+                  setDocumentFormData({ ...documentFormData, description: e.target.value })
+                }
               />
             </Grid>
             <Grid size={12}>
               <Typography gutterBottom>Select Workflows to Include</Typography>
-              <Box sx={{ maxHeight: 200, overflowY: 'auto', border: 1, borderColor: 'divider', borderRadius: 1, p: 1 }}>
-                {workflows.length === 0 && <Typography color="text.secondary">No workflows available.</Typography>}
+              <Box
+                sx={{
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  border: 1,
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  p: 1,
+                }}
+              >
+                {workflows.length === 0 && (
+                  <Typography color="text.secondary">No workflows available.</Typography>
+                )}
                 {workflows.map(wf => (
                   <Box key={wf.id} display="flex" alignItems="center" mb={1}>
                     <input
@@ -1185,7 +1035,7 @@ Export Date: ${new Date().toLocaleString()}
                           ...prev,
                           selectedWorkflowIds: checked
                             ? [...prev.selectedWorkflowIds, wf.id]
-                            : prev.selectedWorkflowIds.filter(id => id !== wf.id)
+                            : prev.selectedWorkflowIds.filter(id => id !== wf.id),
                         }));
                       }}
                       id={`workflow-checkbox-${wf.id}`}
@@ -1201,30 +1051,50 @@ Export Date: ${new Date().toLocaleString()}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDocumentDialog(false)}>Cancel</Button>
-          <Button onClick={handleSubmitDocument} variant="contained" disabled={!documentFormData.title || documentFormData.selectedWorkflowIds.length === 0}>
+          <Button
+            onClick={handleSubmitDocument}
+            variant="contained"
+            disabled={!documentFormData.title || documentFormData.selectedWorkflowIds.length === 0}
+          >
             Create Document
           </Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openImportDialog} onClose={() => setOpenImportDialog(false)} maxWidth="md" fullWidth>
+      <Dialog
+        open={openImportDialog}
+        onClose={() => setOpenImportDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Import Test Scenarios from Test Plans</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Select test scenarios from existing test plans to create risk analysis workflows
           </Typography>
           <Box sx={{ maxHeight: 400, overflowY: 'auto', mt: 2 }}>
-            {testPlans.map((testPlan) => (
+            {testPlans.map(testPlan => (
               <Accordion key={testPlan.id}>
                 <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Typography variant="h6">{testPlan.title} ({testPlan.testScenarios.length} scenarios)</Typography>
+                  <Typography variant="h6">
+                    {testPlan.title} ({testPlan.testScenarios.length} scenarios)
+                  </Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  {testPlan.testScenarios.map((scenario) => (
-                    <Paper key={scenario.id} sx={{ p: 2, mb: 2, backgroundColor: 'background.default' }}>
-                      <Typography variant="body2" gutterBottom><strong>Given:</strong> {scenario.given}</Typography>
-                      <Typography variant="body2" gutterBottom><strong>When:</strong> {scenario.when}</Typography>
-                      <Typography variant="body2" gutterBottom><strong>Then:</strong> {scenario.then}</Typography>
+                  {testPlan.testScenarios.map(scenario => (
+                    <Paper
+                      key={scenario.id}
+                      sx={{ p: 2, mb: 2, backgroundColor: 'background.default' }}
+                    >
+                      <Typography variant="body2" gutterBottom>
+                        <strong>Given:</strong> {scenario.given}
+                      </Typography>
+                      <Typography variant="body2" gutterBottom>
+                        <strong>When:</strong> {scenario.when}
+                      </Typography>
+                      <Typography variant="body2" gutterBottom>
+                        <strong>Then:</strong> {scenario.then}
+                      </Typography>
                       <Box display="flex" justifyContent="space-between" alignItems="center" mt={2}>
                         <Chip label={scenario.priority} size="small" />
                         <Button
@@ -1238,13 +1108,17 @@ Export Date: ${new Date().toLocaleString()}
                     </Paper>
                   ))}
                   {testPlan.testScenarios.length === 0 && (
-                    <Typography color="text.secondary">No test scenarios defined for this test plan.</Typography>
+                    <Typography color="text.secondary">
+                      No test scenarios defined for this test plan.
+                    </Typography>
                   )}
                 </AccordionDetails>
               </Accordion>
             ))}
             {testPlans.length === 0 && (
-              <Typography color="text.secondary">No test plans available. Create test plans first to import scenarios.</Typography>
+              <Typography color="text.secondary">
+                No test plans available. Create test plans first to import scenarios.
+              </Typography>
             )}
           </Box>
         </DialogContent>
@@ -1254,8 +1128,8 @@ Export Date: ${new Date().toLocaleString()}
       </Dialog>
 
       {/* Elegant Document View Modal */}
-      <Dialog 
-        open={viewDocumentOpen} 
+      <Dialog
+        open={viewDocumentOpen}
         onClose={() => setViewDocumentOpen(false)}
         maxWidth="lg"
         fullWidth
@@ -1269,20 +1143,16 @@ Export Date: ${new Date().toLocaleString()}
               {selectedDocument?.description}
             </Typography>
             <Box display="flex" gap={2} mt={2}>
-              <Chip 
-                label={selectedDocument?.blackboardFeature} 
-                variant="outlined" 
-                size="small" 
+              <Chip label={selectedDocument?.blackboardFeature} variant="outlined" size="small" />
+              <Chip
+                label={selectedDocument?.overallRiskLevel}
+                color={getRiskColor(selectedDocument?.totalRiskScore || 0)}
+                size="small"
               />
-              <Chip 
-                label={selectedDocument?.overallRiskLevel} 
-                color={getRiskColor(selectedDocument?.totalRiskScore || 0)} 
-                size="small" 
-              />
-              <Chip 
-                label={`Risk Score: ${selectedDocument?.totalRiskScore}`} 
-                variant="outlined" 
-                size="small" 
+              <Chip
+                label={`Risk Score: ${selectedDocument?.totalRiskScore}`}
+                variant="outlined"
+                size="small"
               />
             </Box>
           </Box>
@@ -1290,20 +1160,24 @@ Export Date: ${new Date().toLocaleString()}
         <DialogContent dividers sx={{ maxHeight: '70vh' }}>
           {selectedDocument && (
             <Box>
-              <Typography variant="body1" paragraph>
+              <Typography variant="body1" sx={{ mb: 2 }}>
                 <strong>Created:</strong> {selectedDocument.createdAt.toLocaleDateString()}
               </Typography>
-              
+
               {/* Level 1 Grouping: By User Story ID */}
-              {Object.entries(groupWorkflowsByUserStoryAndScenario(selectedDocument.workflows, testPlans)).map(([userStoryId, userStoryGroup]) => (
+              {Object.entries(
+                groupWorkflowsByUserStoryAndScenario(selectedDocument.workflows, testPlans)
+              ).map(([userStoryId, userStoryGroup]) => (
                 <Box key={userStoryId} sx={{ mb: 4 }}>
                   {/* User Story ID Header - Level 1 */}
-                  <Paper sx={{ p: 2, mb: 2, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+                  <Paper
+                    sx={{ p: 2, mb: 2, bgcolor: 'primary.main', color: 'primary.contrastText' }}
+                  >
                     <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                       User Story:{' '}
-                      <Link 
-                        href={getAdoUrl(userStoryId)} 
-                        target="_blank" 
+                      <Link
+                        href={getAdoUrl(userStoryId)}
+                        target="_blank"
                         rel="noopener noreferrer"
                         sx={{ color: 'inherit', textDecoration: 'underline' }}
                       >
@@ -1311,16 +1185,20 @@ Export Date: ${new Date().toLocaleString()}
                       </Link>
                     </Typography>
                     <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
-                      {Object.values(userStoryGroup.scenarios).reduce((sum, s) => sum + s.workflows.length, 0)} acceptance criteria across {Object.keys(userStoryGroup.scenarios).length} scenario(s)
+                      {Object.values(userStoryGroup.scenarios).reduce(
+                        (sum, s) => sum + s.workflows.length,
+                        0
+                      )}{' '}
+                      workflow(s) across {Object.keys(userStoryGroup.scenarios).length} section(s)
                     </Typography>
                   </Paper>
-                  
+
                   {/* Level 2 Grouping: By Scenario (GIVEN/WHEN/THEN) */}
                   {Object.entries(userStoryGroup.scenarios).map(([scenarioKey, group]) => (
                     <Accordion key={scenarioKey} defaultExpanded sx={{ mb: 2, ml: 3 }}>
-                      <AccordionSummary 
+                      <AccordionSummary
                         expandIcon={<ExpandMore />}
-                        sx={{ 
+                        sx={{
                           bgcolor: 'action.hover',
                           '&:hover': {
                             bgcolor: 'action.selected',
@@ -1328,18 +1206,32 @@ Export Date: ${new Date().toLocaleString()}
                         }}
                       >
                         <Box sx={{ width: '100%' }}>
-                          <Typography variant="h6" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                            Scenario: {group.scenario.title || 'Full Workflow'}
+                          <Typography
+                            variant="h6"
+                            sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                          >
+                            {group.scenario
+                              ? `Scenario: ${group.scenario.title || 'Full Workflow'}`
+                              : 'Manually Created Workflows'}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                            <strong>GIVEN</strong> {group.scenario.given}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            <strong>WHEN</strong> {group.scenario.when}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            <strong>THEN</strong> {group.scenario.then}
-                          </Typography>
+                          {group.scenario && (
+                            <>
+                              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                <strong>GIVEN</strong> {group.scenario.given}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                <strong>WHEN</strong> {group.scenario.when}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary">
+                                <strong>THEN</strong> {group.scenario.then}
+                              </Typography>
+                            </>
+                          )}
+                          {!group.scenario && (
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                              Workflows created directly (not imported from test plans)
+                            </Typography>
+                          )}
                         </Box>
                       </AccordionSummary>
                       <AccordionDetails sx={{ p: 0 }}>
@@ -1351,29 +1243,56 @@ Export Date: ${new Date().toLocaleString()}
                                 <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                                   Acceptance Criterion (AC) - Atomic Risk Unit
                                 </TableCell>
-                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                                  Impact (I)<br/>(1-4)
+                                <TableCell
+                                  align="center"
+                                  sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                                >
+                                  Impact (I)
+                                  <br />
+                                  (1-4)
                                 </TableCell>
-                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                                  Likelihood (L)<br/>(1-4)
+                                <TableCell
+                                  align="center"
+                                  sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                                >
+                                  Likelihood (L)
+                                  <br />
+                                  (1-4)
                                 </TableCell>
-                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                                  Risk Factor<br/>(I × L)
+                                <TableCell
+                                  align="center"
+                                  sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                                >
+                                  Risk Factor
+                                  <br />
+                                  (I × L)
                                 </TableCell>
-                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                <TableCell
+                                  align="center"
+                                  sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                                >
                                   Mandatory Tier
                                 </TableCell>
-                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                <TableCell
+                                  align="center"
+                                  sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                                >
                                   Deliverables
                                 </TableCell>
-                                <TableCell align="center" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                <TableCell
+                                  align="center"
+                                  sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                                >
                                   Actions
                                 </TableCell>
                               </TableRow>
                             </TableHead>
                             <TableBody>
-                              {group.workflows.map((workflow) => (
-                                <TableRow key={workflow.id} sx={{ '&:nth-of-type(even)': { bgcolor: 'action.hover' } }}>
+                              {group.workflows.map(workflow => (
+                                <TableRow
+                                  key={workflow.id}
+                                  sx={{ '&:nth-of-type(even)': { bgcolor: 'action.hover' } }}
+                                >
                                   <TableCell>
                                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
                                       {workflow.workflowName}
@@ -1387,7 +1306,12 @@ Export Date: ${new Date().toLocaleString()}
                                       <Box sx={{ px: 1, minWidth: 200, py: 3 }}>
                                         <Slider
                                           value={editingWorkflowData.impact}
-                                          onChange={(_, value) => setEditingWorkflowData({ ...editingWorkflowData, impact: value as number })}
+                                          onChange={(_, value) =>
+                                            setEditingWorkflowData({
+                                              ...editingWorkflowData,
+                                              impact: value as number,
+                                            })
+                                          }
                                           min={1}
                                           max={4}
                                           step={1}
@@ -1395,14 +1319,14 @@ Export Date: ${new Date().toLocaleString()}
                                             { value: 1, label: 'Critical' },
                                             { value: 2, label: 'High' },
                                             { value: 3, label: 'Medium' },
-                                            { value: 4, label: 'Low' }
+                                            { value: 4, label: 'Low' },
                                           ]}
                                           valueLabelDisplay="auto"
                                           sx={{
                                             '& .MuiSlider-markLabel': {
                                               fontSize: '0.7rem',
                                               whiteSpace: 'nowrap',
-                                            }
+                                            },
                                           }}
                                         />
                                       </Box>
@@ -1417,7 +1341,12 @@ Export Date: ${new Date().toLocaleString()}
                                       <Box sx={{ px: 1, minWidth: 200, py: 3 }}>
                                         <Slider
                                           value={editingWorkflowData.likelihood}
-                                          onChange={(_, value) => setEditingWorkflowData({ ...editingWorkflowData, likelihood: value as number })}
+                                          onChange={(_, value) =>
+                                            setEditingWorkflowData({
+                                              ...editingWorkflowData,
+                                              likelihood: value as number,
+                                            })
+                                          }
                                           min={1}
                                           max={4}
                                           step={1}
@@ -1425,14 +1354,14 @@ Export Date: ${new Date().toLocaleString()}
                                             { value: 1, label: 'Most Likely' },
                                             { value: 2, label: 'Likely' },
                                             { value: 3, label: 'Unlikely' },
-                                            { value: 4, label: 'Very Unlikely' }
+                                            { value: 4, label: 'Very Unlikely' },
                                           ]}
                                           valueLabelDisplay="auto"
                                           sx={{
                                             '& .MuiSlider-markLabel': {
                                               fontSize: '0.65rem',
                                               whiteSpace: 'nowrap',
-                                            }
+                                            },
                                           }}
                                         />
                                       </Box>
@@ -1443,107 +1372,133 @@ Export Date: ${new Date().toLocaleString()}
                                     )}
                                   </TableCell>
                                   <TableCell align="center">
-                                    <Chip 
-                                      label={editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                        editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
-                                      } 
+                                    <Chip
+                                      label={
+                                        editingWorkflowId === workflow.id && editingWorkflowData
+                                          ? editingWorkflowData.likelihood *
+                                            editingWorkflowData.impact
+                                          : workflow.riskScore
+                                      }
                                       color={
-                                        (editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                          editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
-                                        ) <= 4 ? 'error' : 
-                                        (editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                          editingWorkflowData.likelihood * editingWorkflowData.impact : workflow.riskScore
-                                        ) <= 8 ? 'warning' : 'info'
+                                        (editingWorkflowId === workflow.id && editingWorkflowData
+                                          ? editingWorkflowData.likelihood *
+                                            editingWorkflowData.impact
+                                          : workflow.riskScore) <= 4
+                                          ? 'error'
+                                          : (editingWorkflowId === workflow.id &&
+                                              editingWorkflowData
+                                                ? editingWorkflowData.likelihood *
+                                                  editingWorkflowData.impact
+                                                : workflow.riskScore) <= 8
+                                            ? 'warning'
+                                            : 'info'
                                       }
                                       size="small"
                                       sx={{ fontWeight: 'bold', minWidth: '40px' }}
                                     />
                                   </TableCell>
                                   <TableCell align="center">
-                                    <Chip 
+                                    <Chip
                                       label={
-                                        editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                          getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
-                                          workflow.testingTier
-                                      } 
+                                        editingWorkflowId === workflow.id && editingWorkflowData
+                                          ? getTestingTierFromRiskScore(
+                                              editingWorkflowData.likelihood *
+                                                editingWorkflowData.impact
+                                            )
+                                          : workflow.testingTier
+                                      }
                                       color={
-                                        (editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                          getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
-                                          workflow.testingTier
-                                        ).includes('CRITICAL') ? 'error' :
-                                        (editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                          getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact) :
-                                          workflow.testingTier
-                                        ).includes('HIGH') ? 'warning' : 'info'
+                                        (editingWorkflowId === workflow.id && editingWorkflowData
+                                          ? getTestingTierFromRiskScore(
+                                              editingWorkflowData.likelihood *
+                                                editingWorkflowData.impact
+                                            )
+                                          : workflow.testingTier
+                                        ).includes('CRITICAL')
+                                          ? 'error'
+                                          : (editingWorkflowId === workflow.id &&
+                                              editingWorkflowData
+                                                ? getTestingTierFromRiskScore(
+                                                    editingWorkflowData.likelihood *
+                                                      editingWorkflowData.impact
+                                                  )
+                                                : workflow.testingTier
+                                              ).includes('HIGH')
+                                            ? 'warning'
+                                            : 'info'
                                       }
                                       size="small"
                                     />
                                   </TableCell>
                                   <TableCell>
                                     <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
-                                      {editingWorkflowId === workflow.id && editingWorkflowData ? 
-                                        getDefaultDeliverables(getTestingTierFromRiskScore(editingWorkflowData.likelihood * editingWorkflowData.impact)) :
-                                        workflow.deliverables
-                                      }
+                                      {editingWorkflowId === workflow.id && editingWorkflowData
+                                        ? getDefaultDeliverables(
+                                            getTestingTierFromRiskScore(
+                                              editingWorkflowData.likelihood *
+                                                editingWorkflowData.impact
+                                            )
+                                          )
+                                        : workflow.deliverables}
                                     </Typography>
                                   </TableCell>
                                   <TableCell>
                                     {editingWorkflowId === workflow.id ? (
                                       <Box display="flex" gap={1}>
                                         <Tooltip title="Save">
-                                          <IconButton 
-                                            size="small" 
+                                          <IconButton
+                                            size="small"
                                             color="primary"
                                             onClick={() => handleSaveWorkflowRiskFactors(workflow)}
                                           >
-                                        <ViewIcon />
-                                      </IconButton>
-                                    </Tooltip>
-                                    <Tooltip title="Cancel">
-                                      <IconButton 
-                                        size="small" 
-                                        onClick={handleCancelEditingWorkflow}
-                                      >
-                                        <DeleteIcon />
-                                      </IconButton>
-                                    </Tooltip>
-                                  </Box>
-                                ) : (
-                                  <Tooltip title="Edit Risk Factors">
-                                    <IconButton 
-                                      size="small" 
-                                      onClick={() => handleStartEditingWorkflow(workflow)}
-                                    >
-                                      <EditIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </AccordionDetails>
-                </Accordion>
+                                            <SaveIcon />
+                                          </IconButton>
+                                        </Tooltip>
+                                        <Tooltip title="Cancel">
+                                          <IconButton
+                                            size="small"
+                                            onClick={handleCancelEditingWorkflow}
+                                          >
+                                            <DeleteIcon />
+                                          </IconButton>
+                                        </Tooltip>
+                                      </Box>
+                                    ) : (
+                                      <Tooltip title="Edit Risk Factors">
+                                        <IconButton
+                                          size="small"
+                                          onClick={() => handleStartEditingWorkflow(workflow)}
+                                        >
+                                          <EditIcon />
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      </AccordionDetails>
+                    </Accordion>
+                  ))}
+                </Box>
               ))}
-            </Box>
-          ))}
-              
+
               {selectedDocument.recommendations && (
                 <Box mt={3}>
                   <Typography variant="h6" gutterBottom>
                     Recommendations
                   </Typography>
-                  <Paper sx={{ 
-                    p: 2, 
-                    borderRadius: 1,
-                    border: '1px solid',
-                    borderColor: 'divider'
-                  }}>
-                    <Typography variant="body2">
-                      {selectedDocument.recommendations}
-                    </Typography>
+                  <Paper
+                    sx={{
+                      p: 2,
+                      borderRadius: 1,
+                      border: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Typography variant="body2">{selectedDocument.recommendations}</Typography>
                   </Paper>
                 </Box>
               )}
@@ -1551,9 +1506,7 @@ Export Date: ${new Date().toLocaleString()}
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setViewDocumentOpen(false)}>
-            Close
-          </Button>
+          <Button onClick={() => setViewDocumentOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
 

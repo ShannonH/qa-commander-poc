@@ -55,7 +55,14 @@ import {
   ViewModule as CardViewIcon,
   ViewList as TableViewIcon,
 } from '@mui/icons-material';
-import { TestPlan, TestCategory, TestScenario, BlackboardFeature, StrategyChecklistItem, AcceptanceCriteria } from '../types';
+import {
+  TestPlan,
+  TestCategory,
+  TestScenario,
+  BlackboardFeature,
+  StrategyChecklistItem,
+  AcceptanceCriteria,
+} from '../types';
 import { DataService } from '../utils/dataService';
 
 // Helper function to generate ADO work item URL from User Story ID
@@ -84,33 +91,92 @@ const TestPlansView: React.FC = () => {
 
   // Strategy checklist management
   const getDefaultStrategyChecklist = (): StrategyChecklistItem[] => [
-    { id: 'sc1', category: 'test_types', item: 'Functional testing of core workflows', checked: false },
-    { id: 'sc2', category: 'test_types', item: 'Integration testing with external systems', checked: false },
-    { id: 'sc3', category: 'test_types', item: 'Usability and user experience testing', checked: false },
-    { id: 'sc4', category: 'test_types', item: 'Accessibility testing (WCAG compliance)', checked: false },
+    {
+      id: 'sc1',
+      category: 'test_types',
+      item: 'Functional testing of core workflows',
+      checked: false,
+    },
+    {
+      id: 'sc2',
+      category: 'test_types',
+      item: 'Integration testing with external systems',
+      checked: false,
+    },
+    {
+      id: 'sc3',
+      category: 'test_types',
+      item: 'Usability and user experience testing',
+      checked: false,
+    },
+    {
+      id: 'sc4',
+      category: 'test_types',
+      item: 'Accessibility testing (WCAG compliance)',
+      checked: false,
+    },
     { id: 'sc5', category: 'test_types', item: 'Performance and load testing', checked: false },
-    { id: 'sc6', category: 'test_types', item: 'Security and data protection testing', checked: false },
+    {
+      id: 'sc6',
+      category: 'test_types',
+      item: 'Security and data protection testing',
+      checked: false,
+    },
     { id: 'sc7', category: 'automation', item: 'Automate critical user paths', checked: false },
     { id: 'sc8', category: 'automation', item: 'Automated regression testing', checked: false },
     { id: 'sc9', category: 'automation', item: 'Cross-browser automated testing', checked: false },
     { id: 'sc10', category: 'automation', item: 'API testing automation', checked: false },
-    { id: 'sc11', category: 'risk_management', item: 'Test edge cases and error conditions', checked: false },
-    { id: 'sc12', category: 'risk_management', item: 'Data integrity and backup testing', checked: false },
+    {
+      id: 'sc11',
+      category: 'risk_management',
+      item: 'Test edge cases and error conditions',
+      checked: false,
+    },
+    {
+      id: 'sc12',
+      category: 'risk_management',
+      item: 'Data integrity and backup testing',
+      checked: false,
+    },
     { id: 'sc13', category: 'risk_management', item: 'Concurrent user scenarios', checked: false },
-    { id: 'sc14', category: 'risk_management', item: 'Network interruption and recovery', checked: false },
+    {
+      id: 'sc14',
+      category: 'risk_management',
+      item: 'Network interruption and recovery',
+      checked: false,
+    },
     { id: 'sc15', category: 'tools', item: 'Database verification and monitoring', checked: false },
     { id: 'sc16', category: 'tools', item: 'Log analysis and error tracking', checked: false },
     { id: 'sc17', category: 'tools', item: 'Performance monitoring tools', checked: false },
     { id: 'sc18', category: 'coverage', item: 'Test all supported browsers', checked: false },
     { id: 'sc19', category: 'coverage', item: 'Mobile device compatibility', checked: false },
-    { id: 'sc20', category: 'coverage', item: 'Different user roles and permissions', checked: false },
+    {
+      id: 'sc20',
+      category: 'coverage',
+      item: 'Different user roles and permissions',
+      checked: false,
+    },
     { id: 'sc21', category: 'process', item: 'Smoke testing for each build', checked: false },
-    { id: 'sc22', category: 'process', item: 'User acceptance testing involvement', checked: false },
-    { id: 'sc23', category: 'process', item: 'Documentation and knowledge transfer', checked: false }
+    {
+      id: 'sc22',
+      category: 'process',
+      item: 'User acceptance testing involvement',
+      checked: false,
+    },
+    {
+      id: 'sc23',
+      category: 'process',
+      item: 'Documentation and knowledge transfer',
+      checked: false,
+    },
   ];
 
-  const updateStrategyChecklistItem = (itemId: string, field: keyof StrategyChecklistItem, value: any) => {
-    const updatedChecklist = formData.strategyChecklist.map(item => 
+  const updateStrategyChecklistItem = (
+    itemId: string,
+    field: keyof StrategyChecklistItem,
+    value: any
+  ) => {
+    const updatedChecklist = formData.strategyChecklist.map(item =>
       item.id === itemId ? { ...item, [field]: value } : item
     );
     setFormData({ ...formData, strategyChecklist: updatedChecklist });
@@ -122,11 +188,11 @@ const TestPlansView: React.FC = () => {
       category,
       item: 'Custom strategy item',
       checked: false,
-      notes: ''
+      notes: '',
     };
     setFormData({
       ...formData,
-      strategyChecklist: [...formData.strategyChecklist, newItem]
+      strategyChecklist: [...formData.strategyChecklist, newItem],
     });
   };
 
@@ -162,13 +228,17 @@ Strategy Checklist:
 ${(testPlan.strategyChecklist || []).map(item => `${item.checked ? '☑' : '☐'} ${item.item} ${item.notes ? `(${item.notes})` : ''}`).join('\n')}
 
 TEST SCENARIOS:
-${(testPlan.testScenarios || []).map((scenario, index) => `
+${(testPlan.testScenarios || [])
+  .map(
+    (scenario, index) => `
 ${index + 1}. Given: ${scenario.given}
    When: ${scenario.when}
    Then: ${scenario.then}
    Priority: ${scenario.priority}
    ${scenario.notes ? `Notes: ${scenario.notes}` : ''}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 ENVIRONMENT REQUIREMENTS:
 ${(testPlan.testEnvironmentRequirements || []).map(item => `• ${item}`).join('\n')}
@@ -200,18 +270,20 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
     try {
       // Create workflows from acceptance criteria, not scenarios
       const workflows: any[] = [];
-      
+
       (testPlan.testScenarios || []).forEach(scenario => {
         // Validate that scenario has userStoryId
         if (!scenario.userStoryId) {
-          alert(`Error: Scenario "${scenario.given}" is missing a User Story ID. Please add User Story IDs to all scenarios before generating risk analysis.`);
+          alert(
+            `Error: Scenario "${scenario.given}" is missing a User Story ID. Please add User Story IDs to all scenarios before generating risk analysis.`
+          );
           throw new Error('Missing User Story ID');
         }
-        
+
         (scenario.acceptanceCriteria || []).forEach(ac => {
           const defaultRiskScore = 4; // Medium risk as starting point
           const defaultTier = 'Tier 2: HIGH';
-          
+
           const workflow = {
             id: ac.id, // Use AC ID as workflow ID
             workflowName: ac.description,
@@ -231,19 +303,21 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
             createdAt: new Date(),
             updatedAt: new Date(),
           };
-          
+
           workflows.push(workflow);
         });
       });
 
       if (workflows.length === 0) {
-        alert('No acceptance criteria found to generate risk analysis. Please add acceptance criteria to your test scenarios first.');
+        alert(
+          'No acceptance criteria found to generate risk analysis. Please add acceptance criteria to your test scenarios first.'
+        );
         return;
       }
 
       // Save all workflows
       workflows.forEach(workflow => DataService.saveUserWorkflow(workflow));
-      
+
       // Create risk analysis document
       const riskDocument = {
         id: `ra_${Date.now()}`,
@@ -253,14 +327,17 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
         workflows: workflows,
         overallRiskLevel: 'Medium' as const,
         totalRiskScore: workflows.reduce((sum, w) => sum + w.riskScore, 0),
-        recommendations: 'Review and adjust impact/likelihood scores for each acceptance criteria workflow. Focus automation on high-frequency, stable workflows.',
+        recommendations:
+          'Review and adjust impact/likelihood scores for each acceptance criteria workflow. Focus automation on high-frequency, stable workflows.',
         createdAt: new Date(),
         updatedAt: new Date(),
       };
 
       DataService.saveRiskDocument(riskDocument);
-      
-      alert(`Generated risk analysis with ${workflows.length} acceptance criteria workflows. Check the Risk Analysis section to review and adjust the scoring.`);
+
+      alert(
+        `Generated risk analysis with ${workflows.length} acceptance criteria workflows. Check the Risk Analysis section to review and adjust the scoring.`
+      );
     } catch (error) {
       console.error('Error generating risk analysis:', error);
       // Error already alerted above
@@ -301,51 +378,69 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   const steps = [
     'Feature Overview',
     'Objective',
-    'Test Scope', 
+    'Test Scope',
     'Strategy',
     'Test Scenarios',
     'Environment & Data',
     'Success Criteria',
-    'Review'
+    'Review',
   ];
 
   const handleNext = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
+    setActiveStep(prevActiveStep => prevActiveStep + 1);
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    setActiveStep(prevActiveStep => prevActiveStep - 1);
   };
 
   const renderViewMode = (plan: TestPlan) => {
     return (
       <Box>
         <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" gutterBottom>{plan.title}</Typography>
-          <Typography variant="body1" paragraph>{plan.description}</Typography>
-          
+          <Typography variant="h5" gutterBottom>
+            {plan.title}
+          </Typography>
+          <Typography variant="body1" paragraph>
+            {plan.description}
+          </Typography>
+
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={6}>
-              <Typography variant="body2"><strong>Feature:</strong> {plan.feature}</Typography>
+              <Typography variant="body2">
+                <strong>Feature:</strong> {plan.feature}
+              </Typography>
             </Grid>
             <Grid size={6}>
-              <Typography variant="body2"><strong>Category:</strong> {plan.category}</Typography>
+              <Typography variant="body2">
+                <strong>Category:</strong> {plan.category}
+              </Typography>
             </Grid>
             <Grid size={6}>
-              <Typography variant="body2"><strong>Priority:</strong> {plan.priority}</Typography>
+              <Typography variant="body2">
+                <strong>Priority:</strong> {plan.priority}
+              </Typography>
             </Grid>
             <Grid size={6}>
-              <Typography variant="body2"><strong>Blackboard Feature:</strong> {plan.blackboardFeature}</Typography>
+              <Typography variant="body2">
+                <strong>Blackboard Feature:</strong> {plan.blackboardFeature}
+              </Typography>
             </Grid>
             <Grid size={6}>
-              <Typography variant="body2"><strong>Estimated Hours:</strong> {plan.estimatedHours}h</Typography>
+              <Typography variant="body2">
+                <strong>Estimated Hours:</strong> {plan.estimatedHours}h
+              </Typography>
             </Grid>
             <Grid size={6}>
-              <Typography variant="body2"><strong>Status:</strong> {plan.status}</Typography>
+              <Typography variant="body2">
+                <strong>Status:</strong> {plan.status}
+              </Typography>
             </Grid>
             {plan.assignee && (
               <Grid size={6}>
-                <Typography variant="body2"><strong>Assignee:</strong> {plan.assignee}</Typography>
+                <Typography variant="body2">
+                  <strong>Assignee:</strong> {plan.assignee}
+                </Typography>
               </Grid>
             )}
           </Grid>
@@ -353,15 +448,21 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
 
         {plan.objective && (
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom color="primary">Objective</Typography>
+            <Typography variant="h6" gutterBottom color="primary">
+              Objective
+            </Typography>
             <Typography variant="body2">{plan.objective}</Typography>
           </Paper>
         )}
 
         <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h6" gutterBottom color="primary">Test Scope</Typography>
-          
-          <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>In Scope</Typography>
+          <Typography variant="h6" gutterBottom color="primary">
+            Test Scope
+          </Typography>
+
+          <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+            In Scope
+          </Typography>
           <List dense>
             {(plan.inScope || []).map((item, index) => (
               <ListItem key={index}>
@@ -369,8 +470,10 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               </ListItem>
             ))}
           </List>
-          
-          <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>Out of Scope</Typography>
+
+          <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+            Out of Scope
+          </Typography>
           <List dense>
             {(plan.outOfScope || []).map((item, index) => (
               <ListItem key={index}>
@@ -378,8 +481,10 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               </ListItem>
             ))}
           </List>
-          
-          <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>Prerequisites</Typography>
+
+          <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
+            Prerequisites
+          </Typography>
           <List dense>
             {(plan.prerequisites || []).map((prereq, index) => (
               <ListItem key={index}>
@@ -391,20 +496,38 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
 
         {(plan.testStrategy || plan.strategyChecklist?.length > 0) && (
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom color="primary">Test Strategy</Typography>
+            <Typography variant="h6" gutterBottom color="primary">
+              Test Strategy
+            </Typography>
             {plan.testStrategy && (
-              <Typography variant="body2" paragraph>{plan.testStrategy}</Typography>
+              <Typography variant="body2" paragraph>
+                {plan.testStrategy}
+              </Typography>
             )}
             {plan.strategyChecklist && plan.strategyChecklist.length > 0 && (
               <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle1" gutterBottom>Strategy Checklist</Typography>
-                {['test_types', 'automation', 'risk_management', 'tools', 'coverage', 'process'].map(category => {
-                  const categoryItems = (plan.strategyChecklist || []).filter(item => item.category === category);
+                <Typography variant="subtitle1" gutterBottom>
+                  Strategy Checklist
+                </Typography>
+                {[
+                  'test_types',
+                  'automation',
+                  'risk_management',
+                  'tools',
+                  'coverage',
+                  'process',
+                ].map(category => {
+                  const categoryItems = (plan.strategyChecklist || []).filter(
+                    item => item.category === category
+                  );
                   if (categoryItems.length === 0) return null;
-                  
+
                   return (
                     <Box key={category} sx={{ mb: 2 }}>
-                      <Typography variant="subtitle2" sx={{ textTransform: 'capitalize', fontWeight: 'bold' }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ textTransform: 'capitalize', fontWeight: 'bold' }}
+                      >
                         {category.replace('_', ' ')}
                       </Typography>
                       {categoryItems.map(item => (
@@ -424,20 +547,24 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
         )}
 
         <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h6" gutterBottom color="primary">Test Scenarios ({plan.testScenarios.length})</Typography>
+          <Typography variant="h6" gutterBottom color="primary">
+            Test Scenarios ({plan.testScenarios.length})
+          </Typography>
           {(plan.testScenarios || []).map((scenario, index) => (
             <Accordion key={scenario.id}>
               <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography>Scenario {index + 1}: {scenario.given}</Typography>
+                <Typography>
+                  Scenario {index + 1}: {scenario.given}
+                </Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Box>
                   {scenario.userStoryId && (
                     <Typography variant="body2" gutterBottom>
                       <strong>User Story ID:</strong>{' '}
-                      <Link 
-                        href={getAdoUrl(scenario.userStoryId)} 
-                        target="_blank" 
+                      <Link
+                        href={getAdoUrl(scenario.userStoryId)}
+                        target="_blank"
                         rel="noopener noreferrer"
                         underline="hover"
                       >
@@ -445,19 +572,40 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                       </Link>
                     </Typography>
                   )}
-                  <Typography variant="body2" gutterBottom><strong>Given:</strong> {scenario.given}</Typography>
-                  <Typography variant="body2" gutterBottom><strong>When:</strong> {scenario.when}</Typography>
-                  <Typography variant="body2" gutterBottom><strong>Then:</strong> {scenario.then}</Typography>
-                  <Typography variant="body2" gutterBottom><strong>Priority:</strong> {scenario.priority}</Typography>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>Given:</strong> {scenario.given}
+                  </Typography>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>When:</strong> {scenario.when}
+                  </Typography>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>Then:</strong> {scenario.then}
+                  </Typography>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>Priority:</strong> {scenario.priority}
+                  </Typography>
                   {scenario.notes && (
-                    <Typography variant="body2" gutterBottom><strong>Notes:</strong> {scenario.notes}</Typography>
+                    <Typography variant="body2" gutterBottom>
+                      <strong>Notes:</strong> {scenario.notes}
+                    </Typography>
                   )}
-                  
+
                   {scenario.acceptanceCriteria && scenario.acceptanceCriteria.length > 0 && (
                     <Box sx={{ mt: 2 }}>
-                      <Typography variant="subtitle2" gutterBottom><strong>Acceptance Criteria ({scenario.acceptanceCriteria.length}):</strong></Typography>
+                      <Typography variant="subtitle2" gutterBottom>
+                        <strong>Acceptance Criteria ({scenario.acceptanceCriteria.length}):</strong>
+                      </Typography>
                       {scenario.acceptanceCriteria.map((ac, acIndex) => (
-                        <Box key={ac.id} sx={{ ml: 2, mb: 1, p: 1, backgroundColor: 'background.default', borderRadius: 1 }}>
+                        <Box
+                          key={ac.id}
+                          sx={{
+                            ml: 2,
+                            mb: 1,
+                            p: 1,
+                            backgroundColor: 'background.default',
+                            borderRadius: 1,
+                          }}
+                        >
                           <Typography variant="body2" gutterBottom>
                             <strong>Test Case ID:</strong> {ac.id}
                           </Typography>
@@ -482,7 +630,9 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
         <Grid container spacing={2}>
           <Grid size={6}>
             <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom color="primary">Environment Requirements</Typography>
+              <Typography variant="h6" gutterBottom color="primary">
+                Environment Requirements
+              </Typography>
               <List dense>
                 {(plan.testEnvironmentRequirements || []).map((item, index) => (
                   <ListItem key={index}>
@@ -494,7 +644,9 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
           </Grid>
           <Grid size={6}>
             <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom color="primary">Data Requirements</Typography>
+              <Typography variant="h6" gutterBottom color="primary">
+                Data Requirements
+              </Typography>
               <List dense>
                 {(plan.testDataRequirements || []).map((item, index) => (
                   <ListItem key={index}>
@@ -507,7 +659,9 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
         </Grid>
 
         <Paper sx={{ p: 3, mt: 3 }}>
-          <Typography variant="h6" gutterBottom color="primary">Success Criteria</Typography>
+          <Typography variant="h6" gutterBottom color="primary">
+            Success Criteria
+          </Typography>
           <List dense>
             {(plan.successCriteria || []).map((item, index) => (
               <ListItem key={index}>
@@ -518,26 +672,28 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
         </Paper>
 
         <Paper sx={{ p: 3, mt: 3 }}>
-          <Typography variant="h6" gutterBottom color="primary">Test Cases ({plan.testCases.length})</Typography>
-          {(plan.testCases || []).map((testCase) => (
+          <Typography variant="h6" gutterBottom color="primary">
+            Test Cases ({plan.testCases.length})
+          </Typography>
+          {(plan.testCases || []).map(testCase => (
             <Accordion key={testCase.id}>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography>{testCase.title}</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Typography variant="body2" paragraph>{testCase.description}</Typography>
-                <Typography variant="body2"><strong>Expected Result:</strong> {testCase.expectedResult}</Typography>
+                <Typography variant="body2" paragraph>
+                  {testCase.description}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Expected Result:</strong> {testCase.expectedResult}
+                </Typography>
               </AccordionDetails>
             </Accordion>
           ))}
         </Paper>
 
         <Box sx={{ display: 'flex', gap: 2, mt: 3, justifyContent: 'flex-end' }}>
-          <Button
-            variant="outlined"
-            startIcon={<ExportIcon />}
-            onClick={() => generatePDF(plan)}
-          >
+          <Button variant="outlined" startIcon={<ExportIcon />} onClick={() => generatePDF(plan)}>
             Export PDF
           </Button>
           <Button
@@ -571,7 +727,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 label="Test Plan Title *"
                 fullWidth
                 value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                onChange={e => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g., Gradebook Feature Testing"
                 disabled={viewMode === 'view'}
               />
@@ -583,7 +739,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 multiline
                 rows={3}
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Brief description of what the feature does"
                 disabled={viewMode === 'view'}
               />
@@ -593,7 +749,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 label="Feature Name *"
                 fullWidth
                 value={formData.feature}
-                onChange={(e) => setFormData({ ...formData, feature: e.target.value })}
+                onChange={e => setFormData({ ...formData, feature: e.target.value })}
                 placeholder="e.g., Grade Management"
                 disabled={viewMode === 'view'}
               />
@@ -604,11 +760,18 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 <Select
                   value={formData.blackboardFeature}
                   label="Blackboard Feature Category"
-                  onChange={(e) => setFormData({ ...formData, blackboardFeature: e.target.value as BlackboardFeature })}
+                  onChange={e =>
+                    setFormData({
+                      ...formData,
+                      blackboardFeature: e.target.value as BlackboardFeature,
+                    })
+                  }
                   disabled={viewMode === 'view'}
                 >
-                  {blackboardFeatures.map((feature) => (
-                    <MenuItem key={feature} value={feature}>{feature}</MenuItem>
+                  {blackboardFeatures.map(feature => (
+                    <MenuItem key={feature} value={feature}>
+                      {feature}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -619,11 +782,15 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 <Select
                   value={formData.category}
                   label="Test Category"
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value as TestCategory })}
+                  onChange={e =>
+                    setFormData({ ...formData, category: e.target.value as TestCategory })
+                  }
                   disabled={viewMode === 'view'}
                 >
-                  {categories.map((category) => (
-                    <MenuItem key={category} value={category}>{category}</MenuItem>
+                  {categories.map(category => (
+                    <MenuItem key={category} value={category}>
+                      {category}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -634,7 +801,9 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 <Select
                   value={formData.priority}
                   label="Priority"
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value as TestPlan['priority'] })}
+                  onChange={e =>
+                    setFormData({ ...formData, priority: e.target.value as TestPlan['priority'] })
+                  }
                   disabled={viewMode === 'view'}
                 >
                   <MenuItem value="Low">Low</MenuItem>
@@ -649,7 +818,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 label="Value Stream"
                 fullWidth
                 value={formData.valueStream || ''}
-                onChange={(e) => setFormData({ ...formData, valueStream: e.target.value })}
+                onChange={e => setFormData({ ...formData, valueStream: e.target.value })}
                 placeholder="e.g., Teaching & Learning, Student Success, Administrative Operations"
                 disabled={viewMode === 'view'}
                 helperText="Specify the value stream this test plan belongs to for organizational context"
@@ -676,7 +845,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 multiline
                 rows={4}
                 value={formData.objective}
-                onChange={(e) => setFormData({ ...formData, objective: e.target.value })}
+                onChange={e => setFormData({ ...formData, objective: e.target.value })}
                 placeholder="Validate all core functionality to ensure it meets Blackboard Learn standards. Include what you want to accomplish with this testing effort."
                 disabled={viewMode === 'view'}
                 helperText="Describe the main goal of your testing effort. What do you want to validate or achieve?"
@@ -688,7 +857,9 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 type="number"
                 fullWidth
                 value={formData.estimatedHours}
-                onChange={(e) => setFormData({ ...formData, estimatedHours: parseInt(e.target.value) || 0 })}
+                onChange={e =>
+                  setFormData({ ...formData, estimatedHours: parseInt(e.target.value) || 0 })
+                }
                 disabled={viewMode === 'view'}
               />
             </Grid>
@@ -697,7 +868,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 label="Assignee"
                 fullWidth
                 value={formData.assignee}
-                onChange={(e) => setFormData({ ...formData, assignee: e.target.value })}
+                onChange={e => setFormData({ ...formData, assignee: e.target.value })}
                 disabled={viewMode === 'view'}
                 placeholder="QA Engineer name"
               />
@@ -716,9 +887,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 Define what will and won't be tested, plus any prerequisites.
               </Typography>
             </Grid>
-            
+
             <Grid size={12}>
-              <Typography variant="subtitle1" gutterBottom>In Scope</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                In Scope
+              </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 What will be tested as part of this test plan?
               </Typography>
@@ -728,12 +901,12 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                     fullWidth
                     placeholder="e.g., Grade entry and editing workflows"
                     value={item}
-                    onChange={(e) => updateArrayItem('inScope', index, e.target.value)}
+                    onChange={e => updateArrayItem('inScope', index, e.target.value)}
                     disabled={viewMode === 'view'}
                   />
                   {viewMode !== 'view' && (
-                    <IconButton 
-                      onClick={() => removeArrayItem('inScope', index)} 
+                    <IconButton
+                      onClick={() => removeArrayItem('inScope', index)}
                       disabled={formData.inScope.length === 1}
                     >
                       <DeleteIcon />
@@ -742,14 +915,20 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 </Box>
               ))}
               {viewMode !== 'view' && (
-                <Button onClick={() => addArrayItem('inScope')} size="small" startIcon={<AddIcon />}>
+                <Button
+                  onClick={() => addArrayItem('inScope')}
+                  size="small"
+                  startIcon={<AddIcon />}
+                >
                   Add In-Scope Item
                 </Button>
               )}
             </Grid>
 
             <Grid size={12}>
-              <Typography variant="subtitle1" gutterBottom>Out of Scope</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                Out of Scope
+              </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 What will NOT be tested in this test plan?
               </Typography>
@@ -759,12 +938,12 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                     fullWidth
                     placeholder="e.g., Third-party integrations"
                     value={item}
-                    onChange={(e) => updateArrayItem('outOfScope', index, e.target.value)}
+                    onChange={e => updateArrayItem('outOfScope', index, e.target.value)}
                     disabled={viewMode === 'view'}
                   />
                   {viewMode !== 'view' && (
-                    <IconButton 
-                      onClick={() => removeArrayItem('outOfScope', index)} 
+                    <IconButton
+                      onClick={() => removeArrayItem('outOfScope', index)}
                       disabled={formData.outOfScope.length === 1}
                     >
                       <DeleteIcon />
@@ -773,14 +952,20 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 </Box>
               ))}
               {viewMode !== 'view' && (
-                <Button onClick={() => addArrayItem('outOfScope')} size="small" startIcon={<AddIcon />}>
+                <Button
+                  onClick={() => addArrayItem('outOfScope')}
+                  size="small"
+                  startIcon={<AddIcon />}
+                >
                   Add Out-of-Scope Item
                 </Button>
               )}
             </Grid>
 
             <Grid size={12}>
-              <Typography variant="subtitle1" gutterBottom>Prerequisites</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                Prerequisites
+              </Typography>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 What needs to be ready before testing can begin?
               </Typography>
@@ -790,12 +975,12 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                     fullWidth
                     placeholder="e.g., Test environment setup"
                     value={prereq}
-                    onChange={(e) => updateArrayItem('prerequisites', index, e.target.value)}
+                    onChange={e => updateArrayItem('prerequisites', index, e.target.value)}
                     disabled={viewMode === 'view'}
                   />
                   {viewMode !== 'view' && (
-                    <IconButton 
-                      onClick={() => removeArrayItem('prerequisites', index)} 
+                    <IconButton
+                      onClick={() => removeArrayItem('prerequisites', index)}
                       disabled={formData.prerequisites.length === 1}
                     >
                       <DeleteIcon />
@@ -804,7 +989,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 </Box>
               ))}
               {viewMode !== 'view' && (
-                <Button onClick={() => addArrayItem('prerequisites')} size="small" startIcon={<AddIcon />}>
+                <Button
+                  onClick={() => addArrayItem('prerequisites')}
+                  size="small"
+                  startIcon={<AddIcon />}
+                >
                   Add Prerequisite
                 </Button>
               )}
@@ -820,10 +1009,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 4. Test Strategy
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                Define your testing approach and select applicable strategies from the checklist below.
+                Define your testing approach and select applicable strategies from the checklist
+                below.
               </Typography>
             </Grid>
-            
+
             <Grid size={12}>
               <TextField
                 label="Strategy Overview"
@@ -831,7 +1021,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 multiline
                 rows={3}
                 value={formData.testStrategy}
-                onChange={(e) => setFormData({ ...formData, testStrategy: e.target.value })}
+                onChange={e => setFormData({ ...formData, testStrategy: e.target.value })}
                 placeholder="Provide a high-level overview of your testing approach..."
                 disabled={viewMode === 'view'}
                 helperText="Brief description of your overall testing strategy and focus areas."
@@ -843,63 +1033,81 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 Strategy Checklist
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                Select applicable testing strategies and add notes where needed. This checklist helps ensure comprehensive test coverage.
+                Select applicable testing strategies and add notes where needed. This checklist
+                helps ensure comprehensive test coverage.
               </Typography>
-              
-              {['test_types', 'automation', 'risk_management', 'tools', 'coverage', 'process'].map(category => {
-                const categoryItems = formData.strategyChecklist.filter(item => item.category === category);
-                if (categoryItems.length === 0) return null;
-                
-                return (
-                  <Box key={category} sx={{ mb: 3 }}>
-                    <Typography variant="subtitle1" sx={{ 
-                      textTransform: 'capitalize', 
-                      fontWeight: 'bold',
-                      color: 'primary.main',
-                      mb: 1
-                    }}>
-                      {category.replace('_', ' ')}
-                    </Typography>
-                    <Paper sx={{ p: 2, backgroundColor: 'background.default' }}>
-                      {categoryItems.map(item => (
-                        <Box key={item.id} sx={{ mb: 1 }}>
-                          <FormControlLabel
-                            control={
-                              <Checkbox
-                                checked={item.checked}
-                                onChange={(e) => updateStrategyChecklistItem(item.id, 'checked', e.target.checked)}
-                                disabled={viewMode === 'view'}
-                              />
-                            }
-                            label={item.item}
-                          />
-                          {item.checked && (
-                            <TextField
-                              fullWidth
-                              size="small"
-                              placeholder="Add implementation notes..."
-                              value={item.notes || ''}
-                              onChange={(e) => updateStrategyChecklistItem(item.id, 'notes', e.target.value)}
-                              disabled={viewMode === 'view'}
-                              sx={{ ml: 4, mt: 1 }}
+
+              {['test_types', 'automation', 'risk_management', 'tools', 'coverage', 'process'].map(
+                category => {
+                  const categoryItems = formData.strategyChecklist.filter(
+                    item => item.category === category
+                  );
+                  if (categoryItems.length === 0) return null;
+
+                  return (
+                    <Box key={category} sx={{ mb: 3 }}>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          textTransform: 'capitalize',
+                          fontWeight: 'bold',
+                          color: 'primary.main',
+                          mb: 1,
+                        }}
+                      >
+                        {category.replace('_', ' ')}
+                      </Typography>
+                      <Paper sx={{ p: 2, backgroundColor: 'background.default' }}>
+                        {categoryItems.map(item => (
+                          <Box key={item.id} sx={{ mb: 1 }}>
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={item.checked}
+                                  onChange={e =>
+                                    updateStrategyChecklistItem(
+                                      item.id,
+                                      'checked',
+                                      e.target.checked
+                                    )
+                                  }
+                                  disabled={viewMode === 'view'}
+                                />
+                              }
+                              label={item.item}
                             />
-                          )}
-                        </Box>
-                      ))}
-                      {viewMode !== 'view' && (
-                        <Button
-                          size="small"
-                          startIcon={<AddIcon />}
-                          onClick={() => addCustomStrategyItem(category as StrategyChecklistItem['category'])}
-                          sx={{ mt: 1 }}
-                        >
-                          Add Custom {category.replace('_', ' ')} Item
-                        </Button>
-                      )}
-                    </Paper>
-                  </Box>
-                );
-              })}
+                            {item.checked && (
+                              <TextField
+                                fullWidth
+                                size="small"
+                                placeholder="Add implementation notes..."
+                                value={item.notes || ''}
+                                onChange={e =>
+                                  updateStrategyChecklistItem(item.id, 'notes', e.target.value)
+                                }
+                                disabled={viewMode === 'view'}
+                                sx={{ ml: 4, mt: 1 }}
+                              />
+                            )}
+                          </Box>
+                        ))}
+                        {viewMode !== 'view' && (
+                          <Button
+                            size="small"
+                            startIcon={<AddIcon />}
+                            onClick={() =>
+                              addCustomStrategyItem(category as StrategyChecklistItem['category'])
+                            }
+                            sx={{ mt: 1 }}
+                          >
+                            Add Custom {category.replace('_', ' ')} Item
+                          </Button>
+                        )}
+                      </Paper>
+                    </Box>
+                  );
+                }
+              )}
             </Grid>
           </Grid>
         );
@@ -912,7 +1120,8 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 5. Test Scenarios (Given/When/Then)
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                Define test scenarios that will be used for risk analysis workflows. These form the foundation for both test execution and risk analysis.
+                Define test scenarios that will be used for risk analysis workflows. These form the
+                foundation for both test execution and risk analysis.
               </Typography>
             </Grid>
             {formData.testScenarios.map((scenario, index) => (
@@ -921,10 +1130,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                     <Typography variant="subtitle1">Scenario {index + 1}</Typography>
                     {viewMode !== 'view' && (
-                      <IconButton 
-                        onClick={() => removeTestScenario(index)}
-                        size="small"
-                      >
+                      <IconButton onClick={() => removeTestScenario(index)} size="small">
                         <DeleteIcon />
                       </IconButton>
                     )}
@@ -936,7 +1142,9 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                         label="User Story ID *"
                         placeholder="e.g., AB#1234567"
                         value={scenario.userStoryId || ''}
-                        onChange={(e) => updateTestScenario(index, 'userStoryId', e.target.value.toUpperCase())}
+                        onChange={e =>
+                          updateTestScenario(index, 'userStoryId', e.target.value.toUpperCase())
+                        }
                         disabled={viewMode === 'view'}
                         helperText="Format: AB#1234567 (e.g., AB#1234567) - Required for linking to Risk Analysis"
                         error={scenario.userStoryId && !/^AB#\d{7}$/.test(scenario.userStoryId)}
@@ -948,7 +1156,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                         label="Given (Initial condition) *"
                         placeholder="e.g., An instructor has entered a grade into the gradebook cell"
                         value={scenario.given}
-                        onChange={(e) => updateTestScenario(index, 'given', e.target.value)}
+                        onChange={e => updateTestScenario(index, 'given', e.target.value)}
                         disabled={viewMode === 'view'}
                         multiline
                         rows={2}
@@ -960,7 +1168,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                         label="When (Action or trigger) *"
                         placeholder="e.g., They hit enter or click away from the cell"
                         value={scenario.when}
-                        onChange={(e) => updateTestScenario(index, 'when', e.target.value)}
+                        onChange={e => updateTestScenario(index, 'when', e.target.value)}
                         disabled={viewMode === 'view'}
                         multiline
                         rows={2}
@@ -972,18 +1180,29 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                         label="Then (Expected outcome) * - Single Assertion Only"
                         placeholder="e.g., The grade is saved to the database and displayed correctly"
                         value={scenario.then}
-                        onChange={(e) => updateTestScenario(index, 'then', e.target.value)}
+                        onChange={e => updateTestScenario(index, 'then', e.target.value)}
                         disabled={viewMode === 'view'}
                         multiline
                         rows={2}
                         helperText="This is the atomic unit for risk assessment. Ensure it describes ONE clear, verifiable outcome."
-                        error={scenario.then && (scenario.then.toLowerCase().includes(' and ') || scenario.then.split(',').length > 2)}
+                        error={
+                          scenario.then &&
+                          (scenario.then.toLowerCase().includes(' and ') ||
+                            scenario.then.split(',').length > 2)
+                        }
                       />
-                      {scenario.then && (scenario.then.toLowerCase().includes(' and ') || scenario.then.split(',').length > 2) && (
-                        <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
-                          Warning: 'Then' statement should contain a single assertion. Consider splitting into multiple acceptance criteria.
-                        </Typography>
-                      )}
+                      {scenario.then &&
+                        (scenario.then.toLowerCase().includes(' and ') ||
+                          scenario.then.split(',').length > 2) && (
+                          <Typography
+                            variant="caption"
+                            color="error"
+                            sx={{ mt: 0.5, display: 'block' }}
+                          >
+                            Warning: 'Then' statement should contain a single assertion. Consider
+                            splitting into multiple acceptance criteria.
+                          </Typography>
+                        )}
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <FormControl fullWidth>
@@ -991,7 +1210,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                         <Select
                           value={scenario.priority}
                           label="Priority"
-                          onChange={(e) => updateTestScenario(index, 'priority', e.target.value)}
+                          onChange={e => updateTestScenario(index, 'priority', e.target.value)}
                           disabled={viewMode === 'view'}
                         >
                           <MenuItem value="Low">Low</MenuItem>
@@ -1006,28 +1225,39 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                         fullWidth
                         label="Notes (optional)"
                         value={scenario.notes || ''}
-                        onChange={(e) => updateTestScenario(index, 'notes', e.target.value)}
+                        onChange={e => updateTestScenario(index, 'notes', e.target.value)}
                         disabled={viewMode === 'view'}
                         placeholder="Additional context or rationale"
                       />
                     </Grid>
-                    
+
                     {/* Acceptance Criteria Section */}
                     <Grid size={12}>
                       <Typography variant="h6" gutterBottom sx={{ mt: 2, mb: 1 }}>
                         Acceptance Criteria (Workflows)
                       </Typography>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
-                        These acceptance criteria become the individual workflows in risk analysis. Each gets a unique ID for test automation.
+                        These acceptance criteria become the individual workflows in risk analysis.
+                        Each gets a unique ID for test automation.
                       </Typography>
-                      
+
                       {(scenario.acceptanceCriteria || []).map((ac, acIndex) => (
-                        <Box key={ac.id} sx={{ mb: 2, p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
-                          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                            <Typography variant="subtitle2">AC #{acIndex + 1} - ID: {ac.id}</Typography>
+                        <Box
+                          key={ac.id}
+                          sx={{ mb: 2, p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}
+                        >
+                          <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="center"
+                            mb={1}
+                          >
+                            <Typography variant="subtitle2">
+                              AC #{acIndex + 1} - ID: {ac.id}
+                            </Typography>
                             {viewMode !== 'view' && (
-                              <IconButton 
-                                size="small" 
+                              <IconButton
+                                size="small"
                                 onClick={() => removeAcceptanceCriteria(index, acIndex)}
                                 aria-label={`Remove acceptance criteria ${acIndex + 1}`}
                               >
@@ -1041,7 +1271,14 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                                 fullWidth
                                 label="Description *"
                                 value={ac.description}
-                                onChange={(e) => updateAcceptanceCriteria(index, acIndex, 'description', e.target.value)}
+                                onChange={e =>
+                                  updateAcceptanceCriteria(
+                                    index,
+                                    acIndex,
+                                    'description',
+                                    e.target.value
+                                  )
+                                }
                                 disabled={viewMode === 'view'}
                                 placeholder="e.g., Folder icon changes state to indicate expanded/collapsed status"
                                 multiline
@@ -1053,7 +1290,9 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                                 fullWidth
                                 label="Notes"
                                 value={ac.notes || ''}
-                                onChange={(e) => updateAcceptanceCriteria(index, acIndex, 'notes', e.target.value)}
+                                onChange={e =>
+                                  updateAcceptanceCriteria(index, acIndex, 'notes', e.target.value)
+                                }
                                 disabled={viewMode === 'view'}
                                 placeholder="Implementation notes"
                               />
@@ -1061,11 +1300,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                           </Grid>
                         </Box>
                       ))}
-                      
+
                       {viewMode !== 'view' && (
-                        <Button 
-                          onClick={() => addAcceptanceCriteria(index)} 
-                          size="small" 
+                        <Button
+                          onClick={() => addAcceptanceCriteria(index)}
+                          size="small"
                           startIcon={<AddIcon />}
                           variant="outlined"
                         >
@@ -1079,7 +1318,13 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
             ))}
             {viewMode !== 'view' && (
               <Grid size={12}>
-                <Button onClick={addTestScenario} size="large" startIcon={<AddIcon />} fullWidth variant="outlined">
+                <Button
+                  onClick={addTestScenario}
+                  size="large"
+                  startIcon={<AddIcon />}
+                  fullWidth
+                  variant="outlined"
+                >
                   Add Test Scenario
                 </Button>
               </Grid>
@@ -1098,21 +1343,25 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 Specify what environment setup and test data you need.
               </Typography>
             </Grid>
-            
+
             <Grid size={12}>
-              <Typography variant="subtitle1" gutterBottom>Test Environment Requirements</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                Test Environment Requirements
+              </Typography>
               {formData.testEnvironmentRequirements.map((item, index) => (
                 <Box key={index} display="flex" alignItems="center" gap={1} mb={1}>
                   <TextField
                     fullWidth
                     placeholder="e.g., Blackboard Learn Ultra test instance"
                     value={item}
-                    onChange={(e) => updateArrayItem('testEnvironmentRequirements', index, e.target.value)}
+                    onChange={e =>
+                      updateArrayItem('testEnvironmentRequirements', index, e.target.value)
+                    }
                     disabled={viewMode === 'view'}
                   />
                   {viewMode !== 'view' && (
-                    <IconButton 
-                      onClick={() => removeArrayItem('testEnvironmentRequirements', index)} 
+                    <IconButton
+                      onClick={() => removeArrayItem('testEnvironmentRequirements', index)}
                       disabled={formData.testEnvironmentRequirements.length === 1}
                     >
                       <DeleteIcon />
@@ -1121,26 +1370,32 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 </Box>
               ))}
               {viewMode !== 'view' && (
-                <Button onClick={() => addArrayItem('testEnvironmentRequirements')} size="small" startIcon={<AddIcon />}>
+                <Button
+                  onClick={() => addArrayItem('testEnvironmentRequirements')}
+                  size="small"
+                  startIcon={<AddIcon />}
+                >
                   Add Environment Requirement
                 </Button>
               )}
             </Grid>
 
             <Grid size={12}>
-              <Typography variant="subtitle1" gutterBottom>Test Data Requirements</Typography>
+              <Typography variant="subtitle1" gutterBottom>
+                Test Data Requirements
+              </Typography>
               {formData.testDataRequirements.map((item, index) => (
                 <Box key={index} display="flex" alignItems="center" gap={1} mb={1}>
                   <TextField
                     fullWidth
                     placeholder="e.g., Sample course with enrolled students"
                     value={item}
-                    onChange={(e) => updateArrayItem('testDataRequirements', index, e.target.value)}
+                    onChange={e => updateArrayItem('testDataRequirements', index, e.target.value)}
                     disabled={viewMode === 'view'}
                   />
                   {viewMode !== 'view' && (
-                    <IconButton 
-                      onClick={() => removeArrayItem('testDataRequirements', index)} 
+                    <IconButton
+                      onClick={() => removeArrayItem('testDataRequirements', index)}
                       disabled={formData.testDataRequirements.length === 1}
                     >
                       <DeleteIcon />
@@ -1149,7 +1404,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 </Box>
               ))}
               {viewMode !== 'view' && (
-                <Button onClick={() => addArrayItem('testDataRequirements')} size="small" startIcon={<AddIcon />}>
+                <Button
+                  onClick={() => addArrayItem('testDataRequirements')}
+                  size="small"
+                  startIcon={<AddIcon />}
+                >
                   Add Data Requirement
                 </Button>
               )}
@@ -1168,7 +1427,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 Define what constitutes successful completion of this test plan.
               </Typography>
             </Grid>
-            
+
             <Grid size={12}>
               {formData.successCriteria.map((item, index) => (
                 <Box key={index} display="flex" alignItems="center" gap={1} mb={1}>
@@ -1176,12 +1435,12 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                     fullWidth
                     placeholder="e.g., All critical scenarios pass without data loss"
                     value={item}
-                    onChange={(e) => updateArrayItem('successCriteria', index, e.target.value)}
+                    onChange={e => updateArrayItem('successCriteria', index, e.target.value)}
                     disabled={viewMode === 'view'}
                   />
                   {viewMode !== 'view' && (
-                    <IconButton 
-                      onClick={() => removeArrayItem('successCriteria', index)} 
+                    <IconButton
+                      onClick={() => removeArrayItem('successCriteria', index)}
                       disabled={formData.successCriteria.length === 1}
                     >
                       <DeleteIcon />
@@ -1190,7 +1449,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 </Box>
               ))}
               {viewMode !== 'view' && (
-                <Button onClick={() => addArrayItem('successCriteria')} size="small" startIcon={<AddIcon />}>
+                <Button
+                  onClick={() => addArrayItem('successCriteria')}
+                  size="small"
+                  startIcon={<AddIcon />}
+                >
                   Add Success Criterion
                 </Button>
               )}
@@ -1211,32 +1474,56 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
             </Grid>
             <Grid size={12}>
               <Paper sx={{ p: 3 }}>
-                <Typography variant="h6" gutterBottom>{formData.title}</Typography>
-                <Typography variant="body1" paragraph>{formData.description}</Typography>
-                
+                <Typography variant="h6" gutterBottom>
+                  {formData.title}
+                </Typography>
+                <Typography variant="body1" paragraph>
+                  {formData.description}
+                </Typography>
+
                 <Grid container spacing={2}>
                   <Grid size={6}>
-                    <Typography variant="body2"><strong>Feature:</strong> {formData.feature}</Typography>
+                    <Typography variant="body2">
+                      <strong>Feature:</strong> {formData.feature}
+                    </Typography>
                   </Grid>
                   <Grid size={6}>
-                    <Typography variant="body2"><strong>Priority:</strong> {formData.priority}</Typography>
+                    <Typography variant="body2">
+                      <strong>Priority:</strong> {formData.priority}
+                    </Typography>
                   </Grid>
                   <Grid size={6}>
-                    <Typography variant="body2"><strong>Blackboard Feature:</strong> {formData.blackboardFeature}</Typography>
+                    <Typography variant="body2">
+                      <strong>Blackboard Feature:</strong> {formData.blackboardFeature}
+                    </Typography>
                   </Grid>
                   <Grid size={6}>
-                    <Typography variant="body2"><strong>Estimated Hours:</strong> {formData.estimatedHours}h</Typography>
+                    <Typography variant="body2">
+                      <strong>Estimated Hours:</strong> {formData.estimatedHours}h
+                    </Typography>
                   </Grid>
                 </Grid>
 
-                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>Objective</Typography>
-                <Typography variant="body2" paragraph>{formData.objective}</Typography>
+                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                  Objective
+                </Typography>
+                <Typography variant="body2" paragraph>
+                  {formData.objective}
+                </Typography>
 
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>Test Scenarios</Typography>
-                <Typography variant="body2" color="text.secondary">{formData.testScenarios.length} scenarios defined</Typography>
-                
-                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>Success Criteria</Typography>
-                <Typography variant="body2" color="text.secondary">{formData.successCriteria.length} criteria defined</Typography>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                  Test Scenarios
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {formData.testScenarios.length} scenarios defined
+                </Typography>
+
+                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
+                  Success Criteria
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {formData.successCriteria.length} criteria defined
+                </Typography>
               </Paper>
             </Grid>
           </Grid>
@@ -1248,16 +1535,40 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   };
 
   const categories: TestCategory[] = [
-    'Functional', 'Integration', 'Performance', 'Security', 'Usability',
-    'Accessibility', 'API', 'Database', 'UI/UX', 'Mobile', 'Cross-browser'
+    'Functional',
+    'Integration',
+    'Performance',
+    'Security',
+    'Usability',
+    'Accessibility',
+    'API',
+    'Database',
+    'UI/UX',
+    'Mobile',
+    'Cross-browser',
   ];
 
   const blackboardFeatures: BlackboardFeature[] = [
-    'Course Management', 'Gradebook', 'Discussion Forums', 'Assignments',
-    'Content Areas', 'Announcements', 'Calendar', 'Messages', 'Group Management',
-    'Assessment Tools', 'Rubrics', 'SafeAssign', 'Attendance', 'Grade Center',
-    'Ultra Course View', 'Original Course View', 'Mobile App', 'Integration Tools',
-    'Reports', 'System Administration'
+    'Course Management',
+    'Gradebook',
+    'Discussion Forums',
+    'Assignments',
+    'Content Areas',
+    'Announcements',
+    'Calendar',
+    'Messages',
+    'Group Management',
+    'Assessment Tools',
+    'Rubrics',
+    'SafeAssign',
+    'Attendance',
+    'Grade Center',
+    'Ultra Course View',
+    'Original Course View',
+    'Mobile App',
+    'Integration Tools',
+    'Reports',
+    'System Administration',
   ];
 
   const handleCreateNew = () => {
@@ -1356,11 +1667,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       then: '',
       priority: 'Medium',
       acceptanceCriteria: [],
-      notes: ''
+      notes: '',
     };
     setFormData({
       ...formData,
-      testScenarios: [...formData.testScenarios, newScenario]
+      testScenarios: [...formData.testScenarios, newScenario],
     });
   };
 
@@ -1368,30 +1679,37 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
     const newAC: AcceptanceCriteria = {
       id: DataService.generateTestCaseId(),
       description: '',
-      notes: ''
+      notes: '',
     };
-    
+
     const updatedScenarios = [...formData.testScenarios];
     updatedScenarios[scenarioIndex].acceptanceCriteria = [
       ...updatedScenarios[scenarioIndex].acceptanceCriteria,
-      newAC
+      newAC,
     ];
-    
+
     setFormData({ ...formData, testScenarios: updatedScenarios });
   };
 
-  const updateAcceptanceCriteria = (scenarioIndex: number, acIndex: number, field: keyof AcceptanceCriteria, value: string) => {
+  const updateAcceptanceCriteria = (
+    scenarioIndex: number,
+    acIndex: number,
+    field: keyof AcceptanceCriteria,
+    value: string
+  ) => {
     const updatedScenarios = [...formData.testScenarios];
     updatedScenarios[scenarioIndex].acceptanceCriteria[acIndex] = {
       ...updatedScenarios[scenarioIndex].acceptanceCriteria[acIndex],
-      [field]: value
+      [field]: value,
     };
     setFormData({ ...formData, testScenarios: updatedScenarios });
   };
 
   const removeAcceptanceCriteria = (scenarioIndex: number, acIndex: number) => {
     const updatedScenarios = [...formData.testScenarios];
-    updatedScenarios[scenarioIndex].acceptanceCriteria = updatedScenarios[scenarioIndex].acceptanceCriteria.filter((_, i) => i !== acIndex);
+    updatedScenarios[scenarioIndex].acceptanceCriteria = updatedScenarios[
+      scenarioIndex
+    ].acceptanceCriteria.filter((_, i) => i !== acIndex);
     setFormData({ ...formData, testScenarios: updatedScenarios });
   };
 
@@ -1408,14 +1726,14 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   const removeTestScenario = (index: number) => {
     setFormData({
       ...formData,
-      testScenarios: formData.testScenarios.filter((_, i) => i !== index)
+      testScenarios: formData.testScenarios.filter((_, i) => i !== index),
     });
   };
 
   const addPrerequisite = () => {
     setFormData({
       ...formData,
-      prerequisites: [...formData.prerequisites, '']
+      prerequisites: [...formData.prerequisites, ''],
     });
   };
 
@@ -1428,7 +1746,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   const removePrerequisite = (index: number) => {
     setFormData({
       ...formData,
-      prerequisites: formData.prerequisites.filter((_, i) => i !== index)
+      prerequisites: formData.prerequisites.filter((_, i) => i !== index),
     });
   };
 
@@ -1436,7 +1754,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   const addArrayItem = (field: keyof typeof formData, value: string = '') => {
     setFormData({
       ...formData,
-      [field]: [...(formData[field] as string[]), value]
+      [field]: [...(formData[field] as string[]), value],
     });
   };
 
@@ -1453,23 +1771,35 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'Critical': return 'error';
-      case 'High': return 'warning';
-      case 'Medium': return 'info';
-      case 'Low': return 'success';
-      default: return 'default';
+      case 'Critical':
+        return 'error';
+      case 'High':
+        return 'warning';
+      case 'Medium':
+        return 'info';
+      case 'Low':
+        return 'success';
+      default:
+        return 'default';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Completed': return 'success';
-      case 'In Progress': return 'primary';
-      case 'Review': return 'warning';
-      case 'Draft': return 'default';
-      case 'Approved': return 'info';
-      case 'Archived': return 'error';
-      default: return 'default';
+      case 'Completed':
+        return 'success';
+      case 'In Progress':
+        return 'primary';
+      case 'Review':
+        return 'warning';
+      case 'Draft':
+        return 'default';
+      case 'Approved':
+        return 'info';
+      case 'Archived':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
@@ -1498,11 +1828,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <TableViewIcon />
             </ToggleButton>
           </ToggleButtonGroup>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleCreateNew}
-          >
+          <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateNew}>
             Create Test Plan
           </Button>
         </Box>
@@ -1526,26 +1852,27 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {testPlans.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((plan) => {
-                  const totalAC = plan.testScenarios.reduce((sum, scenario) => 
-                    sum + (scenario.acceptanceCriteria?.length || 0), 0
+                {testPlans.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map(plan => {
+                  const totalAC = plan.testScenarios.reduce(
+                    (sum, scenario) => sum + (scenario.acceptanceCriteria?.length || 0),
+                    0
                   );
-                  
+
                   return (
                     <TableRow key={plan.id}>
                       <TableCell>
                         <Box>
                           <Typography variant="subtitle2">{plan.title}</Typography>
                           <Typography variant="caption" color="text.secondary">
-                            {plan.description.length > 100 
-                              ? `${plan.description.substring(0, 100)}...` 
+                            {plan.description.length > 100
+                              ? `${plan.description.substring(0, 100)}...`
                               : plan.description}
                           </Typography>
                         </Box>
                       </TableCell>
                       <TableCell>{plan.blackboardFeature}</TableCell>
                       <TableCell>
-                        <Chip 
+                        <Chip
                           label={plan.priority}
                           color={getPriorityColor(plan.priority) as any}
                           size="small"
@@ -1586,7 +1913,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Delete">
-                            <IconButton size="small" color="error" onClick={() => handleDelete(plan)}>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              onClick={() => handleDelete(plan)}
+                            >
                               <DeleteIcon />
                             </IconButton>
                           </Tooltip>
@@ -1598,14 +1929,14 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               </TableBody>
             </Table>
           </TableContainer>
-          
+
           <TablePagination
             component="div"
             count={testPlans.length}
             page={page}
             onPageChange={(_, newPage) => setPage(newPage)}
             rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={(event) => {
+            onRowsPerPageChange={event => {
               setRowsPerPage(parseInt(event.target.value, 10));
               setPage(0);
             }}
@@ -1613,122 +1944,122 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
         </Box>
       ) : (
         <Grid container spacing={3}>
-        {testPlans.map((plan) => (
-          <Grid size={{ xs: 12, md: 6, lg: 4 }} key={plan.id}>
-            <Card>
-              <CardContent>
-                <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                  <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                    {plan.title}
-                  </Typography>
-                  <Box>
-                    <Tooltip title="View Details">
-                      <IconButton 
-                        size="small" 
-                        onClick={() => handleView(plan)}
-                        aria-label={`View test plan: ${plan.title}`}
-                      >
-                        <ViewIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Edit Test Plan">
-                      <IconButton 
-                        size="small" 
-                        onClick={() => handleEdit(plan)}
-                        aria-label={`Edit test plan: ${plan.title}`}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Export PDF">
-                      <IconButton 
-                        size="small" 
-                        onClick={() => generatePDF(plan)}
-                        aria-label={`Export test plan: ${plan.title}`}
-                      >
-                        <ExportIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Generate Risk Analysis">
-                      <IconButton 
-                        size="small" 
-                        onClick={() => generateRiskAnalysis(plan)}
-                        aria-label={`Generate risk analysis for: ${plan.title}`}
-                        color="primary"
-                      >
-                        <AnalyticsIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete Test Plan">
-                      <IconButton 
-                        size="small" 
-                        onClick={() => handleDelete(plan)}
-                        aria-label={`Delete test plan: ${plan.title}`}
-                        color="error"
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Tooltip>
+          {testPlans.map(plan => (
+            <Grid size={{ xs: 12, md: 6, lg: 4 }} key={plan.id}>
+              <Card>
+                <CardContent>
+                  <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                      {plan.title}
+                    </Typography>
+                    <Box>
+                      <Tooltip title="View Details">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleView(plan)}
+                          aria-label={`View test plan: ${plan.title}`}
+                        >
+                          <ViewIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Edit Test Plan">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleEdit(plan)}
+                          aria-label={`Edit test plan: ${plan.title}`}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Export PDF">
+                        <IconButton
+                          size="small"
+                          onClick={() => generatePDF(plan)}
+                          aria-label={`Export test plan: ${plan.title}`}
+                        >
+                          <ExportIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Generate Risk Analysis">
+                        <IconButton
+                          size="small"
+                          onClick={() => generateRiskAnalysis(plan)}
+                          aria-label={`Generate risk analysis for: ${plan.title}`}
+                          color="primary"
+                        >
+                          <AnalyticsIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete Test Plan">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDelete(plan)}
+                          aria-label={`Delete test plan: ${plan.title}`}
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
                   </Box>
-                </Box>
-                
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  {plan.description}
-                </Typography>
-                
-                <Box mt={2} mb={2}>
-                  <Chip
-                    label={plan.category}
-                    variant="outlined"
-                    size="small"
-                    sx={{ mr: 1, mb: 1 }}
-                  />
-                  <Chip
-                    label={plan.priority}
-                    color={getPriorityColor(plan.priority) as any}
-                    size="small"
-                    sx={{ mr: 1, mb: 1 }}
-                  />
-                  <Chip
-                    label={plan.status}
-                    color={getStatusColor(plan.status) as any}
-                    variant="outlined"
-                    size="small"
-                    sx={{ mb: 1 }}
-                  />
-                </Box>
-                
-                <Typography variant="body2" gutterBottom>
-                  <strong>Feature:</strong> {plan.blackboardFeature}
-                </Typography>
-                <Typography variant="body2" gutterBottom>
-                  <strong>Estimated Hours:</strong> {plan.estimatedHours}h
-                </Typography>
-                <Typography variant="body2" gutterBottom>
-                  <strong>Test Cases:</strong> {plan.testCases.length}
-                </Typography>
-                <Typography variant="body2" gutterBottom>
-                  <strong>Test Scenarios:</strong> {plan.testScenarios.length}
-                </Typography>
-                {plan.assignee && (
-                  <Typography variant="body2" gutterBottom>
-                    <strong>Assignee:</strong> {plan.assignee}
+
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    {plan.description}
                   </Typography>
-                )}
-                <Typography variant="caption" color="text.secondary">
-                  Updated: {plan.updatedAt.toLocaleDateString()}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+
+                  <Box mt={2} mb={2}>
+                    <Chip
+                      label={plan.category}
+                      variant="outlined"
+                      size="small"
+                      sx={{ mr: 1, mb: 1 }}
+                    />
+                    <Chip
+                      label={plan.priority}
+                      color={getPriorityColor(plan.priority) as any}
+                      size="small"
+                      sx={{ mr: 1, mb: 1 }}
+                    />
+                    <Chip
+                      label={plan.status}
+                      color={getStatusColor(plan.status) as any}
+                      variant="outlined"
+                      size="small"
+                      sx={{ mb: 1 }}
+                    />
+                  </Box>
+
+                  <Typography variant="body2" gutterBottom>
+                    <strong>Feature:</strong> {plan.blackboardFeature}
+                  </Typography>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>Estimated Hours:</strong> {plan.estimatedHours}h
+                  </Typography>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>Test Cases:</strong> {plan.testCases.length}
+                  </Typography>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>Test Scenarios:</strong> {plan.testScenarios.length}
+                  </Typography>
+                  {plan.assignee && (
+                    <Typography variant="body2" gutterBottom>
+                      <strong>Assignee:</strong> {plan.assignee}
+                    </Typography>
+                  )}
+                  <Typography variant="caption" color="text.secondary">
+                    Updated: {plan.updatedAt.toLocaleDateString()}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       )}
 
-      <Dialog 
-        open={open} 
-        onClose={() => setOpen(false)} 
-        maxWidth="lg" 
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="lg"
         fullWidth
         aria-labelledby="dialog-title"
         aria-describedby="dialog-description"
@@ -1739,102 +2070,109 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
           {viewMode === 'view' && 'Test Plan Details'}
         </DialogTitle>
         <DialogContent>
-
-            <Box sx={{ mt: 1 }}>
-              {viewMode === 'view' ? (
-                // Comprehensive structured view
-                selectedPlan && renderViewMode(selectedPlan)
-              ) : (
-                // Interactive step navigation for create/edit
-                <Box>
-                  {/* Clickable step indicator */}
-                  <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-                    {steps.map((label, index) => (
-                      <Tooltip key={label} title={label}>
+          <Box sx={{ mt: 1 }}>
+            {viewMode === 'view' ? (
+              // Comprehensive structured view
+              selectedPlan && renderViewMode(selectedPlan)
+            ) : (
+              // Interactive step navigation for create/edit
+              <Box>
+                {/* Clickable step indicator */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: 2,
+                    mb: 3,
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  {steps.map((label, index) => (
+                    <Tooltip key={label} title={label}>
+                      <Box
+                        onClick={() => setActiveStep(index)}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          cursor: 'pointer',
+                          opacity: activeStep === index ? 1 : 0.6,
+                          '&:hover': {
+                            opacity: 1,
+                          },
+                        }}
+                      >
                         <Box
-                          onClick={() => setActiveStep(index)}
                           sx={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: '50%',
                             display: 'flex',
-                            flexDirection: 'column',
                             alignItems: 'center',
-                            cursor: 'pointer',
-                            opacity: activeStep === index ? 1 : 0.6,
-                            '&:hover': {
-                              opacity: 1,
-                            },
+                            justifyContent: 'center',
+                            bgcolor:
+                              activeStep === index ? 'primary.main' : 'action.disabledBackground',
+                            color: activeStep === index ? 'white' : 'text.secondary',
+                            fontWeight: 'bold',
+                            transition: 'all 0.3s',
+                            border: activeStep === index ? '3px solid' : 'none',
+                            borderColor: 'primary.light',
                           }}
                         >
-                          <Box
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              bgcolor: activeStep === index ? 'primary.main' : 'action.disabledBackground',
-                              color: activeStep === index ? 'white' : 'text.secondary',
-                              fontWeight: 'bold',
-                              transition: 'all 0.3s',
-                              border: activeStep === index ? '3px solid' : 'none',
-                              borderColor: 'primary.light',
-                            }}
-                          >
-                            {index + 1}
-                          </Box>
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              mt: 0.5,
-                              fontWeight: activeStep === index ? 'bold' : 'normal',
-                              color: activeStep === index ? 'primary.main' : 'text.secondary',
-                              maxWidth: 80,
-                              textAlign: 'center',
-                            }}
-                          >
-                            {label}
-                          </Typography>
+                          {index + 1}
                         </Box>
-                      </Tooltip>
-                    ))}
-                  </Box>
-
-                  {/* Current step content */}
-                  <Box sx={{ mb: 3 }}>
-                    <Typography variant="h6" gutterBottom>
-                      {steps[activeStep]}
-                    </Typography>
-                    {renderStepContent(activeStep)}
-                  </Box>
-
-                  {/* Navigation buttons */}
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
-                    <Button
-                      disabled={activeStep === 0}
-                      onClick={handleBack}
-                      variant="outlined"
-                    >
-                      Back
-                    </Button>
-                    <Button
-                      variant="contained"
-                      onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
-                    >
-                      {activeStep === steps.length - 1 ? 
-                        (viewMode === 'create' ? 'Create Test Plan' : 'Update Test Plan') : 
-                        'Continue'
-                      }
-                    </Button>
-                  </Box>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            mt: 0.5,
+                            fontWeight: activeStep === index ? 'bold' : 'normal',
+                            color: activeStep === index ? 'primary.main' : 'text.secondary',
+                            maxWidth: 80,
+                            textAlign: 'center',
+                          }}
+                        >
+                          {label}
+                        </Typography>
+                      </Box>
+                    </Tooltip>
+                  ))}
                 </Box>
-              )}
-            </Box>
+
+                {/* Current step content */}
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {steps[activeStep]}
+                  </Typography>
+                  {renderStepContent(activeStep)}
+                </Box>
+
+                {/* Navigation buttons */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
+                  <Button disabled={activeStep === 0} onClick={handleBack} variant="outlined">
+                    Back
+                  </Button>
+                  <Button
+                    variant="contained"
+                    onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext}
+                  >
+                    {activeStep === steps.length - 1
+                      ? viewMode === 'create'
+                        ? 'Create Test Plan'
+                        : 'Update Test Plan'
+                      : 'Continue'}
+                  </Button>
+                </Box>
+              </Box>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => {
-            setOpen(false);
-            setActiveStep(0);
-          }}>
+          <Button
+            onClick={() => {
+              setOpen(false);
+              setActiveStep(0);
+            }}
+          >
             {viewMode === 'view' ? 'Close' : 'Cancel'}
           </Button>
         </DialogActions>

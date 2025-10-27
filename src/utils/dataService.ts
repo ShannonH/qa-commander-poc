@@ -1,4 +1,4 @@
-import { UserWorkflow, RiskAnalysisDocument, TestPlan, TestScenario, StrategyChecklistItem, AcceptanceCriteria, TCMTestCase, TCMCollection } from '../types';
+import { UserWorkflow, RiskAnalysisDocument, TestPlan, TCMTestCase, TCMCollection } from '../types';
 
 const STORAGE_KEYS = {
   WORKFLOWS: 'qa_commander_workflows',
@@ -11,33 +11,14 @@ const STORAGE_KEYS = {
 
 export class DataService {
   // Generate unique test case ID (starts from 00001)
+  // Generate unique test case ID in format TC-00001, TC-00002, etc.
   static generateTestCaseId(): string {
     const currentCounter = parseInt(localStorage.getItem(STORAGE_KEYS.TEST_CASE_COUNTER) || '0');
     const newCounter = currentCounter + 1;
     localStorage.setItem(STORAGE_KEYS.TEST_CASE_COUNTER, newCounter.toString());
-    return newCounter.toString().padStart(5, '0');
+    return `TC-${newCounter.toString().padStart(5, '0')}`;
   }
 
-  // Check if workflow ID already exists
-  static isTestCaseIdUnique(id: string): boolean {
-    const allWorkflows = this.getUserWorkflows();
-    const allTCMCases = this.getTCMTestCases();
-    return !allWorkflows.some(w => w.id === id) && !allTCMCases.some(tc => tc.id === id);
-  }
-
-  // Get all acceptance criteria from all test plans to check for duplicates
-  static getAllAcceptanceCriteria(): AcceptanceCriteria[] {
-    const testPlans = this.getTestPlans();
-    const allAC: AcceptanceCriteria[] = [];
-    testPlans.forEach(plan => {
-      plan.testScenarios.forEach(scenario => {
-        if (scenario.acceptanceCriteria) {
-          allAC.push(...scenario.acceptanceCriteria);
-        }
-      });
-    });
-    return allAC;
-  }
   // User Workflow methods
   static getUserWorkflows(): UserWorkflow[] {
     const data = localStorage.getItem(STORAGE_KEYS.WORKFLOWS);
@@ -80,12 +61,11 @@ export class DataService {
         // Update the workflow in this document
         doc.workflows[workflowIndex] = {
           ...updatedWorkflow,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         };
 
         // Recalculate overall risk metrics for the document
-        const totalRisk = doc.workflows.reduce((sum, wf) => sum + wf.riskScore, 0);
-        doc.totalRiskScore = totalRisk;
+        doc.totalRiskScore = doc.workflows.reduce((sum, wf) => sum + wf.riskScore, 0);
         doc.overallRiskLevel = this.calculateOverallRiskLevel(doc.workflows);
         doc.updatedAt = new Date();
 
@@ -98,7 +78,9 @@ export class DataService {
     }
   }
 
-  private static calculateOverallRiskLevel(workflows: UserWorkflow[]): 'Low' | 'Medium' | 'High' | 'Critical' {
+  private static calculateOverallRiskLevel(
+    workflows: UserWorkflow[]
+  ): 'Low' | 'Medium' | 'High' | 'Critical' {
     if (workflows.length === 0) return 'Low';
 
     const avgRiskScore = workflows.reduce((sum, wf) => sum + wf.riskScore, 0) / workflows.length;
@@ -168,7 +150,7 @@ export class DataService {
         testScenarios: (plan.testScenarios || []).map((scenario: any) => ({
           ...scenario,
           userStoryId: scenario.userStoryId || 'NO_USER_STORY', // Handle legacy data
-          acceptanceCriteria: scenario.acceptanceCriteria || []
+          acceptanceCriteria: scenario.acceptanceCriteria || [],
         })),
         testEnvironmentRequirements: plan.testEnvironmentRequirements || [],
         testDataRequirements: plan.testDataRequirements || [],
@@ -210,7 +192,8 @@ export class DataService {
       totalTestPlans: testPlans.length,
       highRiskWorkflows: workflows.filter(w => w.riskScore <= 6).length, // Risk scores 1-6 are considered high priority
       automationCandidates: workflows.filter(w => w.riskScore >= 1 && w.riskScore <= 6).length,
-      activeTestPlans: testPlans.filter(p => p.status === 'In Progress' || p.status === 'Review').length,
+      activeTestPlans: testPlans.filter(p => p.status === 'In Progress' || p.status === 'Review')
+        .length,
       completedTestPlans: testPlans.filter(p => p.status === 'Completed').length,
     };
   }
@@ -295,7 +278,10 @@ export class DataService {
   }
 
   // Generate TCM test cases from workflows that meet tier threshold (Tier 1 & 2)
-  static generateTCMTestCasesFromWorkflows(workflows: UserWorkflow[], testPlans: TestPlan[]): TCMTestCase[] {
+  static generateTCMTestCasesFromWorkflows(
+    workflows: UserWorkflow[],
+    testPlans: TestPlan[]
+  ): TCMTestCase[] {
     const newTestCases: TCMTestCase[] = [];
 
     workflows.forEach(workflow => {
@@ -312,58 +298,52 @@ export class DataService {
         const scenario = testPlan?.testScenarios?.find(ts => ts.id === workflow.sourceScenarioId);
 
         if (testPlan && scenario) {
-          // Find the specific AC that corresponds to this workflow
-          const acceptanceCriterion = scenario.acceptanceCriteria?.find(ac => ac.id === workflow.sourceAcceptanceCriteriaId);
+          // Title derived from workflow name (the business process being tested)
+          const testTitle = workflow.workflowName;
 
-          // Title derived from AC description (the 'Then' statement for single assertion)
-          // This is the atomic unit as per the requirements
-          const testTitle = acceptanceCriterion?.description || workflow.workflowName;
-
-          // Generate test steps from GIVEN/WHEN/THEN
-          // Pull the full context from the scenario for execution steps
+          // Generate test steps from business process description
           const testSteps = [
             {
               id: '1',
               stepNumber: 1,
               action: `Setup preconditions: ${scenario.given}`,
-              expectedResult: 'Test environment is prepared with required preconditions'
+              expectedResult: 'Test environment is prepared with required preconditions',
             },
             {
               id: '2',
               stepNumber: 2,
               action: `Perform action: ${scenario.when}`,
-              expectedResult: 'Action executes without errors'
+              expectedResult: 'Action executes without errors',
             },
             {
               id: '3',
               stepNumber: 3,
-              action: `Verify acceptance criterion: ${testTitle}`,
-              expectedResult: testTitle
-            }
+              action: `Verify outcome: ${scenario.then}`,
+              expectedResult: scenario.then,
+            },
           ];
 
           const testCase: TCMTestCase = {
-            id: workflow.id,
-            title: testTitle, // Test title derived from AC (Then statement)
-            description: `Verify: ${testTitle}. Context: ${scenario.given} → ${scenario.when}`,
+            id: this.generateTestCaseId(),
+            title: testTitle,
+            description: workflow.description,
+            sourceWorkflowId: workflow.id,
             sourceTestPlanId: workflow.sourceTestPlanId,
             sourceScenarioId: workflow.sourceScenarioId,
-            sourceAcceptanceCriteriaId: workflow.sourceAcceptanceCriteriaId || workflow.id,
             userStoryId: scenario.userStoryId,
             givenWhenThen: {
               given: scenario.given,
               when: scenario.when,
-              then: scenario.then, // Full scenario 'then'
+              then: scenario.then,
             },
-            acceptanceCriteria: testTitle, // The AC (atomic unit)
             riskScore: workflow.riskScore,
             testingTier: workflow.testingTier,
             likelihood: workflow.likelihood,
             impact: workflow.impact,
-            deliverables: workflow.deliverables,
-            testSteps: testSteps, // Test steps pulled from GIVEN/WHEN content
-            expectedResult: testTitle, // Expected result is the AC
-            notes: workflow.automationReason,
+            automationRecommendation: workflow.automationRecommendation,
+            testSteps: testSteps,
+            expectedResult: scenario.then,
+            notes: workflow.automationRationale,
             createdAt: new Date(),
             updatedAt: new Date(),
           };
@@ -383,51 +363,176 @@ export class DataService {
       const sampleWorkflows: UserWorkflow[] = [
         {
           id: '1',
-          workflowName: 'Student Login to Course',
-          description: 'Student accesses course through Blackboard login',
-          userStoryId: 'AB#1234567',
-          userStory: 'As a student, I want to log into my course so that I can access course materials',
-          blackboardFeature: 'Course Management',
-          likelihood: 2,
-          impact: 2,
-          riskScore: 4,
-          testingTier: 'Tier 2: HIGH',
-          deliverables: 'UI Automation, Exploratory Testing',
-          automationReason: 'Login is critical and stable, risk score 4 qualifies for automation.',
+          workflowName: 'Student Assignment Submission',
+          description:
+            'Student uploads and submits completed assignment through course interface before deadline',
+          userStoryId: 'AB#3252101',
+          blackboardFeature: 'Assignments',
+          riskStatement: 'Students cannot submit assignments or submissions fail to save',
+          businessImpact:
+            'Missed assignment grades, student complaints, support ticket surge, potential academic appeals',
+          likelihood: 1, // Most likely to fail - critical path, lots of edge cases
+          impact: 1, // Most impactful - directly affects grades
+          riskScore: 1,
+          testingTier: 'Tier 1: CRITICAL',
+          deliverables: 'Unit Test, UI Automation (UIA), Exploratory Testing (ET), TCM Test Case',
+          automationRecommendation: 'Automate',
+          automationRationale:
+            'Risk score 1 (critical). Assignment submission is used constantly and any failure directly impacts student grades. Automate happy path and common error scenarios.',
           createdAt: new Date('2025-10-15'),
           updatedAt: new Date('2025-10-15'),
         },
         {
           id: '2',
-          workflowName: 'Instructor Creates Assignment',
-          description: 'Instructor creates and publishes a new assignment',
-          userStoryId: 'AB#2345678',
-          userStory: 'As an instructor, I want to create assignments so that students can submit their work',
-          blackboardFeature: 'Assignments',
-          likelihood: 2,
-          impact: 3,
+          workflowName: 'Instructor Grade Entry and Release',
+          description:
+            'Instructor enters grades for assignments and releases them to students through Grade Center',
+          userStoryId: 'AB#3252102',
+          blackboardFeature: 'Grade Center',
+          riskStatement: 'Grades not saved correctly or released to wrong students',
+          businessImpact:
+            'Grade data integrity issues, privacy violations (FERPA), instructor frustration, potential lawsuits',
+          likelihood: 2, // Likely - complex workflows with data integrity concerns
+          impact: 1, // Most impactful - grades are core to LMS
+          riskScore: 2,
+          testingTier: 'Tier 1: CRITICAL',
+          deliverables: 'Unit Test, UI Automation (UIA), Exploratory Testing (ET), TCM Test Case',
+          automationRecommendation: 'Automate',
+          automationRationale:
+            'Risk score 2 (critical). Grade entry has potential for data integrity issues and privacy violations. Must automate core paths and data validation.',
+          createdAt: new Date('2025-10-16'),
+          updatedAt: new Date('2025-10-16'),
+        },
+        {
+          id: '3',
+          workflowName: 'Course Content Upload and Organization',
+          description:
+            'Instructor uploads course materials (PDFs, videos, documents) and organizes them into content folders',
+          userStoryId: 'AB#3252103',
+          blackboardFeature: 'Content Areas',
+          riskStatement: 'Files fail to upload, get corrupted, or display incorrectly to students',
+          businessImpact:
+            'Students cannot access course materials, instructor has to re-upload content, course delays',
+          likelihood: 2, // Likely - file handling always has edge cases
+          impact: 2, // High impact - blocks learning
+          riskScore: 4,
+          testingTier: 'Tier 2: HIGH',
+          deliverables:
+            'Unit Test (recommended), UI Automation (UIA), Exploratory Testing (ET), TCM Test Case',
+          automationRecommendation: 'Automate',
+          automationRationale:
+            'Risk score 4 (high). Content upload is frequently used and failure blocks student access to materials. Automate standard file types and sizes.',
+          createdAt: new Date('2025-10-17'),
+          updatedAt: new Date('2025-10-17'),
+        },
+        {
+          id: '4',
+          workflowName: 'Discussion Forum Post Creation',
+          description:
+            'Student creates a new discussion forum post with text and optional file attachments',
+          userStoryId: 'AB#3252104',
+          blackboardFeature: 'Discussion Forums',
+          riskStatement: 'Posts fail to save, display incorrectly, or attachments are lost',
+          businessImpact:
+            'Lost student participation credit, frustration, decreased engagement in course discussions',
+          likelihood: 2, // Likely - rich text editors are temperamental
+          impact: 3, // Medium impact - affects participation grade component
           riskScore: 6,
           testingTier: 'Tier 2: HIGH',
-          deliverables: 'UI Automation, Exploratory Testing',
-          automationReason: 'Assignment creation is frequently used, risk score 6 qualifies for automation.',
+          deliverables:
+            'Unit Test (recommended), UI Automation (UIA), Exploratory Testing (ET), TCM Test Case',
+          automationRecommendation: 'Automate',
+          automationRationale:
+            'Risk score 6 (at automation threshold). Discussion posts are common and involve rich text + attachments. Automate basic scenarios, manual test complex formatting.',
           createdAt: new Date('2025-10-18'),
           updatedAt: new Date('2025-10-18'),
         },
         {
-          id: '3',
-          workflowName: 'Student Submits Discussion Post',
-          description: 'Student creates and submits a post in discussion forum',
-          userStoryId: 'AB#3456789',
-          userStory: 'As a student, I want to participate in discussions so that I can engage with course content',
-          blackboardFeature: 'Discussion Forums',
-          likelihood: 3,
-          impact: 3,
+          id: '5',
+          workflowName: 'Student Course Navigation',
+          description:
+            'Student navigates between course pages, content areas, and tools using course menu',
+          userStoryId: 'AB#3252105',
+          blackboardFeature: 'Course Management',
+          riskStatement:
+            "Navigation links broken, pages don't load, or students get lost in course structure",
+          businessImpact:
+            'Poor user experience, students cannot find content, increased support requests',
+          likelihood: 3, // Unlikely - navigation is stable but customization can break it
+          impact: 2, // High impact - affects all course interactions
+          riskScore: 6,
+          testingTier: 'Tier 2: HIGH',
+          deliverables:
+            'Unit Test (recommended), UI Automation (UIA), Exploratory Testing (ET), TCM Test Case',
+          automationRecommendation: 'Automate',
+          automationRationale:
+            'Risk score 6 (at automation threshold). Navigation is foundational - every user interaction depends on it. Automate smoke tests for main navigation paths.',
+          createdAt: new Date('2025-10-19'),
+          updatedAt: new Date('2025-10-19'),
+        },
+        {
+          id: '6',
+          workflowName: 'Announcement Creation and Distribution',
+          description:
+            'Instructor creates course announcement and sends notification to all enrolled students',
+          userStoryId: 'AB#3252106',
+          blackboardFeature: 'Announcements',
+          riskStatement: 'Announcements not sent to all students or email notifications fail',
+          businessImpact:
+            'Students miss important course information, deadlines, or schedule changes',
+          likelihood: 3, // Unlikely - announcements are fairly straightforward
+          impact: 3, // Medium impact - information distribution
           riskScore: 9,
           testingTier: 'Tier 3: STANDARD',
-          deliverables: 'Manual Testing',
-          automationReason: 'Discussion posts are content-dependent, risk score 9 is above automation threshold.',
+          deliverables:
+            'Unit Test (encouraged), Manual Golden Path, Exploratory Testing (optional)',
+          automationRecommendation: 'Manual Only',
+          automationRationale:
+            'Risk score 9 (below automation threshold). Announcements are used regularly but failures are easy to spot and fix. Manual testing is sufficient for this workflow.',
           createdAt: new Date('2025-10-20'),
           updatedAt: new Date('2025-10-20'),
+        },
+        {
+          id: '7',
+          workflowName: 'Calendar Event Viewing',
+          description: 'Student views upcoming assignments, tests, and events in course calendar',
+          userStoryId: 'AB#3252107',
+          blackboardFeature: 'Calendar',
+          riskStatement: 'Calendar events display incorrect dates or times, or events are missing',
+          businessImpact: 'Students miss deadlines or arrive at wrong times for scheduled events',
+          likelihood: 3, // Unlikely - calendar is stable
+          impact: 3, // Medium impact - convenience feature
+          riskScore: 9,
+          testingTier: 'Tier 3: STANDARD',
+          deliverables:
+            'Unit Test (encouraged), Manual Golden Path, Exploratory Testing (optional)',
+          automationRecommendation: 'Manual Only',
+          automationRationale:
+            'Risk score 9. Calendar viewing is passive and failures are typically visible immediately. Manual spot-checking during regression cycles is adequate.',
+          createdAt: new Date('2025-10-21'),
+          updatedAt: new Date('2025-10-21'),
+        },
+        {
+          id: '8',
+          workflowName: 'Quiz Taking and Auto-Grading',
+          description:
+            'Student takes online quiz, submits answers, and receives automated grade based on quiz settings',
+          userStoryId: 'AB#3252108',
+          blackboardFeature: 'Assessment Tools',
+          riskStatement:
+            'Quiz responses not saved, auto-grading calculates wrong scores, or quiz times out unexpectedly',
+          businessImpact:
+            'Incorrect grades, student has to retake quiz, grade disputes, integrity concerns',
+          likelihood: 1, // Most likely - quizzes have complex logic with timers, randomization, grading rules
+          impact: 1, // Most impactful - directly affects grades and has time pressure
+          riskScore: 1,
+          testingTier: 'Tier 1: CRITICAL',
+          deliverables: 'Unit Test, UI Automation (UIA), Exploratory Testing (ET), TCM Test Case',
+          automationRecommendation: 'Automate',
+          automationRationale:
+            'Risk score 1 (critical). Quizzes involve complex business logic (grading algorithms, timers, question pools) and directly affect grades. Must automate core quiz-taking scenarios and grading validation.',
+          createdAt: new Date('2025-10-22'),
+          updatedAt: new Date('2025-10-22'),
         },
       ];
 
@@ -443,8 +548,11 @@ export class DataService {
         blackboardFeature: 'Course Management',
         workflows: workflows.filter(w => w.blackboardFeature === 'Course Management'),
         overallRiskLevel: 'Medium',
-        totalRiskScore: workflows.filter(w => w.blackboardFeature === 'Course Management').reduce((sum, w) => sum + w.riskScore, 0),
-        recommendations: 'Automate high-impact workflows, focus manual testing on content-dependent features',
+        totalRiskScore: workflows
+          .filter(w => w.blackboardFeature === 'Course Management')
+          .reduce((sum, w) => sum + w.riskScore, 0),
+        recommendations:
+          'Automate high-impact workflows, focus manual testing on content-dependent features',
         createdAt: new Date('2025-10-15'),
         updatedAt: new Date('2025-10-15'),
       };
@@ -457,45 +565,111 @@ export class DataService {
         {
           id: '1',
           title: 'Ultra Course Navigation & Content Access',
-          description: 'End-to-end testing of Ultra course navigation, content organization, and student access workflows',
+          description:
+            'End-to-end testing of Ultra course navigation, content organization, and student access workflows',
           feature: 'Course Navigation',
           blackboardFeature: 'Ultra Course View',
           category: 'Functional',
           priority: 'Critical',
-          objective: 'Ensure students and instructors can seamlessly navigate Ultra courses, access all content types, and experience consistent performance across different devices and browsers.',
+          objective:
+            'Ensure students and instructors can seamlessly navigate Ultra courses, access all content types, and experience consistent performance across different devices and browsers.',
           inScope: [
             'Course homepage and navigation menu',
             'Content folder access and organization',
             'File download and preview functionality',
             'Mobile responsiveness and accessibility',
-            'Cross-browser compatibility (Chrome, Safari, Firefox, Edge)'
+            'Cross-browser compatibility (Chrome, Safari, Firefox, Edge)',
           ],
           outOfScope: [
             'Original course view testing',
             'Third-party content integrations',
             'System administration functions',
-            'Grade passback from external tools'
+            'Grade passback from external tools',
           ],
           prerequisites: [
             'Ultra course with diverse content types configured',
             'Test accounts for instructor, student, and TA roles',
             'Content uploaded (PDFs, videos, SCORM packages)',
-            'Mobile devices for responsive testing'
+            'Mobile devices for responsive testing',
           ],
-          testStrategy: 'Risk-based approach focusing on high-traffic navigation paths with automated regression testing for core workflows and manual exploratory testing for accessibility and usability.',
+          testStrategy:
+            'Risk-based approach focusing on high-traffic navigation paths with automated regression testing for core workflows and manual exploratory testing for accessibility and usability.',
           strategyChecklist: [
-            { id: 'sc1', category: 'test_types', item: 'Functional testing of all navigation elements', checked: true, notes: 'Core requirement' },
-            { id: 'sc2', category: 'test_types', item: 'Usability testing with real user scenarios', checked: true },
-            { id: 'sc3', category: 'test_types', item: 'Accessibility testing (WCAG 2.1 AA compliance)', checked: true },
-            { id: 'sc4', category: 'test_types', item: 'Performance testing for content loading', checked: false, notes: 'Separate performance test cycle' },
-            { id: 'sc5', category: 'automation', item: 'Automate critical navigation paths', checked: true },
-            { id: 'sc6', category: 'automation', item: 'Automated cross-browser testing', checked: true },
-            { id: 'sc7', category: 'automation', item: 'Mobile responsive automation', checked: false, notes: 'Manual testing preferred' },
-            { id: 'sc8', category: 'risk_management', item: 'Test with slow network connections', checked: true },
-            { id: 'sc9', category: 'risk_management', item: 'Large file download scenarios', checked: true },
-            { id: 'sc10', category: 'tools', item: 'Use screen readers for accessibility', checked: true },
-            { id: 'sc11', category: 'coverage', item: 'Test all supported content types', checked: true },
-            { id: 'sc12', category: 'process', item: 'Smoke test before each release', checked: true }
+            {
+              id: 'sc1',
+              category: 'test_types',
+              item: 'Functional testing of all navigation elements',
+              checked: true,
+              notes: 'Core requirement',
+            },
+            {
+              id: 'sc2',
+              category: 'test_types',
+              item: 'Usability testing with real user scenarios',
+              checked: true,
+            },
+            {
+              id: 'sc3',
+              category: 'test_types',
+              item: 'Accessibility testing (WCAG 2.1 AA compliance)',
+              checked: true,
+            },
+            {
+              id: 'sc4',
+              category: 'test_types',
+              item: 'Performance testing for content loading',
+              checked: false,
+              notes: 'Separate performance test cycle',
+            },
+            {
+              id: 'sc5',
+              category: 'automation',
+              item: 'Automate critical navigation paths',
+              checked: true,
+            },
+            {
+              id: 'sc6',
+              category: 'automation',
+              item: 'Automated cross-browser testing',
+              checked: true,
+            },
+            {
+              id: 'sc7',
+              category: 'automation',
+              item: 'Mobile responsive automation',
+              checked: false,
+              notes: 'Manual testing preferred',
+            },
+            {
+              id: 'sc8',
+              category: 'risk_management',
+              item: 'Test with slow network connections',
+              checked: true,
+            },
+            {
+              id: 'sc9',
+              category: 'risk_management',
+              item: 'Large file download scenarios',
+              checked: true,
+            },
+            {
+              id: 'sc10',
+              category: 'tools',
+              item: 'Use screen readers for accessibility',
+              checked: true,
+            },
+            {
+              id: 'sc11',
+              category: 'coverage',
+              item: 'Test all supported content types',
+              checked: true,
+            },
+            {
+              id: 'sc12',
+              category: 'process',
+              item: 'Smoke test before each release',
+              checked: true,
+            },
           ],
           testScenarios: [
             {
@@ -509,20 +683,20 @@ export class DataService {
                 {
                   id: this.generateTestCaseId(),
                   description: 'Folder icon changes state to indicate expanded/collapsed status',
-                  notes: 'Visual indicator for user feedback'
+                  notes: 'Visual indicator for user feedback',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'All child content items are visible within 2 seconds of clicking',
-                  notes: 'Performance requirement'
+                  notes: 'Performance requirement',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Folder content displays in correct hierarchical order',
-                  notes: 'Content organization requirement'
-                }
+                  notes: 'Content organization requirement',
+                },
               ],
-              notes: 'Core navigation workflow used in every session'
+              notes: 'Core navigation workflow used in every session',
             },
             {
               id: 'ts2',
@@ -535,20 +709,20 @@ export class DataService {
                 {
                   id: this.generateTestCaseId(),
                   description: 'Download begins immediately upon clicking the download link',
-                  notes: 'User experience requirement'
+                  notes: 'User experience requirement',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Downloaded file maintains original filename and format',
-                  notes: 'File integrity verification'
+                  notes: 'File integrity verification',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Browser handles PDF opening according to user preferences',
-                  notes: 'Respect user browser settings'
-                }
+                  notes: 'Respect user browser settings',
+                },
               ],
-              notes: 'Essential for accessing course materials'
+              notes: 'Essential for accessing course materials',
             },
             {
               id: 'ts3',
@@ -560,22 +734,23 @@ export class DataService {
               acceptanceCriteria: [
                 {
                   id: this.generateTestCaseId(),
-                  description: 'Content area adapts to mobile screen width without horizontal scrolling',
-                  notes: 'Responsive design requirement'
+                  description:
+                    'Content area adapts to mobile screen width without horizontal scrolling',
+                  notes: 'Responsive design requirement',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Touch targets for content items are at least 44px in size',
-                  notes: 'Accessibility requirement for mobile'
+                  notes: 'Accessibility requirement for mobile',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'All content functions work with touch gestures',
-                  notes: 'Mobile interaction requirement'
-                }
+                  notes: 'Mobile interaction requirement',
+                },
               ],
-              notes: 'Mobile usage is increasing rapidly'
-            }
+              notes: 'Mobile usage is increasing rapidly',
+            },
           ],
           testCases: [
             {
@@ -583,34 +758,49 @@ export class DataService {
               title: 'Content Folder Navigation',
               description: 'Verify folder navigation works correctly in Ultra courses',
               steps: [
-                { id: 's1', stepNumber: 1, action: 'Login as student and access Ultra course', expectedResult: 'Course homepage loads successfully' },
-                { id: 's2', stepNumber: 2, action: 'Click on content folder', expectedResult: 'Folder expands showing items' },
-                { id: 's3', stepNumber: 3, action: 'Click on sub-folder', expectedResult: 'Sub-folder contents display correctly' }
+                {
+                  id: 's1',
+                  stepNumber: 1,
+                  action: 'Login as student and access Ultra course',
+                  expectedResult: 'Course homepage loads successfully',
+                },
+                {
+                  id: 's2',
+                  stepNumber: 2,
+                  action: 'Click on content folder',
+                  expectedResult: 'Folder expands showing items',
+                },
+                {
+                  id: 's3',
+                  stepNumber: 3,
+                  action: 'Click on sub-folder',
+                  expectedResult: 'Sub-folder contents display correctly',
+                },
               ],
               expectedResult: 'All folder navigation works smoothly without errors',
               priority: 'Critical',
-              relatedScenarioId: 'ts1'
-            }
+              relatedScenarioId: 'ts1',
+            },
           ],
           testEnvironmentRequirements: [
             'Blackboard Learn Ultra (latest version)',
             'Test course with representative content structure',
             'Multiple browser types and versions for compatibility testing',
             'Mobile devices (iOS and Android)',
-            'Screen reader software for accessibility testing'
+            'Screen reader software for accessibility testing',
           ],
           testDataRequirements: [
             'Course content of various types (PDF, video, SCORM, web links)',
             'Folder structure with nested content organization',
             'Large files for download testing (>100MB)',
-            'User accounts with different role permissions'
+            'User accounts with different role permissions',
           ],
           successCriteria: [
             'Zero navigation failures in critical user paths',
             'Content loads within 3 seconds on standard connection',
             'Full accessibility compliance verified',
             'Cross-browser compatibility confirmed',
-            'Mobile experience matches desktop functionality'
+            'Mobile experience matches desktop functionality',
           ],
           estimatedHours: 32,
           status: 'Draft',
@@ -621,43 +811,92 @@ export class DataService {
         {
           id: '2',
           title: 'Assignment Submission & Feedback Workflow',
-          description: 'Comprehensive testing of student assignment submission process and instructor feedback mechanisms',
+          description:
+            'Comprehensive testing of student assignment submission process and instructor feedback mechanisms',
           feature: 'Assignment Management',
           blackboardFeature: 'Assignments',
           category: 'Integration',
           priority: 'High',
-          objective: 'Validate the complete assignment lifecycle from student submission through instructor grading and feedback delivery, ensuring data integrity and user experience quality.',
+          objective:
+            'Validate the complete assignment lifecycle from student submission through instructor grading and feedback delivery, ensuring data integrity and user experience quality.',
           inScope: [
             'Student assignment submission interface',
             'File upload and attachment handling',
             'Instructor grading and comment workflows',
             'Grade and feedback delivery to students',
-            'Assignment deadline management and late submissions'
+            'Assignment deadline management and late submissions',
           ],
           outOfScope: [
             'Plagiarism detection (SafeAssign)',
             'Bulk grade import/export',
             'Grade center advanced analytics',
-            'External tool integration grading'
+            'External tool integration grading',
           ],
           prerequisites: [
             'Course with multiple assignment types configured',
             'Student test accounts with submission history',
             'Instructor account with grading permissions',
-            'Sample files for submission testing'
+            'Sample files for submission testing',
           ],
-          testStrategy: 'End-to-end workflow testing with emphasis on data integrity during submission and grading processes, including edge cases for large files and concurrent submissions.',
+          testStrategy:
+            'End-to-end workflow testing with emphasis on data integrity during submission and grading processes, including edge cases for large files and concurrent submissions.',
           strategyChecklist: [
-            { id: 'sc13', category: 'test_types', item: 'End-to-end workflow testing', checked: true },
-            { id: 'sc14', category: 'test_types', item: 'Data integrity validation', checked: true },
-            { id: 'sc15', category: 'test_types', item: 'Load testing for concurrent submissions', checked: true },
-            { id: 'sc16', category: 'automation', item: 'Automate submission workflows', checked: true },
-            { id: 'sc17', category: 'automation', item: 'Automated grading workflow testing', checked: false, notes: 'Complex instructor interactions' },
-            { id: 'sc18', category: 'risk_management', item: 'Test large file uploads (>500MB)', checked: true },
-            { id: 'sc19', category: 'risk_management', item: 'Network interruption during upload', checked: true },
+            {
+              id: 'sc13',
+              category: 'test_types',
+              item: 'End-to-end workflow testing',
+              checked: true,
+            },
+            {
+              id: 'sc14',
+              category: 'test_types',
+              item: 'Data integrity validation',
+              checked: true,
+            },
+            {
+              id: 'sc15',
+              category: 'test_types',
+              item: 'Load testing for concurrent submissions',
+              checked: true,
+            },
+            {
+              id: 'sc16',
+              category: 'automation',
+              item: 'Automate submission workflows',
+              checked: true,
+            },
+            {
+              id: 'sc17',
+              category: 'automation',
+              item: 'Automated grading workflow testing',
+              checked: false,
+              notes: 'Complex instructor interactions',
+            },
+            {
+              id: 'sc18',
+              category: 'risk_management',
+              item: 'Test large file uploads (>500MB)',
+              checked: true,
+            },
+            {
+              id: 'sc19',
+              category: 'risk_management',
+              item: 'Network interruption during upload',
+              checked: true,
+            },
             { id: 'sc20', category: 'tools', item: 'Database verification tools', checked: true },
-            { id: 'sc21', category: 'coverage', item: 'All assignment types (text, file, media)', checked: true },
-            { id: 'sc22', category: 'process', item: 'Regression testing for each iteration', checked: true }
+            {
+              id: 'sc21',
+              category: 'coverage',
+              item: 'All assignment types (text, file, media)',
+              checked: true,
+            },
+            {
+              id: 'sc22',
+              category: 'process',
+              item: 'Regression testing for each iteration',
+              checked: true,
+            },
           ],
           testScenarios: [
             {
@@ -671,20 +910,21 @@ export class DataService {
                 {
                   id: this.generateTestCaseId(),
                   description: 'File upload progress indicator displays during upload process',
-                  notes: 'User feedback during upload'
+                  notes: 'User feedback during upload',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Submission timestamp is recorded accurately to the second',
-                  notes: 'Critical for deadline enforcement'
+                  notes: 'Critical for deadline enforcement',
                 },
                 {
                   id: this.generateTestCaseId(),
-                  description: 'Confirmation message displays submission details including timestamp',
-                  notes: 'User confirmation requirement'
-                }
+                  description:
+                    'Confirmation message displays submission details including timestamp',
+                  notes: 'User confirmation requirement',
+                },
               ],
-              notes: 'Core functionality for academic integrity'
+              notes: 'Core functionality for academic integrity',
             },
             {
               id: 'ts5',
@@ -697,20 +937,20 @@ export class DataService {
                 {
                   id: this.generateTestCaseId(),
                   description: 'Grade entry interface allows both numeric and letter grades',
-                  notes: 'Flexible grading support'
+                  notes: 'Flexible grading support',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Feedback text is saved and associated with the correct student',
-                  notes: 'Data integrity requirement'
+                  notes: 'Data integrity requirement',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Email notification is sent within 5 minutes of grade publication',
-                  notes: 'Timely communication requirement'
-                }
+                  notes: 'Timely communication requirement',
+                },
               ],
-              notes: 'Key workflow for timely feedback'
+              notes: 'Key workflow for timely feedback',
             },
             {
               id: 'ts6',
@@ -723,36 +963,36 @@ export class DataService {
                 {
                   id: this.generateTestCaseId(),
                   description: 'Clear message displays explaining the assignment is past due',
-                  notes: 'Policy communication requirement'
+                  notes: 'Policy communication requirement',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Late submission is blocked unless instructor allows late work',
-                  notes: 'Policy enforcement requirement'
-                }
+                  notes: 'Policy enforcement requirement',
+                },
               ],
-              notes: 'Important for policy enforcement'
-            }
+              notes: 'Important for policy enforcement',
+            },
           ],
           testCases: [],
           testEnvironmentRequirements: [
             'Blackboard Learn with assignment tools enabled',
             'Email server for notification testing',
             'Large storage capacity for file upload testing',
-            'Network throttling tools for connection testing'
+            'Network throttling tools for connection testing',
           ],
           testDataRequirements: [
             'Various file types for submission testing',
             'Assignment templates with different settings',
             'Student submission history data',
-            'Grading rubrics for consistent evaluation'
+            'Grading rubrics for consistent evaluation',
           ],
           successCriteria: [
             'Zero data loss during submission process',
             'All notifications deliver within 5 minutes',
             'File uploads complete successfully up to system limits',
             'Grading workflows maintain data consistency',
-            'Late submission policies enforced correctly'
+            'Late submission policies enforced correctly',
           ],
           estimatedHours: 28,
           status: 'In Progress',
@@ -763,43 +1003,97 @@ export class DataService {
         {
           id: '3',
           title: 'Discussion Forum Moderation & Engagement',
-          description: 'Testing discussion forum functionality including student engagement, instructor moderation, and notification systems',
+          description:
+            'Testing discussion forum functionality including student engagement, instructor moderation, and notification systems',
           feature: 'Discussion & Communication',
           blackboardFeature: 'Discussion Forums',
           category: 'Functional',
           priority: 'Medium',
-          objective: 'Ensure discussion forums facilitate effective academic discourse while providing instructors with proper moderation tools and maintaining engagement through reliable notification systems.',
+          objective:
+            'Ensure discussion forums facilitate effective academic discourse while providing instructors with proper moderation tools and maintaining engagement through reliable notification systems.',
           inScope: [
             'Discussion thread creation and management',
             'Student posting and reply workflows',
             'Instructor moderation capabilities',
             'Email and in-app notification systems',
-            'Rich text editing and media attachments'
+            'Rich text editing and media attachments',
           ],
           outOfScope: [
             'Advanced analytics and engagement metrics',
             'External forum integrations',
             'Automated content filtering',
-            'Video conference integration'
+            'Video conference integration',
           ],
           prerequisites: [
             'Course with discussion forums configured',
             'Multiple student accounts for interaction testing',
             'Instructor account with moderation privileges',
-            'Email notification system enabled'
+            'Email notification system enabled',
           ],
-          testStrategy: 'User-centered testing approach focusing on realistic discussion scenarios with automated testing for notification reliability and manual testing for moderation workflows.',
+          testStrategy:
+            'User-centered testing approach focusing on realistic discussion scenarios with automated testing for notification reliability and manual testing for moderation workflows.',
           strategyChecklist: [
-            { id: 'sc23', category: 'test_types', item: 'User scenario-based testing', checked: true },
-            { id: 'sc24', category: 'test_types', item: 'Notification reliability testing', checked: true },
-            { id: 'sc25', category: 'test_types', item: 'Content moderation workflow testing', checked: true },
-            { id: 'sc26', category: 'automation', item: 'Automated notification testing', checked: true },
-            { id: 'sc27', category: 'automation', item: 'Basic posting workflow automation', checked: false, notes: 'Rich content requires manual validation' },
-            { id: 'sc28', category: 'risk_management', item: 'Test with high-volume discussions', checked: true },
-            { id: 'sc29', category: 'risk_management', item: 'Concurrent posting scenarios', checked: true },
-            { id: 'sc30', category: 'tools', item: 'Email testing tools for notifications', checked: true },
-            { id: 'sc31', category: 'coverage', item: 'All rich text formatting options', checked: true },
-            { id: 'sc32', category: 'process', item: 'User acceptance testing with real scenarios', checked: true }
+            {
+              id: 'sc23',
+              category: 'test_types',
+              item: 'User scenario-based testing',
+              checked: true,
+            },
+            {
+              id: 'sc24',
+              category: 'test_types',
+              item: 'Notification reliability testing',
+              checked: true,
+            },
+            {
+              id: 'sc25',
+              category: 'test_types',
+              item: 'Content moderation workflow testing',
+              checked: true,
+            },
+            {
+              id: 'sc26',
+              category: 'automation',
+              item: 'Automated notification testing',
+              checked: true,
+            },
+            {
+              id: 'sc27',
+              category: 'automation',
+              item: 'Basic posting workflow automation',
+              checked: false,
+              notes: 'Rich content requires manual validation',
+            },
+            {
+              id: 'sc28',
+              category: 'risk_management',
+              item: 'Test with high-volume discussions',
+              checked: true,
+            },
+            {
+              id: 'sc29',
+              category: 'risk_management',
+              item: 'Concurrent posting scenarios',
+              checked: true,
+            },
+            {
+              id: 'sc30',
+              category: 'tools',
+              item: 'Email testing tools for notifications',
+              checked: true,
+            },
+            {
+              id: 'sc31',
+              category: 'coverage',
+              item: 'All rich text formatting options',
+              checked: true,
+            },
+            {
+              id: 'sc32',
+              category: 'process',
+              item: 'User acceptance testing with real scenarios',
+              checked: true,
+            },
           ],
           testScenarios: [
             {
@@ -813,20 +1107,20 @@ export class DataService {
                 {
                   id: this.generateTestCaseId(),
                   description: 'Email notification includes thread title and new post preview',
-                  notes: 'Informative notification requirement'
+                  notes: 'Informative notification requirement',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Notification is sent to all thread participants within 10 minutes',
-                  notes: 'Timely engagement requirement'
+                  notes: 'Timely engagement requirement',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Users can opt out of thread notifications via preferences',
-                  notes: 'User control requirement'
-                }
+                  notes: 'User control requirement',
+                },
               ],
-              notes: 'Critical for maintaining engagement'
+              notes: 'Critical for maintaining engagement',
             },
             {
               id: 'ts8',
@@ -838,49 +1132,50 @@ export class DataService {
               acceptanceCriteria: [
                 {
                   id: this.generateTestCaseId(),
-                  description: 'Hidden post becomes invisible to students but remains visible to instructor',
-                  notes: 'Moderation visibility requirement'
+                  description:
+                    'Hidden post becomes invisible to students but remains visible to instructor',
+                  notes: 'Moderation visibility requirement',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Moderation action is logged with timestamp and reason',
-                  notes: 'Audit trail requirement'
+                  notes: 'Audit trail requirement',
                 },
                 {
                   id: this.generateTestCaseId(),
                   description: 'Student who posted receives notification about moderation action',
-                  notes: 'Student communication requirement'
-                }
+                  notes: 'Student communication requirement',
+                },
               ],
-              notes: 'Essential for maintaining safe learning environment'
-            }
+              notes: 'Essential for maintaining safe learning environment',
+            },
           ],
           testCases: [],
           testEnvironmentRequirements: [
             'Blackboard Learn discussion tools configured',
             'Email server for notification delivery testing',
             'Multiple user accounts for interaction scenarios',
-            'Rich text testing tools'
+            'Rich text testing tools',
           ],
           testDataRequirements: [
             'Sample discussion topics and prompts',
             'Test content including text, images, and attachments',
             'User profile data for notification preferences',
-            'Moderation policy guidelines for testing'
+            'Moderation policy guidelines for testing',
           ],
           successCriteria: [
             'All notifications deliver within expected timeframes',
             'Moderation actions take effect immediately',
             'Rich text content displays correctly across browsers',
             'Thread organization remains clear with high post volumes',
-            'User engagement features work reliably'
+            'User engagement features work reliably',
           ],
           estimatedHours: 20,
           status: 'Draft',
           assignee: 'Sasikala Thoomati',
           createdAt: new Date('2025-02-08'),
           updatedAt: new Date('2025-02-08'),
-        }
+        },
       ];
 
       sampleTestPlans.forEach(plan => this.saveTestPlan(plan));

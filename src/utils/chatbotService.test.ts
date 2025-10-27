@@ -24,8 +24,8 @@ describe('ChatbotService', () => {
           content: 'Hello',
           isUser: true,
           timestamp: new Date(),
-          type: 'text'
-        }
+          type: 'text',
+        },
       ];
 
       ChatbotService.saveChatHistory(messages);
@@ -43,8 +43,8 @@ describe('ChatbotService', () => {
           content: 'Hello',
           isUser: true,
           timestamp: new Date(),
-          type: 'text'
-        }
+          type: 'text',
+        },
       ];
 
       ChatbotService.saveChatHistory(messages);
@@ -70,10 +70,9 @@ describe('ChatbotService', () => {
 
   describe('Message Processing', () => {
     it('should process help request for assessment tools', async () => {
-      const response = await ChatbotService.processMessage(
-        'How do I create an assessment?',
-        { currentView: 'test-plans' }
-      );
+      const response = await ChatbotService.processMessage('How do I create an assessment?', {
+        currentView: 'test-plans',
+      });
 
       expect(response.isUser).toBe(false);
       expect(response.content).toContain('Assessment Tools');
@@ -113,18 +112,14 @@ describe('ChatbotService', () => {
 
   describe('Feature Detection', () => {
     it('should detect gradebook feature in messages', async () => {
-      const response = await ChatbotService.processMessage(
-        'I need help with gradebook columns'
-      );
+      const response = await ChatbotService.processMessage('I need help with gradebook columns');
 
       expect(response.content).toContain('gradebook');
       expect(response.metadata?.blackboardFeature).toBe('Gradebook');
     });
 
     it('should detect discussion forums feature in messages', async () => {
-      const response = await ChatbotService.processMessage(
-        'How do I set up discussion forums?'
-      );
+      const response = await ChatbotService.processMessage('How do I set up discussion forums?');
 
       expect(response.content).toContain('Discussion Forums');
       expect(response.metadata?.blackboardFeature).toBe('Discussion Forums');

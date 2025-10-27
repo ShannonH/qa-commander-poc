@@ -21,36 +21,37 @@ function App() {
 
   const colorMode = useMemo(
     () => ({
-      toggleColorMode: () => setMode((prev) => (prev === 'light' ? 'dark' : 'light')),
+      toggleColorMode: () => setMode(prev => (prev === 'light' ? 'dark' : 'light')),
       mode,
     }),
     [mode]
   );
 
-  const theme = useMemo(() =>
-    createTheme({
-      palette: {
-        mode,
-        primary: {
-          main: '#1976d2',
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode,
+          primary: {
+            main: '#002d3e',
+          },
+          secondary: {
+            main: '#dc004e',
+          },
+          background: {
+            default: mode === 'dark' ? '#181a1b' : '#f5f5f5',
+            paper: mode === 'dark' ? '#23272b' : '#fff',
+          },
         },
-        secondary: {
-          main: '#dc004e',
+        typography: {
+          h4: {
+            fontWeight: 600,
+          },
+          h5: {
+            fontWeight: 500,
+          },
         },
-        background: {
-          default: mode === 'dark' ? '#181a1b' : '#f5f5f5',
-          paper: mode === 'dark' ? '#23272b' : '#fff',
-        },
-      },
-      typography: {
-        h4: {
-          fontWeight: 600,
-        },
-        h5: {
-          fontWeight: 500,
-        },
-      },
-    }),
+      }),
     [mode]
   );
 

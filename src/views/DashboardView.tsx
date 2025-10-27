@@ -1,19 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Grid,
-  Paper,
-  Typography,
-  Box,
-  Card,
-  CardContent,
-  IconButton,
-} from '@mui/material';
-import {
-  AutoAwesome,
-  Assignment,
-  TrendingUp,
-  PlayArrow,
-} from '@mui/icons-material';
+import { Grid, Paper, Typography, Box, Card, CardContent, IconButton } from '@mui/material';
+import { AutoAwesome, Assignment, TrendingUp, PlayArrow } from '@mui/icons-material';
 import { DataService } from '../utils/dataService';
 
 const DashboardView: React.FC = () => {
@@ -70,52 +57,58 @@ const DashboardView: React.FC = () => {
       </Box>
 
       <Box component="section" aria-labelledby="stats-heading">
-        <Typography 
-          variant="h5" 
-          component="h2" 
-          id="stats-heading" 
-          sx={{ 
-            mb: 2, 
+        <Typography
+          variant="h5"
+          component="h2"
+          id="stats-heading"
+          sx={{
+            mb: 2,
             position: 'absolute',
             left: '-9999px',
             width: '1px',
             height: '1px',
-            overflow: 'hidden'
+            overflow: 'hidden',
           }}
         >
           Statistics Overview
         </Typography>
 
         <Grid container spacing={3} sx={{ mt: 2 }}>
-        {dashboardStats.map((stat, index) => (
-          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
-            <Card>
-              <CardContent>
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                  <Box>
-                    <Typography color="text.secondary" gutterBottom>
-                      {stat.title}
-                    </Typography>
-                    <Typography variant="h5" component="div">
-                      {stat.value}
-                    </Typography>
+          {dashboardStats.map((stat, index) => (
+            <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
+              <Card>
+                <CardContent>
+                  <Box display="flex" alignItems="center" justifyContent="space-between">
+                    <Box>
+                      <Typography color="text.secondary" gutterBottom>
+                        {stat.title}
+                      </Typography>
+                      <Typography variant="h5" component="div">
+                        {stat.value}
+                      </Typography>
+                    </Box>
+                    <IconButton
+                      sx={{ color: stat.color }}
+                      aria-label={`${stat.title}: ${stat.value}`}
+                      disabled
+                    >
+                      {stat.icon}
+                    </IconButton>
                   </Box>
-                  <IconButton 
-                    sx={{ color: stat.color }}
-                    aria-label={`${stat.title}: ${stat.value}`}
-                    disabled
-                  >
-                    {stat.icon}
-                  </IconButton>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
       </Box>
 
-      <Grid container spacing={3} component="section" aria-labelledby="activity-heading" sx={{ mt: 3 }}>
+      <Grid
+        container
+        spacing={3}
+        component="section"
+        aria-labelledby="activity-heading"
+        sx={{ mt: 3 }}
+      >
         <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3, height: 300 }}>
             <Typography variant="h6" component="h2" id="activity-heading" gutterBottom>

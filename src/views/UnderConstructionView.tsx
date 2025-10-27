@@ -9,12 +9,7 @@ import {
   LinearProgress,
   Chip,
 } from '@mui/material';
-import {
-  Construction,
-  Timeline,
-  BugReport,
-  Analytics,
-} from '@mui/icons-material';
+import { Construction, Timeline, BugReport, Analytics } from '@mui/icons-material';
 
 const UnderConstructionView: React.FC = () => {
   const upcomingFeatures = [
@@ -66,19 +61,22 @@ const UnderConstructionView: React.FC = () => {
         <Grid container spacing={2} sx={{ mt: 2 }}>
           <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="body2">
-              🔍 <strong>Analyze Build Logs</strong><br />
+              🔍 <strong>Analyze Build Logs</strong>
+              <br />
               Automatically parse and categorize build failures
             </Typography>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="body2">
-              📊 <strong>Performance Insights</strong><br />
+              📊 <strong>Performance Insights</strong>
+              <br />
               Track build times and identify bottlenecks
             </Typography>
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <Typography variant="body2">
-              🚨 <strong>Failure Patterns</strong><br />
+              🚨 <strong>Failure Patterns</strong>
+              <br />
               Detect recurring issues and suggest fixes
             </Typography>
           </Grid>
@@ -107,8 +105,11 @@ const UnderConstructionView: React.FC = () => {
                     label={feature.status}
                     size="small"
                     color={
-                      feature.status === 'In Development' ? 'primary' :
-                      feature.status === 'Planning' ? 'warning' : 'default'
+                      feature.status === 'In Development'
+                        ? 'primary'
+                        : feature.status === 'Planning'
+                          ? 'warning'
+                          : 'default'
                     }
                   />
                 </Box>
@@ -120,8 +121,7 @@ const UnderConstructionView: React.FC = () => {
                     variant="determinate"
                     value={feature.progress}
                     color={
-                      feature.progress > 20 ? 'primary' :
-                      feature.progress > 5 ? 'warning' : 'error'
+                      feature.progress > 20 ? 'primary' : feature.progress > 5 ? 'warning' : 'error'
                     }
                   />
                 </Box>

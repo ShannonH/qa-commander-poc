@@ -1,19 +1,26 @@
 export interface UserWorkflow {
-  id: string; // Matches AcceptanceCriteria.id for linking (test case ID like "00001")
-  workflowName: string;
-  description: string;
-  userStoryId: string; // User Story ID in format AB#1234567 - required for linkage
-  userStory: string; // Full GIVEN/WHEN/THEN statement for context
+  id: string; // Unique workflow ID
+  workflowName: string; // Business process name (e.g., "Assignment Submission Process")
+  description: string; // What the workflow does from business perspective
+  userStoryId: string; // User Story ID in format AB#1234567 - required for linkage to ADO
   blackboardFeature: BlackboardFeature;
-  likelihood: number; // 1-4 scale (1=Most likely to fail, 4=Unlikely)
-  impact: number; // 1-4 scale (1=Most impactful, 4=Minimal)
-  riskScore: number; // likelihood * impact
+
+  // Risk Assessment
+  riskStatement: string; // What could go wrong? (e.g., "Students unable to submit assignments")
+  businessImpact: string; // Why does it matter? (e.g., "Lost grades, support tickets, student complaints")
+  likelihood: number; // 1-4 scale (1=Most likely to fail, 4=Unlikely to fail)
+  impact: number; // 1-4 scale (1=Most impactful if fails, 4=Minimal impact)
+  riskScore: number; // likelihood * impact (1-16)
+
+  // Testing Strategy (derived from risk)
   testingTier: 'Tier 1: CRITICAL' | 'Tier 2: HIGH' | 'Tier 3: STANDARD';
   deliverables: string; // Required testing deliverables based on tier
-  automationReason: string;
+  automationRecommendation: 'Automate' | 'Manual Only'; // Based on risk score
+  automationRationale: string; // Why automate or not
+
+  // Traceability
   sourceTestPlanId?: string; // Link to originating test plan
   sourceScenarioId?: string; // Link to originating test scenario
-  sourceAcceptanceCriteriaId?: string; // Link to specific AC item (test case ID)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,41 +42,41 @@ export interface TestPlan {
   id: string;
   title: string;
   description: string;
-  
+
   // 1. Feature Overview
   feature: string;
   blackboardFeature: BlackboardFeature;
   category: TestCategory;
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
   valueStream?: string; // Value stream for organizational context
-  
+
   // 2. Objective
   objective: string;
-  
-  // 3. Test Scope  
+
+  // 3. Test Scope
   inScope: string[];
   outOfScope: string[];
   prerequisites: string[];
-  
+
   // 4. Strategy
   testStrategy: string;
   strategyChecklist: StrategyChecklistItem[];
-  
+
   // 5. Test Scenarios (Given/When/Then)
   testScenarios: TestScenario[];
-  
+
   // 6. Test Cases
   testCases: TestCase[];
-  
+
   // 7. Test Environment Requirements
   testEnvironmentRequirements: string[];
-  
+
   // 8. Test Data Requirements
   testDataRequirements: string[];
-  
+
   // 9. Success Criteria
   successCriteria: string[];
-  
+
   // Meta information
   estimatedHours: number;
   status: 'Draft' | 'Review' | 'Approved' | 'In Progress' | 'Completed' | 'Archived';
@@ -87,7 +94,7 @@ export interface StrategyChecklistItem {
 }
 
 export interface AcceptanceCriteria {
-  id: string; // Auto-generated test case ID (e.g., "00001", "00002") - not user-editable
+  id: string; // Auto-generated ID in format TC-00001, TC-00002, etc. (not user-editable)
   description: string;
   notes?: string;
 }
@@ -123,28 +130,37 @@ export interface TestStep {
 
 // Test Case Management (TCM) Types
 export interface TCMTestCase {
-  id: string; // Test case ID (matches acceptance criteria ID like "00001")
-  title: string;
-  description: string;
-  sourceTestPlanId?: string; // Optional - not all test cases come from test plans
-  sourceScenarioId?: string;
-  sourceAcceptanceCriteriaId?: string;
+  id: string; // Test case ID in format TC-00001, TC-00002, etc.
+  title: string; // Brief test case title
+  description: string; // What is being tested
+
+  // Traceability - links back to source
+  sourceWorkflowId?: string; // Which workflow is this testing?
+  sourceTestPlanId?: string; // Optional - original test plan
+  sourceScenarioId?: string; // Optional - original scenario
   userStoryId?: string; // User Story ID in format AB#1234567 - links to ADO work item
-  givenWhenThen?: {
-    given: string;
-    when: string;
-    then: string;
+
+  // Test Scenario (BDD format - this is where GWT belongs)
+  givenWhenThen: {
+    given: string; // Preconditions
+    when: string; // Action
+    then: string; // Expected outcome
   };
-  acceptanceCriteria: string; // The AC description
+
+  // Test Execution Details
+  testSteps: TestStep[]; // Detailed step-by-step instructions
+  expectedResult: string; // Overall expected outcome
+  prerequisites?: string[]; // Prerequisites for the test case
+
+  // Inherited from Workflow Risk Analysis
   riskScore?: number;
   testingTier?: 'Tier 1: CRITICAL' | 'Tier 2: HIGH' | 'Tier 3: STANDARD';
   likelihood?: number;
   impact?: number;
-  deliverables?: string;
-  testSteps: TestStep[]; // Test steps for executing the test case
-  expectedResult: string; // Overall expected outcome
-  prerequisites?: string[]; // Prerequisites for the test case
-  tags?: string[]; // Tags for categorization
+  automationRecommendation?: 'Automate' | 'Manual Only';
+
+  // Organization
+  tags?: string[]; // Tags for categorization (e.g., "smoke", "regression", "critical-path")
   notes?: string;
   createdAt: Date;
   updatedAt: Date;

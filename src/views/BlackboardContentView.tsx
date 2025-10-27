@@ -74,7 +74,7 @@ const BlackboardContentView: React.FC = () => {
     allowGuests: false,
     readOnly: false,
   });
-  
+
   const [userData, setUserData] = useState<BlackboardUser>({
     externalId: '',
     userName: '',
@@ -110,18 +110,33 @@ const BlackboardContentView: React.FC = () => {
     }
   }, []);
 
-  const steps = [
-    'Authentication',
-    'Select Content Type',
-    'Configure Content',
-    'Review & Create',
-  ];
+  const steps = ['Authentication', 'Select Content Type', 'Configure Content', 'Review & Create'];
 
   const contentTypes = [
-    { id: 'course', name: 'Create Course', icon: <SchoolIcon />, description: 'Create a new course with basic settings' },
-    { id: 'instructor', name: 'Add Instructor', icon: <PersonIcon />, description: 'Create instructor accounts and assign to courses' },
-    { id: 'students', name: 'Add Students', icon: <PersonIcon />, description: 'Create student accounts and enroll in courses' },
-    { id: 'assignment', name: 'Create Assignment', icon: <AssignmentIcon />, description: 'Add assignments to existing courses' },
+    {
+      id: 'course',
+      name: 'Create Course',
+      icon: <SchoolIcon />,
+      description: 'Create a new course with basic settings',
+    },
+    {
+      id: 'instructor',
+      name: 'Add Instructor',
+      icon: <PersonIcon />,
+      description: 'Create instructor accounts and assign to courses',
+    },
+    {
+      id: 'students',
+      name: 'Add Students',
+      icon: <PersonIcon />,
+      description: 'Create student accounts and enroll in courses',
+    },
+    {
+      id: 'assignment',
+      name: 'Create Assignment',
+      icon: <AssignmentIcon />,
+      description: 'Add assignments to existing courses',
+    },
   ];
 
   const handleAuthentication = async () => {
@@ -129,7 +144,7 @@ const BlackboardContentView: React.FC = () => {
     setError(null);
 
     const result = await BlackboardService.authenticate(credentials);
-    
+
     if (result.success) {
       setIsAuthenticated(true);
       setActiveStep(1);
@@ -137,7 +152,7 @@ const BlackboardContentView: React.FC = () => {
     } else {
       setError(result.error || 'Authentication failed');
     }
-    
+
     setIsLoading(false);
   };
 
@@ -161,7 +176,7 @@ const BlackboardContentView: React.FC = () => {
     setError(null);
 
     const result = await BlackboardService.createCourse(courseData);
-    
+
     if (result.success) {
       const newContent: CreatedContent = {
         type: 'course',
@@ -171,18 +186,18 @@ const BlackboardContentView: React.FC = () => {
         timestamp: new Date(),
       };
       setCreatedContent(prev => [...prev, newContent]);
-      
+
       // Enhanced success message with course URL
-      const successMessage = result.courseUrl 
+      const successMessage = result.courseUrl
         ? `Course "${courseData.name}" created successfully! Visit: ${result.courseUrl}`
         : `Course "${courseData.name}" created successfully`;
-      
+
       setSuccess(successMessage);
       setActiveStep(3);
     } else {
       setError(result.error || 'Failed to create course');
     }
-    
+
     setIsLoading(false);
   };
 
@@ -192,7 +207,7 @@ const BlackboardContentView: React.FC = () => {
 
     try {
       const createdUsers: CreatedContent[] = [];
-      
+
       for (let i = 0; i < userCount; i++) {
         const userToCreate = {
           ...userData,
@@ -202,7 +217,7 @@ const BlackboardContentView: React.FC = () => {
         };
 
         const result = await BlackboardService.createUser(userToCreate);
-        
+
         if (result.success) {
           createdUsers.push({
             type: 'user',
@@ -227,7 +242,7 @@ const BlackboardContentView: React.FC = () => {
     } catch (error) {
       setError('Failed to create users');
     }
-    
+
     setIsLoading(false);
   };
 
@@ -241,7 +256,7 @@ const BlackboardContentView: React.FC = () => {
     setError(null);
 
     const result = await BlackboardService.createAssignment(selectedCourseId, assignmentData);
-    
+
     if (result.success) {
       const newContent: CreatedContent = {
         type: 'assignment',
@@ -256,7 +271,7 @@ const BlackboardContentView: React.FC = () => {
     } else {
       setError(result.error || 'Failed to create assignment');
     }
-    
+
     setIsLoading(false);
   };
 
@@ -268,14 +283,14 @@ const BlackboardContentView: React.FC = () => {
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Enter your Blackboard Learn instance details and administrator credentials.
       </Typography>
-      
+
       <Grid container spacing={3}>
         <Grid size={12}>
           <TextField
             fullWidth
             label="Blackboard Learn URL"
             value={credentials.learnUrl}
-            onChange={(e) => setCredentials({ ...credentials, learnUrl: e.target.value })}
+            onChange={e => setCredentials({ ...credentials, learnUrl: e.target.value })}
             placeholder="https://your-institution.blackboard.com"
             helperText="The full URL to your Blackboard Learn instance"
           />
@@ -285,7 +300,7 @@ const BlackboardContentView: React.FC = () => {
             fullWidth
             label="Administrator Username"
             value={credentials.username}
-            onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
+            onChange={e => setCredentials({ ...credentials, username: e.target.value })}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
@@ -294,7 +309,7 @@ const BlackboardContentView: React.FC = () => {
             type="password"
             label="Password"
             value={credentials.password}
-            onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+            onChange={e => setCredentials({ ...credentials, password: e.target.value })}
           />
         </Grid>
       </Grid>
@@ -303,7 +318,9 @@ const BlackboardContentView: React.FC = () => {
         <Button
           variant="contained"
           onClick={handleAuthentication}
-          disabled={isLoading || !credentials.learnUrl || !credentials.username || !credentials.password}
+          disabled={
+            isLoading || !credentials.learnUrl || !credentials.username || !credentials.password
+          }
           startIcon={isLoading ? <CircularProgress size={20} /> : undefined}
         >
           {isLoading ? 'Connecting...' : 'Connect to Blackboard Learn'}
@@ -322,16 +339,16 @@ const BlackboardContentView: React.FC = () => {
       </Typography>
 
       <Grid container spacing={2}>
-        {contentTypes.map((type) => (
+        {contentTypes.map(type => (
           <Grid size={{ xs: 12, md: 6 }} key={type.id}>
-            <Card 
-              sx={{ 
+            <Card
+              sx={{
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                '&:hover': { 
+                '&:hover': {
                   transform: 'translateY(-2px)',
-                  boxShadow: 3
-                }
+                  boxShadow: 3,
+                },
               }}
               onClick={() => handleContentTypeSelect(type.id)}
             >
@@ -367,7 +384,7 @@ const BlackboardContentView: React.FC = () => {
                   fullWidth
                   label="Course Name"
                   value={courseData.name}
-                  onChange={(e) => setCourseData({ ...courseData, name: e.target.value })}
+                  onChange={e => setCourseData({ ...courseData, name: e.target.value })}
                   required
                 />
               </Grid>
@@ -376,7 +393,7 @@ const BlackboardContentView: React.FC = () => {
                   fullWidth
                   label="Course ID"
                   value={courseData.externalId}
-                  onChange={(e) => setCourseData({ ...courseData, externalId: e.target.value })}
+                  onChange={e => setCourseData({ ...courseData, externalId: e.target.value })}
                   helperText="Unique identifier for the course"
                   required
                 />
@@ -388,7 +405,7 @@ const BlackboardContentView: React.FC = () => {
                   rows={3}
                   label="Description"
                   value={courseData.description}
-                  onChange={(e) => setCourseData({ ...courseData, description: e.target.value })}
+                  onChange={e => setCourseData({ ...courseData, description: e.target.value })}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
@@ -396,7 +413,9 @@ const BlackboardContentView: React.FC = () => {
                   control={
                     <Switch
                       checked={courseData.allowGuests || false}
-                      onChange={(e) => setCourseData({ ...courseData, allowGuests: e.target.checked })}
+                      onChange={e =>
+                        setCourseData({ ...courseData, allowGuests: e.target.checked })
+                      }
                     />
                   }
                   label="Allow Guest Access"
@@ -407,7 +426,7 @@ const BlackboardContentView: React.FC = () => {
                   control={
                     <Switch
                       checked={courseData.readOnly || false}
-                      onChange={(e) => setCourseData({ ...courseData, readOnly: e.target.checked })}
+                      onChange={e => setCourseData({ ...courseData, readOnly: e.target.checked })}
                     />
                   }
                   label="Read Only"
@@ -440,7 +459,7 @@ const BlackboardContentView: React.FC = () => {
                   fullWidth
                   label="First Name"
                   value={userData.firstName}
-                  onChange={(e) => setUserData({ ...userData, firstName: e.target.value })}
+                  onChange={e => setUserData({ ...userData, firstName: e.target.value })}
                   required
                 />
               </Grid>
@@ -449,7 +468,7 @@ const BlackboardContentView: React.FC = () => {
                   fullWidth
                   label="Last Name"
                   value={userData.lastName}
-                  onChange={(e) => setUserData({ ...userData, lastName: e.target.value })}
+                  onChange={e => setUserData({ ...userData, lastName: e.target.value })}
                   required
                 />
               </Grid>
@@ -458,7 +477,7 @@ const BlackboardContentView: React.FC = () => {
                   fullWidth
                   label="Username Base"
                   value={userData.userName}
-                  onChange={(e) => setUserData({ ...userData, userName: e.target.value })}
+                  onChange={e => setUserData({ ...userData, userName: e.target.value })}
                   helperText="Numbers will be appended for multiple users"
                   required
                 />
@@ -468,7 +487,7 @@ const BlackboardContentView: React.FC = () => {
                   fullWidth
                   label="External ID Base"
                   value={userData.externalId}
-                  onChange={(e) => setUserData({ ...userData, externalId: e.target.value })}
+                  onChange={e => setUserData({ ...userData, externalId: e.target.value })}
                   required
                 />
               </Grid>
@@ -479,7 +498,7 @@ const BlackboardContentView: React.FC = () => {
                     type="number"
                     label="Number of Students"
                     value={userCount}
-                    onChange={(e) => setUserCount(Math.max(1, parseInt(e.target.value) || 1))}
+                    onChange={e => setUserCount(Math.max(1, parseInt(e.target.value) || 1))}
                     inputProps={{ min: 1, max: 50 }}
                   />
                 </Grid>
@@ -487,12 +506,8 @@ const BlackboardContentView: React.FC = () => {
               <Grid size={{ xs: 12, md: 6 }}>
                 <FormControl fullWidth>
                   <InputLabel>Role</InputLabel>
-                  <Select
-                    value={userRole}
-                    label="Role"
-                    onChange={(e) => setUserRole(e.target.value)}
-                  >
-                    {BlackboardService.getAvailableRoles().map((role) => (
+                  <Select value={userRole} label="Role" onChange={e => setUserRole(e.target.value)}>
+                    {BlackboardService.getAvailableRoles().map(role => (
                       <MenuItem key={role.id} value={role.id}>
                         {role.name}
                       </MenuItem>
@@ -506,13 +521,13 @@ const BlackboardContentView: React.FC = () => {
                   select
                   label="Enroll in Course (Optional)"
                   value={selectedCourseId}
-                  onChange={(e) => setSelectedCourseId(e.target.value)}
+                  onChange={e => setSelectedCourseId(e.target.value)}
                   helperText="Select a course to automatically enroll the user(s)"
                 >
                   <MenuItem value="">None</MenuItem>
                   {createdContent
                     .filter(content => content.type === 'course')
-                    .map((course) => (
+                    .map(course => (
                       <MenuItem key={course.id} value={course.id}>
                         {course.name}
                       </MenuItem>
@@ -524,10 +539,14 @@ const BlackboardContentView: React.FC = () => {
               <Button
                 variant="contained"
                 onClick={handleCreateUsers}
-                disabled={isLoading || !userData.firstName || !userData.lastName || !userData.userName}
+                disabled={
+                  isLoading || !userData.firstName || !userData.lastName || !userData.userName
+                }
                 startIcon={isLoading ? <CircularProgress size={20} /> : <PersonIcon />}
               >
-                {isLoading ? 'Creating...' : `Create ${selectedContentType === 'instructor' ? 'Instructor' : `${userCount} Student(s)`}`}
+                {isLoading
+                  ? 'Creating...'
+                  : `Create ${selectedContentType === 'instructor' ? 'Instructor' : `${userCount} Student(s)`}`}
               </Button>
             </Box>
           </Box>
@@ -546,13 +565,13 @@ const BlackboardContentView: React.FC = () => {
                   select
                   label="Course"
                   value={selectedCourseId}
-                  onChange={(e) => setSelectedCourseId(e.target.value)}
+                  onChange={e => setSelectedCourseId(e.target.value)}
                   required
                   helperText="Select the course for this assignment"
                 >
                   {createdContent
                     .filter(content => content.type === 'course')
-                    .map((course) => (
+                    .map(course => (
                       <MenuItem key={course.id} value={course.id}>
                         {course.name}
                       </MenuItem>
@@ -564,7 +583,7 @@ const BlackboardContentView: React.FC = () => {
                   fullWidth
                   label="Assignment Title"
                   value={assignmentData.title}
-                  onChange={(e) => setAssignmentData({ ...assignmentData, title: e.target.value })}
+                  onChange={e => setAssignmentData({ ...assignmentData, title: e.target.value })}
                   required
                 />
               </Grid>
@@ -574,13 +593,15 @@ const BlackboardContentView: React.FC = () => {
                   type="number"
                   label="Points"
                   value={assignmentData.grading?.points}
-                  onChange={(e) => setAssignmentData({ 
-                    ...assignmentData, 
-                    grading: { 
-                      ...assignmentData.grading!, 
-                      points: parseInt(e.target.value) || 0 
-                    }
-                  })}
+                  onChange={e =>
+                    setAssignmentData({
+                      ...assignmentData,
+                      grading: {
+                        ...assignmentData.grading!,
+                        points: parseInt(e.target.value) || 0,
+                      },
+                    })
+                  }
                   inputProps={{ min: 0 }}
                 />
               </Grid>
@@ -591,7 +612,9 @@ const BlackboardContentView: React.FC = () => {
                   rows={3}
                   label="Description"
                   value={assignmentData.description}
-                  onChange={(e) => setAssignmentData({ ...assignmentData, description: e.target.value })}
+                  onChange={e =>
+                    setAssignmentData({ ...assignmentData, description: e.target.value })
+                  }
                 />
               </Grid>
               <Grid size={12}>
@@ -601,7 +624,9 @@ const BlackboardContentView: React.FC = () => {
                   rows={4}
                   label="Instructions"
                   value={assignmentData.instructions}
-                  onChange={(e) => setAssignmentData({ ...assignmentData, instructions: e.target.value })}
+                  onChange={e =>
+                    setAssignmentData({ ...assignmentData, instructions: e.target.value })
+                  }
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
@@ -610,13 +635,15 @@ const BlackboardContentView: React.FC = () => {
                   type="number"
                   label="Attempts Allowed"
                   value={assignmentData.grading?.attemptsAllowed}
-                  onChange={(e) => setAssignmentData({ 
-                    ...assignmentData, 
-                    grading: { 
-                      ...assignmentData.grading!, 
-                      attemptsAllowed: parseInt(e.target.value) || 1 
-                    }
-                  })}
+                  onChange={e =>
+                    setAssignmentData({
+                      ...assignmentData,
+                      grading: {
+                        ...assignmentData.grading!,
+                        attemptsAllowed: parseInt(e.target.value) || 1,
+                      },
+                    })
+                  }
                   inputProps={{ min: 1 }}
                 />
               </Grid>
@@ -626,13 +653,15 @@ const BlackboardContentView: React.FC = () => {
                   <Select
                     value={assignmentData.grading?.scoringModel}
                     label="Scoring Model"
-                    onChange={(e) => setAssignmentData({ 
-                      ...assignmentData, 
-                      grading: { 
-                        ...assignmentData.grading!, 
-                        scoringModel: e.target.value as any 
-                      }
-                    })}
+                    onChange={e =>
+                      setAssignmentData({
+                        ...assignmentData,
+                        grading: {
+                          ...assignmentData.grading!,
+                          scoringModel: e.target.value as any,
+                        },
+                      })
+                    }
                   >
                     <MenuItem value="Highest">Highest</MenuItem>
                     <MenuItem value="Last">Last</MenuItem>
@@ -671,9 +700,7 @@ const BlackboardContentView: React.FC = () => {
 
       {createdContent.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: 'center' }}>
-          <Typography color="text.secondary">
-            No content has been created yet.
-          </Typography>
+          <Typography color="text.secondary">No content has been created yet.</Typography>
         </Paper>
       ) : (
         <List>
@@ -683,12 +710,7 @@ const BlackboardContentView: React.FC = () => {
                 <ListItemText
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Chip 
-                        label={content.type} 
-                        size="small" 
-                        color="primary" 
-                        variant="outlined" 
-                      />
+                      <Chip label={content.type} size="small" color="primary" variant="outlined" />
                       <Typography variant="subtitle1">{content.name}</Typography>
                     </Box>
                   }
@@ -714,17 +736,10 @@ const BlackboardContentView: React.FC = () => {
       )}
 
       <Box sx={{ mt: 3 }}>
-        <Button
-          variant="outlined"
-          onClick={() => setActiveStep(1)}
-          sx={{ mr: 2 }}
-        >
+        <Button variant="outlined" onClick={() => setActiveStep(1)} sx={{ mr: 2 }}>
           Create More Content
         </Button>
-        <Button
-          variant="contained"
-          onClick={() => window.location.reload()}
-        >
+        <Button variant="contained" onClick={() => window.location.reload()}>
           Start Over
         </Button>
       </Box>
@@ -734,9 +749,7 @@ const BlackboardContentView: React.FC = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">
-          Blackboard Learn Content Creator
-        </Typography>
+        <Typography variant="h4">Blackboard Learn Content Creator</Typography>
         {isAuthenticated && (
           <Button
             variant="outlined"
@@ -750,7 +763,8 @@ const BlackboardContentView: React.FC = () => {
       </Box>
 
       <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Create courses, users, and assignments in your Blackboard Learn instance through this guided workflow.
+        Create courses, users, and assignments in your Blackboard Learn instance through this guided
+        workflow.
       </Typography>
 
       {error && (

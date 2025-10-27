@@ -1,15 +1,17 @@
-import { 
-  BlackboardCredentials, 
-  BlackboardCourse, 
-  BlackboardUser, 
-  BlackboardAssignment
+import {
+  BlackboardCredentials,
+  BlackboardCourse,
+  BlackboardUser,
+  BlackboardAssignment,
 } from '../types';
 
 export class BlackboardService {
   private static readonly STORAGE_KEY = 'blackboard_session';
 
   // Authentication methods
-  static async authenticate(credentials: BlackboardCredentials): Promise<{ success: boolean; token?: string; error?: string }> {
+  static async authenticate(
+    credentials: BlackboardCredentials
+  ): Promise<{ success: boolean; token?: string; error?: string }> {
     try {
       // Basic validation
       if (!credentials.learnUrl || !credentials.username || !credentials.password) {
@@ -22,18 +24,18 @@ export class BlackboardService {
 
       // Blackboard Learn OAuth2 token request
       const tokenUrl = `${credentials.learnUrl}/learn/api/public/v1/oauth2/token`;
-      
+
       // Create Basic Auth header
       const authHeader = `Basic ${btoa(`${credentials.username}:${credentials.password}`)}`;
-      
+
       try {
         const response = await fetch(tokenUrl, {
           method: 'POST',
           headers: {
-            'Authorization': authHeader,
+            Authorization: authHeader,
             'Content-Type': 'application/x-www-form-urlencoded',
           },
-          body: 'grant_type=client_credentials'
+          body: 'grant_type=client_credentials',
         });
 
         if (!response.ok) {
@@ -42,7 +44,10 @@ export class BlackboardService {
           } else if (response.status === 404) {
             return { success: false, error: 'Invalid Blackboard Learn URL or API not available' };
           } else {
-            return { success: false, error: `Authentication failed: ${response.status} ${response.statusText}` };
+            return {
+              success: false,
+              error: `Authentication failed: ${response.status} ${response.statusText}`,
+            };
           }
         }
 
@@ -58,29 +63,29 @@ export class BlackboardService {
         const sessionData = {
           ...credentials,
           token,
-          tokenExpiry: new Date(Date.now() + (expiresIn * 1000)),
-          authenticated: true
+          tokenExpiry: new Date(Date.now() + expiresIn * 1000),
+          authenticated: true,
         };
-        
+
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(sessionData));
-        
+
         return { success: true, token };
       } catch (fetchError) {
         // If the API call fails (CORS, network, etc), fall back to demo mode
         console.warn('Failed to connect to Blackboard Learn API, using demo mode:', fetchError);
-        
+
         // Generate demo token for testing
         const token = `demo_token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
+
         const sessionData = {
           ...credentials,
           token,
           tokenExpiry: new Date(Date.now() + 3600000), // 1 hour from now
-          authenticated: true
+          authenticated: true,
         };
-        
+
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(sessionData));
-        
+
         return { success: true, token };
       }
     } catch (error) {
@@ -92,15 +97,15 @@ export class BlackboardService {
     try {
       const sessionData = localStorage.getItem(this.STORAGE_KEY);
       if (!sessionData) return null;
-      
+
       const session = JSON.parse(sessionData);
-      
+
       // Check if token is expired
       if (session.tokenExpiry && new Date() > new Date(session.tokenExpiry)) {
         this.clearSession();
         return null;
       }
-      
+
       return session;
     } catch {
       return null;
@@ -117,7 +122,9 @@ export class BlackboardService {
   }
 
   // Content creation methods
-  static async createCourse(course: BlackboardCourse): Promise<{ success: boolean; courseId?: string; courseUrl?: string; error?: string }> {
+  static async createCourse(
+    course: BlackboardCourse
+  ): Promise<{ success: boolean; courseId?: string; courseUrl?: string; error?: string }> {
     const session = this.getSession();
     if (!session) {
       return { success: false, error: 'Not authenticated' };
@@ -134,33 +141,33 @@ export class BlackboardService {
         availability: {
           available: course.availability?.available || 'Yes',
           duration: course.availability?.duration || {
-            type: 'Continuous'
-          }
-        }
+            type: 'Continuous',
+          },
+        },
       };
 
       // Try real API first
       const courseUrl = `${session.learnUrl}/learn/api/public/v3/courses`;
-      
+
       try {
         const response = await fetch(courseUrl, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session.token}`,
+            Authorization: `Bearer ${session.token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(coursePayload)
+          body: JSON.stringify(coursePayload),
         });
 
         if (response.ok) {
           const courseData = await response.json();
           const courseId = courseData.id;
           const courseViewUrl = `${session.learnUrl}/ultra/courses/${courseId}`;
-          
-          return { 
-            success: true, 
+
+          return {
+            success: true,
             courseId,
-            courseUrl: courseViewUrl
+            courseUrl: courseViewUrl,
           };
         } else if (response.status === 409) {
           return { success: false, error: 'A course with this ID already exists' };
@@ -171,18 +178,18 @@ export class BlackboardService {
         }
       } catch (apiError) {
         console.warn('API call failed, falling back to demo mode:', apiError);
-        
+
         // Fallback to demo mode
         await new Promise(resolve => setTimeout(resolve, 800));
-        
+
         // Mock successful course creation
         const courseId = `_${Math.random().toString(36).substr(2, 9)}_1`;
         const courseViewUrl = `${session.learnUrl}/ultra/courses/${courseId}`;
-        
-        return { 
-          success: true, 
+
+        return {
+          success: true,
           courseId,
-          courseUrl: courseViewUrl
+          courseUrl: courseViewUrl,
         };
       }
     } catch (error) {
@@ -190,7 +197,9 @@ export class BlackboardService {
     }
   }
 
-  static async createUser(user: BlackboardUser): Promise<{ success: boolean; userId?: string; error?: string }> {
+  static async createUser(
+    user: BlackboardUser
+  ): Promise<{ success: boolean; userId?: string; error?: string }> {
     const session = this.getSession();
     if (!session) {
       return { success: false, error: 'Not authenticated' };
@@ -203,38 +212,41 @@ export class BlackboardService {
         password: user.password || 'TempPassword123!',
         name: {
           given: user.firstName,
-          family: user.lastName
+          family: user.lastName,
         },
         contact: {
-          email: user.email
+          email: user.email,
         },
         availability: user.availability || {
-          available: 'Yes'
+          available: 'Yes',
         },
-        systemRoleIds: user.systemRoleIds || ['Student']
+        systemRoleIds: user.systemRoleIds || ['Student'],
       };
 
       // Try real API first
       const userUrl = `${session.learnUrl}/learn/api/public/v1/users`;
-      
+
       try {
         const response = await fetch(userUrl, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session.token}`,
+            Authorization: `Bearer ${session.token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(userPayload)
+          body: JSON.stringify(userPayload),
         });
 
         if (response.ok) {
           const userData = await response.json();
-          return { 
-            success: true, 
+          return {
+            success: true,
             userId: userData.id,
           };
         } else if (response.status === 409) {
-          return { success: false, error: 'A user with this username or external ID already exists' };
+          return {
+            success: false,
+            error: 'A user with this username or external ID already exists',
+          };
         } else if (response.status === 403) {
           return { success: false, error: 'Permission denied: Unable to create users' };
         } else {
@@ -242,15 +254,15 @@ export class BlackboardService {
         }
       } catch (apiError) {
         console.warn('API call failed, falling back to demo mode:', apiError);
-        
+
         // Fallback to demo mode
         await new Promise(resolve => setTimeout(resolve, 600));
-        
+
         // Mock successful user creation
         const userId = `_${Math.random().toString(36).substr(2, 9)}_1`;
-        
-        return { 
-          success: true, 
+
+        return {
+          success: true,
           userId,
         };
       }
@@ -259,7 +271,11 @@ export class BlackboardService {
     }
   }
 
-  static async enrollUser(courseId: string, userId: string, roleId: string): Promise<{ success: boolean; error?: string }> {
+  static async enrollUser(
+    courseId: string,
+    userId: string,
+    roleId: string
+  ): Promise<{ success: boolean; error?: string }> {
     const session = this.getSession();
     if (!session) {
       return { success: false, error: 'Not authenticated' };
@@ -268,20 +284,20 @@ export class BlackboardService {
     try {
       const enrollmentPayload = {
         userId: userId,
-        courseRoleId: roleId
+        courseRoleId: roleId,
       };
 
       // Try real API first
       const enrollmentUrl = `${session.learnUrl}/learn/api/public/v1/courses/${courseId}/users`;
-      
+
       try {
         const response = await fetch(enrollmentUrl, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session.token}`,
+            Authorization: `Bearer ${session.token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(enrollmentPayload)
+          body: JSON.stringify(enrollmentPayload),
         });
 
         if (response.ok) {
@@ -297,10 +313,10 @@ export class BlackboardService {
         }
       } catch (apiError) {
         console.warn('API call failed, falling back to demo mode:', apiError);
-        
+
         // Fallback to demo mode
         await new Promise(resolve => setTimeout(resolve, 400));
-        
+
         return { success: true };
       }
     } catch (error) {
@@ -308,7 +324,10 @@ export class BlackboardService {
     }
   }
 
-  static async createAssignment(courseId: string, assignment: BlackboardAssignment): Promise<{ success: boolean; assignmentId?: string; error?: string }> {
+  static async createAssignment(
+    courseId: string,
+    assignment: BlackboardAssignment
+  ): Promise<{ success: boolean; assignmentId?: string; error?: string }> {
     const session = this.getSession();
     if (!session) {
       return { success: false, error: 'Not authenticated' };
@@ -321,33 +340,33 @@ export class BlackboardService {
         instructions: assignment.instructions || '',
         position: assignment.position || 0,
         availability: assignment.availability || {
-          available: 'Yes'
+          available: 'Yes',
         },
         grading: {
           due: assignment.grading?.due,
           attemptsAllowed: assignment.grading?.attemptsAllowed || 1,
           scoringModel: assignment.grading?.scoringModel || 'Highest',
-          points: assignment.grading?.points || 100
-        }
+          points: assignment.grading?.points || 100,
+        },
       };
 
       // Try real API first
       const assignmentUrl = `${session.learnUrl}/learn/api/public/v1/courses/${courseId}/contents/createAssignment`;
-      
+
       try {
         const response = await fetch(assignmentUrl, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${session.token}`,
+            Authorization: `Bearer ${session.token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(assignmentPayload)
+          body: JSON.stringify(assignmentPayload),
         });
 
         if (response.ok) {
           const assignmentData = await response.json();
-          return { 
-            success: true, 
+          return {
+            success: true,
             assignmentId: assignmentData.id,
           };
         } else if (response.status === 403) {
@@ -359,15 +378,15 @@ export class BlackboardService {
         }
       } catch (apiError) {
         console.warn('API call failed, falling back to demo mode:', apiError);
-        
+
         // Fallback to demo mode
         await new Promise(resolve => setTimeout(resolve, 700));
-        
+
         // Mock successful assignment creation
         const assignmentId = `_${Math.random().toString(36).substr(2, 9)}_1`;
-        
-        return { 
-          success: true, 
+
+        return {
+          success: true,
           assignmentId,
         };
       }
@@ -394,7 +413,7 @@ export class BlackboardService {
 
       // Simulate connection test
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // For demo purposes, assume connection is successful
       return { success: true };
     } catch (error) {
@@ -409,7 +428,7 @@ export class BlackboardService {
       { id: 'Instructor', name: 'Instructor' },
       { id: 'TeachingAssistant', name: 'Teaching Assistant' },
       { id: 'CourseBuilder', name: 'Course Builder' },
-      { id: 'Grader', name: 'Grader' }
+      { id: 'Grader', name: 'Grader' },
     ];
   }
 
@@ -418,7 +437,7 @@ export class BlackboardService {
       { id: 'term_2024_spring', name: 'Spring 2024' },
       { id: 'term_2024_summer', name: 'Summer 2024' },
       { id: 'term_2024_fall', name: 'Fall 2024' },
-      { id: 'term_2025_spring', name: 'Spring 2025' }
+      { id: 'term_2025_spring', name: 'Spring 2025' },
     ];
   }
 }

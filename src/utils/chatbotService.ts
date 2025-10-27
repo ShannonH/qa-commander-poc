@@ -1,73 +1,78 @@
-import { 
-  ChatMessage, 
-  ChatbotContext, 
-  BlackboardHelpArticle, 
-  BlackboardFeature, 
+import {
+  ChatMessage,
+  ChatbotContext,
+  BlackboardHelpArticle,
+  BlackboardFeature,
   TestPlan,
-  TestCategory 
+  TestCategory,
 } from '../types';
 
 export class ChatbotService {
   private static readonly STORAGE_KEY = 'chatbot_history';
-  
+
   // Mock Blackboard help articles from help.blackboard.com
   private static readonly HELP_ARTICLES: BlackboardHelpArticle[] = [
     {
       id: '1',
       title: 'Creating and Managing Gradebook Columns',
       url: 'https://help.blackboard.com/Learn/Instructor/Grade/Gradebook_Columns',
-      content: 'Learn how to create, edit, and manage gradebook columns in Blackboard Learn. Includes weighted columns, calculated columns, and grade schemas.',
+      content:
+        'Learn how to create, edit, and manage gradebook columns in Blackboard Learn. Includes weighted columns, calculated columns, and grade schemas.',
       feature: 'Gradebook',
       category: 'Instructor Guide',
-      tags: ['grades', 'columns', 'calculation', 'weighted']
+      tags: ['grades', 'columns', 'calculation', 'weighted'],
     },
     {
       id: '2',
       title: 'Assessment Creation and Settings',
       url: 'https://help.blackboard.com/Learn/Instructor/Tests_Pools_Surveys',
-      content: 'Comprehensive guide for creating assessments including tests, assignments, and surveys. Covers question types, time limits, and availability settings.',
+      content:
+        'Comprehensive guide for creating assessments including tests, assignments, and surveys. Covers question types, time limits, and availability settings.',
       feature: 'Assessment Tools',
       category: 'Instructor Guide',
-      tags: ['assessment', 'tests', 'quiz', 'questions', 'settings']
+      tags: ['assessment', 'tests', 'quiz', 'questions', 'settings'],
     },
     {
       id: '3',
       title: 'Discussion Forum Management',
       url: 'https://help.blackboard.com/Learn/Instructor/Interact/Discussions',
-      content: 'Create and moderate discussion forums. Set up threaded discussions, anonymous posting, and grading rubrics for discussions.',
+      content:
+        'Create and moderate discussion forums. Set up threaded discussions, anonymous posting, and grading rubrics for discussions.',
       feature: 'Discussion Forums',
       category: 'Instructor Guide',
-      tags: ['discussion', 'forums', 'threads', 'moderation']
+      tags: ['discussion', 'forums', 'threads', 'moderation'],
     },
     {
       id: '4',
       title: 'Course Content Organization',
       url: 'https://help.blackboard.com/Learn/Instructor/Course_Content',
-      content: 'Organize course materials using content areas, learning modules, and folders. Upload files, create web links, and structure learning paths.',
+      content:
+        'Organize course materials using content areas, learning modules, and folders. Upload files, create web links, and structure learning paths.',
       feature: 'Content Areas',
       category: 'Course Management',
-      tags: ['content', 'organization', 'folders', 'files']
+      tags: ['content', 'organization', 'folders', 'files'],
     },
     {
       id: '5',
       title: 'Ultra Course Experience Overview',
       url: 'https://help.blackboard.com/Learn/Instructor/Ultra/Ultra_Course_View',
-      content: 'Introduction to the Ultra Course Experience including navigation, activity stream, and collaboration tools.',
+      content:
+        'Introduction to the Ultra Course Experience including navigation, activity stream, and collaboration tools.',
       feature: 'Ultra Course View',
       category: 'Getting Started',
-      tags: ['ultra', 'navigation', 'activity stream', 'collaboration']
-    }
+      tags: ['ultra', 'navigation', 'activity stream', 'collaboration'],
+    },
   ];
 
   static getChatHistory(): ChatMessage[] {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     if (!stored) return [];
-    
+
     try {
       const messages = JSON.parse(stored);
       return messages.map((msg: any) => ({
         ...msg,
-        timestamp: new Date(msg.timestamp)
+        timestamp: new Date(msg.timestamp),
       }));
     } catch {
       return [];
@@ -82,10 +87,7 @@ export class ChatbotService {
     localStorage.removeItem(this.STORAGE_KEY);
   }
 
-  static async processMessage(
-    message: string, 
-    context: ChatbotContext = {}
-  ): Promise<ChatMessage> {
+  static async processMessage(message: string, context: ChatbotContext = {}): Promise<ChatMessage> {
     // Simulate AI processing delay
     await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
 
@@ -107,36 +109,46 @@ export class ChatbotService {
       ...response,
       id: messageId,
       isUser: false,
-      timestamp
+      timestamp,
     };
   }
 
   private static isTestPlanRequest(message: string): boolean {
     const testPlanKeywords = [
-      'test plan', 'testing', 'test case', 'assessment test', 
-      'create test', 'generate test', 'test strategy', 'qa plan'
+      'test plan',
+      'testing',
+      'test case',
+      'assessment test',
+      'create test',
+      'generate test',
+      'test strategy',
+      'qa plan',
     ];
-    return testPlanKeywords.some(keyword => 
-      message.toLowerCase().includes(keyword.toLowerCase())
-    );
+    return testPlanKeywords.some(keyword => message.toLowerCase().includes(keyword.toLowerCase()));
   }
 
   private static isHelpRequest(message: string): boolean {
     const helpKeywords = [
-      'how to', 'help with', 'guide', 'tutorial', 'documentation',
-      'learn about', 'explain', 'what is', 'how do I'
+      'how to',
+      'help with',
+      'guide',
+      'tutorial',
+      'documentation',
+      'learn about',
+      'explain',
+      'what is',
+      'how do I',
     ];
-    return helpKeywords.some(keyword => 
-      message.toLowerCase().includes(keyword.toLowerCase())
-    );
+    return helpKeywords.some(keyword => message.toLowerCase().includes(keyword.toLowerCase()));
   }
 
   private static async generateTestPlanResponse(
-    message: string, 
+    message: string,
     context: ChatbotContext
   ): Promise<Omit<ChatMessage, 'id' | 'isUser' | 'timestamp'>> {
-    const feature = this.extractBlackboardFeature(message) || context.selectedFeature || 'Assessment Tools';
-    
+    const feature =
+      this.extractBlackboardFeature(message) || context.selectedFeature || 'Assessment Tools';
+
     // Generate a comprehensive test plan
     const testPlan: Partial<TestPlan> = {
       title: `${feature} Testing Plan`,
@@ -148,7 +160,7 @@ export class ChatbotService {
       prerequisites: [
         'Test environment with admin access',
         'Sample course with enrolled users',
-        'Various file types for testing uploads'
+        'Various file types for testing uploads',
       ],
       blackboardFeature: feature,
       testCases: [
@@ -158,9 +170,9 @@ export class ChatbotService {
           description: `Test core functionality of ${feature}`,
           steps: [],
           expectedResult: `${feature} works as expected`,
-          priority: 'High' as const
-        }
-      ]
+          priority: 'High' as const,
+        },
+      ],
     };
 
     return {
@@ -186,19 +198,19 @@ Would you like me to elaborate on any specific test scenarios or create detailed
       type: 'test-plan',
       metadata: {
         testPlan,
-        blackboardFeature: feature
-      }
+        blackboardFeature: feature,
+      },
     };
   }
 
   private static generateHelpResponse(
-    message: string, 
+    message: string,
     context: ChatbotContext
   ): Promise<Omit<ChatMessage, 'id' | 'isUser' | 'timestamp'>> {
     const feature = this.extractBlackboardFeature(message);
-    const relevantArticles = feature 
+    const relevantArticles = feature
       ? this.HELP_ARTICLES.filter(article => article.feature === feature)
-      : this.HELP_ARTICLES.filter(article => 
+      : this.HELP_ARTICLES.filter(article =>
           article.tags.some(tag => message.toLowerCase().includes(tag))
         );
 
@@ -220,8 +232,8 @@ Is there a specific aspect you'd like me to explain further, or would you like h
         type: 'help-article',
         metadata: {
           helpUrl: article.url,
-          blackboardFeature: article.feature
-        }
+          blackboardFeature: article.feature,
+        },
       });
     }
 
@@ -236,18 +248,16 @@ Is there a specific aspect you'd like me to explain further, or would you like h
 🚀 **Ultra Experience** - Modern interface features
 
 What specific topic would you like help with? I can provide documentation links, explain features, or help you create test plans for any Blackboard functionality.`,
-      type: 'text'
+      type: 'text',
     });
   }
 
   private static async generateGeneralResponse(
-    message: string, 
+    message: string,
     context: ChatbotContext
   ): Promise<Omit<ChatMessage, 'id' | 'isUser' | 'timestamp'>> {
     const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon'];
-    const isGreeting = greetings.some(greeting => 
-      message.toLowerCase().includes(greeting)
-    );
+    const isGreeting = greetings.some(greeting => message.toLowerCase().includes(greeting));
 
     if (isGreeting) {
       return Promise.resolve({
@@ -260,7 +270,7 @@ I can help you with:
 🎯 **Testing Strategy** - Best practices for QA testing
 
 What would you like assistance with today?`,
-        type: 'text'
+        type: 'text',
       });
     }
 
@@ -278,25 +288,44 @@ Try asking questions like:
 - "Help with discussion forum setup"
 
 What specific help do you need?`,
-      type: 'text'
+      type: 'text',
     });
   }
 
   private static extractBlackboardFeature(message: string): BlackboardFeature | null {
     const features: BlackboardFeature[] = [
-      'Course Management', 'Gradebook', 'Discussion Forums', 'Assignments',
-      'Content Areas', 'Announcements', 'Calendar', 'Messages', 'Group Management',
-      'Assessment Tools', 'Rubrics', 'SafeAssign', 'Attendance', 'Grade Center',
-      'Ultra Course View', 'Original Course View', 'Mobile App', 'Integration Tools',
-      'Reports', 'System Administration'
+      'Course Management',
+      'Gradebook',
+      'Discussion Forums',
+      'Assignments',
+      'Content Areas',
+      'Announcements',
+      'Calendar',
+      'Messages',
+      'Group Management',
+      'Assessment Tools',
+      'Rubrics',
+      'SafeAssign',
+      'Attendance',
+      'Grade Center',
+      'Ultra Course View',
+      'Original Course View',
+      'Mobile App',
+      'Integration Tools',
+      'Reports',
+      'System Administration',
     ];
 
-    return features.find(feature => 
-      message.toLowerCase().includes(feature.toLowerCase()) ||
-      feature.toLowerCase().split(' ').some(word => 
-        message.toLowerCase().includes(word)
-      )
-    ) || null;
+    return (
+      features.find(
+        feature =>
+          message.toLowerCase().includes(feature.toLowerCase()) ||
+          feature
+            .toLowerCase()
+            .split(' ')
+            .some(word => message.toLowerCase().includes(word))
+      ) || null
+    );
   }
 
   static createUserMessage(content: string): ChatMessage {
@@ -305,7 +334,7 @@ What specific help do you need?`,
       content,
       isUser: true,
       timestamp: new Date(),
-      type: 'text'
+      type: 'text',
     };
   }
 }
