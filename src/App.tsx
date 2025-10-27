@@ -6,6 +6,9 @@ import Layout from './components/Layout';
 
 export const ColorModeContext = createContext({ toggleColorMode: () => {}, mode: 'light' });
 
+// Use basename for GitHub Pages in production, empty for local development
+const basename = process.env.NODE_ENV === 'production' ? '/qa-commander-poc' : '';
+
 function App() {
   const [mode, setMode] = useState<'light' | 'dark'>(() => {
     const stored = localStorage.getItem('themeMode');
@@ -55,7 +58,7 @@ function App() {
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <Router>
+        <Router basename={basename}>
           <Layout />
         </Router>
       </ThemeProvider>
