@@ -27,7 +27,7 @@ import {
   Brightness7,
   CheckBox as TCMIcon,
 } from '@mui/icons-material';
-import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import RiskAnalysisView from '../views/RiskAnalysisView';
 import TestPlansView from '../views/TestPlansView';
 import TCMView from '../views/TCMView';
@@ -201,6 +201,7 @@ const Layout: React.FC = () => {
           <Route path="/blackboard-content" element={<BlackboardContentView />} />
           <Route path="/ai-assistant" element={<AIChatbotView />} />
           <Route path="/jenkins-analysis" element={<UnderConstructionView />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Box>
     </Box>

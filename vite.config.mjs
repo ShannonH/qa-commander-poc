@@ -14,8 +14,8 @@ const craEnvVars = Object.keys(process.env)
   }, {});
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  base: '/qa-commander-poc/',
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/qa-commander-poc/' : '/',
   build: {
     outDir: './dist/qa-commander-poc'
   },
@@ -34,4 +34,4 @@ export default defineConfig({
     replace({ values: craEnvVars, preventAssignment: true }),
     nxViteTsPaths(),
   ],
-});
+}));
