@@ -385,7 +385,7 @@ What would you like help with today?`,
                   <Avatar sx={{ bgcolor: 'secondary.main', width: 32, height: 32 }}>
                     <BotIcon />
                   </Avatar>
-                  <Card sx={{ bgcolor: 'grey.100' }}>
+                  <Card>
                     <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                       <CircularProgress size={16} />
                       <Typography variant="body2" color="text.secondary">

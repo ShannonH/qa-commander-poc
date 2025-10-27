@@ -863,7 +863,7 @@ const TCMView: React.FC = () => {
               )}
 
               {selectedTestCase.givenWhenThen && (
-                <Paper sx={{ p: 2, my: 2, bgcolor: 'grey.50' }}>
+                <Paper sx={{ p: 2, my: 2 }}>
                   <Typography variant="subtitle2" gutterBottom>Scenario</Typography>
                   <Typography variant="body2" gutterBottom>
                     <strong>GIVEN:</strong> {selectedTestCase.givenWhenThen.given}
@@ -903,7 +903,7 @@ const TCMView: React.FC = () => {
                 Test Steps
               </Typography>
               {selectedTestCase.testSteps.map((step, idx) => (
-                <Paper key={step.id} sx={{ p: 2, mb: 1, bgcolor: 'grey.50' }}>
+                <Paper key={step.id} sx={{ p: 2, mb: 1 }}>
                   <Typography variant="subtitle2" gutterBottom>
                     Step {step.stepNumber}
                   </Typography>
@@ -1051,7 +1051,7 @@ const TCMView: React.FC = () => {
                 Test Steps
               </Typography>
               {(editFormData.testSteps || []).map((step, index) => (
-                <Paper key={step.id} sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
+                <Paper key={step.id} sx={{ p: 2, mb: 2 }}>
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                     <Typography variant="subtitle2" fontWeight="bold">Step {step.stepNumber}</Typography>
                     <IconButton size="small" onClick={() => removeTestStep(index)} color="error">
