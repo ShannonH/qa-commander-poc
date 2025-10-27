@@ -1321,9 +1321,9 @@ Export Date: ${new Date().toLocaleString()}
                       <AccordionSummary 
                         expandIcon={<ExpandMore />}
                         sx={{ 
-                          bgcolor: 'grey.50',
+                          bgcolor: 'action.hover',
                           '&:hover': {
-                            bgcolor: 'grey.100',
+                            bgcolor: 'action.selected',
                           },
                         }}
                       >
@@ -1347,7 +1347,7 @@ Export Date: ${new Date().toLocaleString()}
                         <TableContainer>
                           <Table size="small">
                             <TableHead>
-                              <TableRow sx={{ bgcolor: 'grey.50' }}>
+                              <TableRow sx={{ bgcolor: 'action.hover' }}>
                                 <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>
                                   Acceptance Criterion (AC) - Atomic Risk Unit
                                 </TableCell>
@@ -1373,7 +1373,7 @@ Export Date: ${new Date().toLocaleString()}
                             </TableHead>
                             <TableBody>
                               {group.workflows.map((workflow) => (
-                                <TableRow key={workflow.id} sx={{ '&:nth-of-type(even)': { bgcolor: 'grey.25' } }}>
+                                <TableRow key={workflow.id} sx={{ '&:nth-of-type(even)': { bgcolor: 'action.hover' } }}>
                                   <TableCell>
                                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
                                       {workflow.workflowName}
@@ -1536,11 +1536,11 @@ Export Date: ${new Date().toLocaleString()}
                     Recommendations
                   </Typography>
                   <Typography variant="body2" sx={{ 
-                    bgcolor: 'grey.50', 
+                    bgcolor: 'background.default', 
                     p: 2, 
                     borderRadius: 1,
                     border: '1px solid',
-                    borderColor: 'grey.200'
+                    borderColor: 'divider'
                   }}>
                     {selectedDocument.recommendations}
                   </Typography>
