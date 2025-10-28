@@ -18,6 +18,10 @@ export interface UserWorkflow {
   automationRecommendation: 'Automate' | 'Manual Only'; // Based on risk score
   automationRationale: string; // Why automate or not
 
+  // Non-automatable override
+  isNonAutomatable?: boolean; // Override automation recommendation - for high-risk tests that can't be automated
+  nonAutomatableReason?: string; // Explanation of why automation isn't possible (e.g., "Requires external email account", "Depends on third-party service")
+
   // Traceability
   sourceTestPlanId?: string; // Link to originating test plan
   sourceScenarioId?: string; // Link to originating test scenario
@@ -158,6 +162,8 @@ export interface TCMTestCase {
   likelihood?: number;
   impact?: number;
   automationRecommendation?: 'Automate' | 'Manual Only';
+  isNonAutomatable?: boolean; // Override automation recommendation
+  nonAutomatableReason?: string; // Explanation of why automation isn't possible
 
   // Organization
   tags?: string[]; // Tags for categorization (e.g., "smoke", "regression", "critical-path")

@@ -33,6 +33,9 @@ import {
   IconButton,
   InputAdornment,
   Link,
+  Checkbox,
+  FormControlLabel,
+  Alert,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -47,6 +50,7 @@ import {
   Search as SearchIcon,
   Delete as DeleteIcon,
   Save as SaveIcon,
+  Block as BlockIcon,
 } from '@mui/icons-material';
 import {
   UserWorkflow,
@@ -109,6 +113,8 @@ const RiskAnalysisView: React.FC = () => {
     testingTier: 'Tier 2: HIGH' as UserWorkflow['testingTier'],
     deliverables: 'UI Automation, Exploratory Testing',
     automationRationale: '',
+    isNonAutomatable: false,
+    nonAutomatableReason: '',
   });
 
   const [documentFormData, setDocumentFormData] = useState({
@@ -211,6 +217,8 @@ const RiskAnalysisView: React.FC = () => {
       testingTier: 'Tier 2: HIGH',
       deliverables: 'UI Automation, Exploratory Testing',
       automationRationale: '',
+      isNonAutomatable: false,
+      nonAutomatableReason: '',
     });
     setOpenWorkflowDialog(true);
   };
@@ -229,6 +237,8 @@ const RiskAnalysisView: React.FC = () => {
       testingTier: workflow.testingTier,
       deliverables: workflow.deliverables,
       automationRationale: workflow.automationRationale,
+      isNonAutomatable: workflow.isNonAutomatable || false,
+      nonAutomatableReason: workflow.nonAutomatableReason || '',
     });
     setOpenWorkflowDialog(true);
   };
@@ -254,6 +264,8 @@ const RiskAnalysisView: React.FC = () => {
       deliverables,
       automationRecommendation,
       automationRationale: workflowFormData.automationRationale,
+      isNonAutomatable: workflowFormData.isNonAutomatable,
+      nonAutomatableReason: workflowFormData.nonAutomatableReason,
       sourceTestPlanId: selectedWorkflow?.sourceTestPlanId,
       sourceScenarioId: selectedWorkflow?.sourceScenarioId,
       createdAt: selectedWorkflow?.createdAt || new Date(),
@@ -326,8 +338,8 @@ ${index + 1}. ${wf.workflowName}
    - Risk Score: ${wf.riskScore} (Impact: ${wf.impact}, Likelihood: ${wf.likelihood})
    - Testing Tier: ${wf.testingTier}
    - Deliverables: ${wf.deliverables}
-   - Automation: ${wf.automationRecommendation}
-   - Rationale: ${wf.automationRationale || 'N/A'}
+   - Automation: ${wf.isNonAutomatable ? 'Manual Only (Cannot Automate)' : wf.automationRecommendation}
+   - Rationale: ${wf.automationRationale || 'N/A'}${wf.isNonAutomatable ? `\n   - Non-Automatable Reason: ${wf.nonAutomatableReason || 'N/A'}` : ''}
 `
   )
   .join('')}
@@ -425,11 +437,17 @@ Export Date: ${new Date().toLocaleString()}
     loadData();
   };
 
-  const getAutomationRecommendation = (score: number) => {
+  const getAutomationRecommendation = (score: number, isNonAutomatable?: boolean) => {
+    if (isNonAutomatable) {
+      return 'Manual Only (Cannot Automate)';
+    }
     return score >= 1 && score <= 6 ? 'Automate' : 'Manual Only';
   };
 
-  const getAutomationIcon = (score: number) => {
+  const getAutomationIcon = (score: number, isNonAutomatable?: boolean) => {
+    if (isNonAutomatable) {
+      return <BlockIcon color="error" />;
+    }
     return score >= 1 && score <= 6 ? <AutoAwesome color="primary" /> : <Build color="secondary" />;
   };
 
@@ -729,8 +747,8 @@ Export Date: ${new Date().toLocaleString()}
                           </TableCell>
                           <TableCell align="center">
                             <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
-                              {getAutomationIcon(workflow.riskScore)}
-                              {getAutomationRecommendation(workflow.riskScore)}
+                              {getAutomationIcon(workflow.riskScore, workflow.isNonAutomatable)}
+                              {getAutomationRecommendation(workflow.riskScore, workflow.isNonAutomatable)}
                             </Box>
                           </TableCell>
                           <TableCell align="center">
@@ -969,6 +987,60 @@ Export Date: ${new Date().toLocaleString()}
                 placeholder="Explain why this should/shouldn't be automated (optional)"
                 helperText="Provide reasoning for automation recommendation"
               />
+            </Grid>
+            <Grid size={12}>
+              <Box
+                sx={{
+                  p: 2,
+                  backgroundColor: 'background.paper',
+                  borderRadius: 1,
+                  border: 1,
+                  borderColor: 'divider',
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={workflowFormData.isNonAutomatable}
+                      onChange={e =>
+                        setWorkflowFormData({
+                          ...workflowFormData,
+                          isNonAutomatable: e.target.checked,
+                        })
+                      }
+                    />
+                  }
+                  label="Mark as Non-Automatable (Cannot be automated despite risk score)"
+                />
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ ml: 4 }}>
+                  Use this for high-risk tests that technically should be automated but cannot be due
+                  to technical limitations (e.g., requires external email, third-party accounts, etc.)
+                </Typography>
+                {workflowFormData.isNonAutomatable && (
+                  <Box sx={{ mt: 2 }}>
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                      This test is marked as high-risk but non-automatable. Manual testing will be
+                      required.
+                    </Alert>
+                    <TextField
+                      label="Reason for Non-Automation *"
+                      fullWidth
+                      multiline
+                      rows={3}
+                      value={workflowFormData.nonAutomatableReason}
+                      onChange={e =>
+                        setWorkflowFormData({
+                          ...workflowFormData,
+                          nonAutomatableReason: e.target.value,
+                        })
+                      }
+                      placeholder="e.g., Requires external email account verification, Depends on third-party service with no API"
+                      helperText="Explain why automation is not possible for this test"
+                      required
+                    />
+                  </Box>
+                )}
+              </Box>
             </Grid>
           </Grid>
         </DialogContent>
@@ -1277,6 +1349,12 @@ Export Date: ${new Date().toLocaleString()}
                                   align="center"
                                   sx={{ fontWeight: 'bold', color: 'text.primary' }}
                                 >
+                                  Automation Status
+                                </TableCell>
+                                <TableCell
+                                  align="center"
+                                  sx={{ fontWeight: 'bold', color: 'text.primary' }}
+                                >
                                   Deliverables
                                 </TableCell>
                                 <TableCell
@@ -1429,6 +1507,46 @@ Export Date: ${new Date().toLocaleString()}
                                       }
                                       size="small"
                                     />
+                                  </TableCell>
+                                  <TableCell align="center">
+                                    <Box display="flex" alignItems="center" justifyContent="center" gap={1}>
+                                      {workflow.isNonAutomatable ? (
+                                        <Tooltip title={workflow.nonAutomatableReason || 'Cannot be automated'}>
+                                          <Box display="flex" alignItems="center" gap={0.5}>
+                                            <BlockIcon color="error" fontSize="small" />
+                                            <Chip 
+                                              label="Manual Only" 
+                                              color="error" 
+                                              size="small"
+                                              sx={{ fontWeight: 'bold' }}
+                                            />
+                                          </Box>
+                                        </Tooltip>
+                                      ) : (
+                                        <Box display="flex" alignItems="center" gap={0.5}>
+                                          {getAutomationIcon(
+                                            editingWorkflowId === workflow.id && editingWorkflowData
+                                              ? editingWorkflowData.likelihood * editingWorkflowData.impact
+                                              : workflow.riskScore
+                                          )}
+                                          <Chip
+                                            label={getAutomationRecommendation(
+                                              editingWorkflowId === workflow.id && editingWorkflowData
+                                                ? editingWorkflowData.likelihood * editingWorkflowData.impact
+                                                : workflow.riskScore
+                                            )}
+                                            color={
+                                              (editingWorkflowId === workflow.id && editingWorkflowData
+                                                ? editingWorkflowData.likelihood * editingWorkflowData.impact
+                                                : workflow.riskScore) <= 6
+                                                ? 'primary'
+                                                : 'secondary'
+                                            }
+                                            size="small"
+                                          />
+                                        </Box>
+                                      )}
+                                    </Box>
                                   </TableCell>
                                   <TableCell>
                                     <Typography variant="body2" sx={{ fontSize: '0.75rem' }}>
