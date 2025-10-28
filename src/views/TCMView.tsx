@@ -917,7 +917,19 @@ const TCMView: React.FC = () => {
                       )}
                     </Box>
 
-                    <Typography variant="h6" gutterBottom sx={{ fontSize: '1rem' }}>
+                    <Typography
+                      variant="h6"
+                      gutterBottom
+                      sx={{
+                        fontSize: '1rem',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          color: 'primary.main',
+                          textDecoration: 'underline',
+                        },
+                      }}
+                      onClick={() => handleViewTestCase(testCase)}
+                    >
                       {testCase.title}
                     </Typography>
 
@@ -1013,7 +1025,18 @@ const TCMView: React.FC = () => {
                       </Box>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" fontWeight="medium">
+                      <Typography
+                        variant="body2"
+                        fontWeight="medium"
+                        sx={{
+                          cursor: 'pointer',
+                          '&:hover': {
+                            color: 'primary.main',
+                            textDecoration: 'underline',
+                          },
+                        }}
+                        onClick={() => handleViewTestCase(testCase)}
+                      >
                         {testCase.title}
                       </Typography>
                       {testCase.givenWhenThen && (
@@ -1196,7 +1219,19 @@ const TCMView: React.FC = () => {
                         <TableRow key={workflow.id}>
                           <TableCell>
                             <Box>
-                              <Typography variant="subtitle2">{workflow.workflowName}</Typography>
+                              <Typography
+                                variant="subtitle2"
+                                sx={{
+                                  cursor: 'pointer',
+                                  '&:hover': {
+                                    color: 'primary.main',
+                                    textDecoration: 'underline',
+                                  },
+                                }}
+                                onClick={() => handleEditWorkflow(workflow)}
+                              >
+                                {workflow.workflowName}
+                              </Typography>
                               <Typography variant="caption" color="text.secondary">
                                 {workflow.description && workflow.description.length > 60
                                   ? `${workflow.description.substring(0, 60)}...`
@@ -1299,7 +1334,19 @@ const TCMView: React.FC = () => {
                           alignItems="flex-start"
                           mb={2}
                         >
-                          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                          <Typography
+                            variant="h6"
+                            component="div"
+                            sx={{
+                              flexGrow: 1,
+                              cursor: 'pointer',
+                              '&:hover': {
+                                color: 'primary.main',
+                                textDecoration: 'underline',
+                              },
+                            }}
+                            onClick={() => handleEditWorkflow(workflow)}
+                          >
                             {workflow.workflowName}
                           </Typography>
                           <Box display="flex" alignItems="center" gap={1}>

@@ -80,6 +80,7 @@ const Layout: React.FC = () => {
         <IconButton
           onClick={handleCollapseToggle}
           aria-label={collapsed ? 'Expand drawer' : 'Collapse drawer'}
+          sx={{ color: '#ffffff' }}
         >
           {collapsed ? <MenuIcon /> : <MenuIcon sx={{ transform: 'rotate(180deg)' }} />}
         </IconButton>

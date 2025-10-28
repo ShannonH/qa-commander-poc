@@ -1,12 +1,816 @@
+/* ========================================
+   QA Commander - Command Center Theme (Simplified)
+   ======================================== */
+
+:root {
+  /* Light Mode Colors */
+  --color-bg-main: #f0f2f5;
+  --color-bg-card: #ffffff;
+  --color-accent-primary: #002d3e;
+  --color-accent-data: #ffc107;
+  --color-accent-risk: #d32f2f;
+  --color-text: #212121;
+  --color-text-secondary: #666666;
+  --color-border: rgba(0, 45, 62, 0.2);
+
+  --transition-fast: 0.2s;
+  --transition-normal: 0.3s;
+}
+
+/* Dark Mode */
+.dark-mode,
+[data-theme="dark"] {
+  --color-bg-main: #002d3e;
+  --color-bg-card: #033c4f;
+  --color-accent-primary: #4fc3f7;
+  --color-accent-data: #ffeb3b;
+  --color-accent-risk: #ef5350;
+  --color-text: #e0f7fa;
+  --color-text-secondary: #b2ebf2;
+  --color-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
-    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg-main);
+  color: var(--color-text);
+  transition: background-color 0.3s, color 0.3s;
+  position: relative;
+}
+
+/* Tactical grid overlay in dark mode */
+[data-theme="dark"] body,
+.dark-mode body {
+  background-image:
+    linear-gradient(rgba(79, 195, 247, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 195, 247, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-position: 0 0, 0 0;
+}
+
+/* Subtle scan line effect */
+[data-theme="dark"] body::before,
+.dark-mode body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(79, 195, 247, 0.02) 2px,
+    rgba(79, 195, 247, 0.02) 4px
+  );
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.5;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consars, 'Courier New', monospace;
 }
+
+/* ========================================
+   Cards - Spaceship Control Panel Style
+   ======================================== */
+
+.MuiCard-root {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: visible;
+}
+
+/* Light mode card shadows */
+.MuiCard-root {
+  box-shadow: 0 2px 8px rgba(0, 45, 62, 0.08), 0 1px 3px rgba(0, 45, 62, 0.06);
+  border: 1px solid rgba(0, 45, 62, 0.08);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+}
+
+/* Dark mode card styling - angled tech panel */
+[data-theme="dark"] .MuiCard-root,
+.dark-mode .MuiCard-root {
+  background: linear-gradient(135deg, rgba(3, 60, 79, 0.95) 0%, rgba(0, 45, 62, 0.98) 100%);
+  border: 1px solid rgba(79, 195, 247, 0.3);
+  box-shadow:
+    0 0 20px rgba(79, 195, 247, 0.1),
+    inset 0 1px 0 rgba(79, 195, 247, 0.2),
+    0 4px 6px rgba(0, 0, 0, 0.4);
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+}
+
+/* Tech corner accent */
+[data-theme="dark"] .MuiCard-root::before,
+.dark-mode .MuiCard-root::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background: linear-gradient(135deg, rgba(255, 235, 59, 0.5) 0%, transparent 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  z-index: 1;
+}
+
+/* Corner tech detail */
+[data-theme="dark"] .MuiCard-root::after,
+.dark-mode .MuiCard-root::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  background: rgba(79, 195, 247, 0.6);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  z-index: 2;
+  animation: tech-pulse 2s ease-in-out infinite;
+}
+
+@keyframes tech-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; box-shadow: 0 0 8px rgba(79, 195, 247, 0.8); }
+}
+
+/* Card hover effect - tech panel activation */
+.MuiCard-root:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 12px rgba(0, 45, 62, 0.15);
+}
+
+[data-theme="dark"] .MuiCard-root:hover,
+.dark-mode .MuiCard-root:hover {
+  border-color: rgba(79, 195, 247, 0.6);
+  box-shadow:
+    0 0 30px rgba(79, 195, 247, 0.2),
+    inset 0 1px 0 rgba(79, 195, 247, 0.4),
+    0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Scan line effect on cards */
+[data-theme="dark"] .MuiCard-root:hover::before,
+.dark-mode .MuiCard-root:hover::before {
+  animation: scan-line 2s ease-in-out infinite, tech-pulse 2s ease-in-out infinite;
+}
+
+@keyframes scan-line {
+  0% { top: 0; height: 2px; }
+  50% { top: 100%; height: 2px; }
+  100% { top: 0; height: 2px; }
+}
+
+/* ========================================
+   Sidebar Navigation
+   ======================================== */
+
+/* Fix: Ensure sidebar icons are visible in light mode */
+.MuiDrawer-paper .MuiListItemIcon-root {
+  color: #ffffff !important;
+  min-width: 40px;
+}
+
+/* Active navigation item */
+.MuiListItemButton-root.Mui-selected {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-left: 3px solid var(--color-accent-data) !important;
+}
+
+/* Light mode active nav */
+:not([data-theme="dark"]) .MuiListItemButton-root.Mui-selected {
+  border-left-color: #ffc107 !important;
+}
+
+/* Dark mode active nav */
+[data-theme="dark"] .MuiListItemButton-root.Mui-selected,
+.dark-mode .MuiListItemButton-root.Mui-selected {
+  border-left: 3px solid #4fc3f7 !important;
+  background: linear-gradient(90deg, rgba(79, 195, 247, 0.15) 0%, transparent 100%) !important;
+}
+
+/* Ensure selected icon is visible */
+.MuiListItemButton-root.Mui-selected .MuiListItemIcon-root {
+  color: #ffeb3b !important;
+}
+
+/* ========================================
+   Metrics - Superhero HUD Data Readouts
+   ======================================== */
+
+.metric-value,
+.dashboard-metric-value {
+  color: var(--color-accent-data) !important;
+  font-weight: 700 !important;
+  font-size: 2.5rem !important;
+  letter-spacing: 0.5px;
+  position: relative;
+  display: inline-block;
+  padding: 4px 12px;
+}
+
+/* Glow and power bar in dark mode */
+[data-theme="dark"] .metric-value,
+[data-theme="dark"] .dashboard-metric-value,
+.dark-mode .metric-value,
+.dark-mode .dashboard-metric-value {
+  text-shadow:
+    0 0 10px var(--color-accent-data),
+    0 0 20px var(--color-accent-data),
+    0 0 30px rgba(255, 235, 59, 0.5);
+  background: linear-gradient(135deg, rgba(255, 235, 59, 0.1) 0%, transparent 100%);
+  border: 1px solid rgba(255, 235, 59, 0.3);
+  border-radius: 2px;
+  box-shadow:
+    0 0 20px rgba(255, 235, 59, 0.3),
+    inset 0 0 10px rgba(255, 235, 59, 0.1);
+}
+
+/* Power level indicator */
+[data-theme="dark"] .metric-value::before,
+[data-theme="dark"] .dashboard-metric-value::before,
+.dark-mode .metric-value::before,
+.dark-mode .dashboard-metric-value::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-accent-data) 0%, transparent 100%);
+  box-shadow: 0 0 10px var(--color-accent-data);
+  animation: power-scan 2s ease-in-out infinite;
+}
+
+@keyframes power-scan {
+  0%, 100% {
+    width: 30%;
+    opacity: 0.6;
+  }
+  50% {
+    width: 100%;
+    opacity: 1;
+  }
+}
+
+/* Metric card container - tactical display panel */
+.metric-card-container {
+  position: relative;
+}
+
+[data-theme="dark"] .metric-card-container::before,
+.dark-mode .metric-card-container::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(79, 195, 247, 0.1) 50%,
+    transparent 70%
+  );
+  background-size: 200% 200%;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .metric-card-container:hover::before,
+.dark-mode .metric-card-container:hover::before {
+  opacity: 1;
+  animation: tactical-scan 2s linear infinite;
+}
+
+@keyframes tactical-scan {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* ========================================
+   Risk Indicators - Alert Panel Style
+   ======================================== */
+
+.risk-indicator,
+.risk-metric,
+[data-risk="true"] {
+  color: var(--color-accent-risk) !important;
+  position: relative;
+  padding: 4px 8px;
+  display: inline-block;
+}
+
+[data-theme="dark"] .risk-indicator,
+[data-theme="dark"] .risk-metric,
+.dark-mode .risk-indicator,
+.dark-mode .risk-metric {
+  text-shadow: 0 0 10px var(--color-accent-risk);
+  background: rgba(239, 83, 80, 0.1);
+  border-left: 3px solid var(--color-accent-risk);
+  box-shadow:
+    0 0 15px rgba(239, 83, 80, 0.3),
+    inset 0 0 10px rgba(239, 83, 80, 0.1);
+  animation: alert-pulse 2s ease-in-out infinite;
+}
+
+/* Alert pulse animation */
+@keyframes alert-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 15px rgba(239, 83, 80, 0.3),
+      inset 0 0 10px rgba(239, 83, 80, 0.1);
+    border-left-color: rgba(239, 83, 80, 0.8);
+  }
+  50% {
+    box-shadow:
+      0 0 25px rgba(239, 83, 80, 0.6),
+      inset 0 0 15px rgba(239, 83, 80, 0.2);
+    border-left-color: rgba(239, 83, 80, 1);
+  }
+}
+
+/* Warning icon glow */
+.risk-icon {
+  filter: drop-shadow(0 0 6px var(--color-accent-risk));
+  animation: warning-blink 1.5s ease-in-out infinite;
+}
+
+@keyframes warning-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ========================================
+   Quick Action Links - Superhero Interface Buttons
+   ======================================== */
+
+.quick-action-link {
+  color: var(--color-accent-primary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px 10px 16px;
+  margin: 6px 0;
+  border-radius: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.05) 100%);
+  border-left: 3px solid var(--color-accent-primary);
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .quick-action-link,
+.dark-mode .quick-action-link {
+  background: linear-gradient(135deg, rgba(79, 195, 247, 0.1) 0%, rgba(3, 60, 79, 0.3) 100%);
+  border-left-color: rgba(79, 195, 247, 0.6);
+  box-shadow: inset 0 1px 0 rgba(79, 195, 247, 0.2);
+}
+
+/* Power indicator */
+.quick-action-link::before {
+  content: '▶';
+  margin-right: 10px;
+  font-size: 0.7em;
+  transition: all 0.3s;
+  color: var(--color-accent-data);
+  text-shadow: 0 0 4px var(--color-accent-data);
+}
+
+/* Angled corner accent */
+.quick-action-link::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  background: var(--color-accent-data);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+  opacity: 0.5;
+  transition: all 0.3s;
+}
+
+/* Hover - POWER UP! */
+.quick-action-link:hover {
+  background: linear-gradient(135deg, var(--color-accent-data) 0%, #ff9800 100%);
+  color: #000000;
+  font-weight: 600;
+  border-left-color: var(--color-accent-data);
+  transform: translateX(6px) scale(1.02);
+  box-shadow:
+    0 0 20px rgba(255, 193, 7, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+[data-theme="dark"] .quick-action-link:hover,
+.dark-mode .quick-action-link:hover {
+  box-shadow:
+    0 0 30px rgba(255, 235, 59, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3);
+  animation: energy-pulse 1.5s ease-in-out infinite;
+}
+
+.quick-action-link:hover::before {
+  transform: translateX(4px) scale(1.2);
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+  color: #000000;
+}
+
+.quick-action-link:hover::after {
+  opacity: 1;
+  box-shadow: 0 0 8px var(--color-accent-data);
+}
+
+/* Energy pulse animation */
+@keyframes energy-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 235, 59, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 235, 59, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+}
+
+[data-theme="dark"] .quick-action-link,
+.dark-mode .quick-action-link {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.quick-action-link::before {
+  content: '▶';
+  margin-right: 8px;
+  font-size: 0.7em;
+}
+
+.quick-action-link:hover {
+  background: var(--color-accent-data);
+  color: #000000;
+  border-left-color: var(--color-accent-data);
+  transform: translateX(4px);
+}
+
+/* ========================================
+   Activity Items
+   ======================================== */
+
+.activity-item {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+  padding: 12px 0;
+  transition: all 0.2s;
+}
+
+[data-theme="dark"] .activity-item,
+.dark-mode .activity-item {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-item:hover {
+  padding-left: 10px;
+  border-left: 2px solid var(--color-accent-primary);
+}
+
+/* ========================================
+   Section Headers - HUD Display Style
+   ======================================== */
+
+.section-header-3d {
+  border-bottom: 2px solid var(--color-accent-primary);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  position: relative;
+  padding-left: 16px;
+}
+
+/* Tech bracket left side */
+.section-header-3d::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -4px;
+  bottom: -4px;
+  width: 3px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--color-accent-primary) 20%,
+    var(--color-accent-data) 50%,
+    var(--color-accent-primary) 80%,
+    transparent 100%
+  );
+  box-shadow: 0 0 10px var(--color-accent-primary);
+}
+
+/* Tech bracket corners */
+.section-header-3d::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  border-left: 2px solid var(--color-accent-data);
+  border-top: 2px solid var(--color-accent-data);
+  box-shadow: 0 0 4px var(--color-accent-data);
+}
+
+/* Moving scan line on headers */
+[data-theme="dark"] .section-header-3d,
+.dark-mode .section-header-3d {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(79, 195, 247, 0.05) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: header-scan 3s linear infinite;
+}
+
+@keyframes header-scan {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ========================================
+   Buttons
+   ======================================== */
+
+[data-theme="dark"] .MuiButton-containedPrimary,
+.dark-mode .MuiButton-containedPrimary {
+  background: linear-gradient(135deg, #4fc3f7 0%, #2196f3 100%);
+  box-shadow: 0 0 15px rgba(79, 195, 247, 0.3);
+}
+
+[data-theme="dark"] .MuiButton-containedPrimary:hover,
+.dark-mode .MuiButton-containedPrimary:hover {
+  box-shadow: 0 0 25px rgba(79, 195, 247, 0.5);
+  transform: translateY(-2px);
+}
+
+/* ========================================
+   Modals - Simple backdrop blur
+   ======================================== */
+
+.MuiBackdrop-root {
+  backdrop-filter: blur(4px);
+}
+
+[data-theme="dark"] .MuiBackdrop-root,
+.dark-mode .MuiBackdrop-root {
+  backdrop-filter: blur(8px);
+  background-color: rgba(0, 45, 62, 0.7) !important;
+}
+
+/* ========================================
+   Tables
+   ======================================== */
+
+[data-theme="dark"] .MuiTableHead-root,
+.dark-mode .MuiTableHead-root {
+  background: rgba(79, 195, 247, 0.1);
+  border-bottom: 2px solid var(--color-accent-primary);
+}
+
+[data-theme="dark"] .MuiTableRow-root:hover,
+.dark-mode .MuiTableRow-root:hover {
+  background: rgba(79, 195, 247, 0.05);
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+.text-accent-primary {
+  color: var(--color-accent-primary) !important;
+}
+
+.text-accent-data {
+  color: var(--color-accent-data) !important;
+}
+
+.text-accent-risk {
+  color: var(--color-accent-risk) !important;
+}
+
+.glow-data {
+  text-shadow: 0 0 10px var(--color-accent-data);
+}
+
+.glow-risk {
+  text-shadow: 0 0 10px var(--color-accent-risk);
+}
+
+/* ========================================
+   Corner Brackets - Tactical HUD Elements
+   ======================================== */
+
+.corner-brackets {
+  position: relative;
+  padding: 16px;
+}
+
+/* Top-left bracket */
+.corner-brackets::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+  border-left: 3px solid var(--color-accent-primary);
+  border-top: 3px solid var(--color-accent-primary);
+  box-shadow:
+    0 0 10px var(--color-accent-primary),
+    inset 0 0 5px rgba(79, 195, 247, 0.3);
+  transition: all 0.3s;
+}
+
+/* Bottom-right bracket */
+.corner-brackets::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  border-right: 3px solid var(--color-accent-primary);
+  border-bottom: 3px solid var(--color-accent-primary);
+  box-shadow:
+    0 0 10px var(--color-accent-primary),
+    inset 0 0 5px rgba(79, 195, 247, 0.3);
+  transition: all 0.3s;
+}
+
+/* Expand brackets on hover */
+[data-theme="dark"] .corner-brackets:hover::before,
+.dark-mode .corner-brackets:hover::before {
+  width: 30px;
+  height: 30px;
+  box-shadow:
+    0 0 20px var(--color-accent-primary),
+    inset 0 0 10px rgba(79, 195, 247, 0.5);
+}
+
+[data-theme="dark"] .corner-brackets:hover::after,
+.dark-mode .corner-brackets:hover::after {
+  width: 30px;
+  height: 30px;
+  box-shadow:
+    0 0 20px var(--color-accent-primary),
+    inset 0 0 10px rgba(79, 195, 247, 0.5);
+}
+
+/* Add corner tech details */
+.corner-brackets {
+  border: 1px solid rgba(79, 195, 247, 0.2);
+}
+
+[data-theme="dark"] .corner-brackets,
+.dark-mode .corner-brackets {
+  background: linear-gradient(
+    135deg,
+    rgba(3, 60, 79, 0.3) 0%,
+    rgba(0, 45, 62, 0.5) 100%
+  );
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+   Holographic Text - Superhero Energy Display
+   ======================================== */
+
+[data-theme="dark"] .holographic-text,
+.dark-mode .holographic-text {
+  background: linear-gradient(
+    45deg,
+    #4fc3f7 0%,
+    #ffeb3b 25%,
+    #4fc3f7 50%,
+    #ffeb3b 75%,
+    #4fc3f7 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: holographic-shimmer 3s ease infinite;
+  position: relative;
+  text-shadow: none;
+  font-weight: 700;
+}
+
+/* Energy glow behind holographic text */
+[data-theme="dark"] .holographic-text::before,
+.dark-mode .holographic-text::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  background: linear-gradient(45deg, #4fc3f7, #ffeb3b, #4fc3f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: blur(10px);
+  opacity: 0.7;
+}
+
+@keyframes holographic-shimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+    filter: brightness(1) contrast(1);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: brightness(1.2) contrast(1.1);
+  }
+}
+
+/* Power burst effect */
+[data-theme="dark"] .holographic-text:hover,
+.dark-mode .holographic-text:hover {
+  animation: holographic-shimmer 1s ease infinite, power-burst 0.5s ease;
+  text-shadow:
+    0 0 20px rgba(79, 195, 247, 0.8),
+    0 0 40px rgba(255, 235, 59, 0.6);
+}
+
+@keyframes power-burst {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.05);
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* ========================================
+   Scrollbar
+   ======================================== */
+
+[data-theme="dark"] ::-webkit-scrollbar,
+.dark-mode ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track,
+.dark-mode ::-webkit-scrollbar-track {
+  background: var(--color-bg-main);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb,
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: var(--color-accent-primary);
+  border-radius: 5px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover,
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: #2196f3;
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+  .metric-value,
+  .dashboard-metric-value {
+    font-size: 2rem !important;
+  }
+}
+

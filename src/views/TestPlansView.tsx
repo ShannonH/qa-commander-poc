@@ -24,12 +24,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
-  Divider,
   Paper,
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
   Checkbox,
   FormControlLabel,
   Tooltip,
@@ -401,7 +396,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
           <Typography variant="h5" gutterBottom>
             {plan.title}
           </Typography>
-          <Typography variant="body1" paragraph>
+          <Typography variant="body1" sx={{ mb: 2 }}>
             {plan.description}
           </Typography>
 
@@ -500,7 +495,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               Test Strategy
             </Typography>
             {plan.testStrategy && (
-              <Typography variant="body2" paragraph>
+              <Typography variant="body2" sx={{ mb: 2 }}>
                 {plan.testStrategy}
               </Typography>
             )}
@@ -595,7 +590,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                       <Typography variant="subtitle2" gutterBottom>
                         <strong>Acceptance Criteria ({scenario.acceptanceCriteria.length}):</strong>
                       </Typography>
-                      {scenario.acceptanceCriteria.map((ac, acIndex) => (
+                      {scenario.acceptanceCriteria.map(ac => (
                         <Box
                           key={ac.id}
                           sx={{
@@ -681,7 +676,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 <Typography>{testCase.title}</Typography>
               </AccordionSummary>
               <AccordionDetails>
-                <Typography variant="body2" paragraph>
+                <Typography variant="body2" sx={{ mb: 2 }}>
                   {testCase.description}
                 </Typography>
                 <Typography variant="body2">
@@ -718,7 +713,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <Typography variant="h6" gutterBottom color="primary">
                 1. Feature Overview
               </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Define the basic information about what feature you're testing.
               </Typography>
             </Grid>
@@ -834,7 +829,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <Typography variant="h6" gutterBottom color="primary">
                 2. Objective
               </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Define the primary goal and purpose of this test plan.
               </Typography>
             </Grid>
@@ -883,7 +878,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <Typography variant="h6" gutterBottom color="primary">
                 3. Test Scope
               </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Define what will and won't be tested, plus any prerequisites.
               </Typography>
             </Grid>
@@ -1008,7 +1003,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <Typography variant="h6" gutterBottom color="primary">
                 4. Test Strategy
               </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Define your testing approach and select applicable strategies from the checklist
                 below.
               </Typography>
@@ -1032,7 +1027,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
                 Strategy Checklist
               </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Select applicable testing strategies and add notes where needed. This checklist
                 helps ensure comprehensive test coverage.
               </Typography>
@@ -1119,7 +1114,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <Typography variant="h6" gutterBottom color="primary">
                 5. Test Scenarios (Given/When/Then)
               </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Define test scenarios that will be used for risk analysis workflows. These form the
                 foundation for both test execution and risk analysis.
               </Typography>
@@ -1339,7 +1334,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <Typography variant="h6" gutterBottom color="primary">
                 6. Test Environment & Data Requirements
               </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Specify what environment setup and test data you need.
               </Typography>
             </Grid>
@@ -1423,7 +1418,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <Typography variant="h6" gutterBottom color="primary">
                 7. Success Criteria
               </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Define what constitutes successful completion of this test plan.
               </Typography>
             </Grid>
@@ -1468,7 +1463,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <Typography variant="h6" gutterBottom color="primary">
                 8. Review & Submit
               </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Review your test plan before creating it.
               </Typography>
             </Grid>
@@ -1477,7 +1472,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 <Typography variant="h6" gutterBottom>
                   {formData.title}
                 </Typography>
-                <Typography variant="body1" paragraph>
+                <Typography variant="body1" sx={{ mb: 2 }}>
                   {formData.description}
                 </Typography>
 
@@ -1507,7 +1502,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>
                   Objective
                 </Typography>
-                <Typography variant="body2" paragraph>
+                <Typography variant="body2" sx={{ mb: 2 }}>
                   {formData.objective}
                 </Typography>
 
@@ -1581,6 +1576,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       blackboardFeature: 'Course Management',
       category: 'Functional',
       priority: 'Medium',
+      valueStream: '',
       objective: '',
       inScope: [''],
       outOfScope: [''],
@@ -1730,26 +1726,6 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
     });
   };
 
-  const addPrerequisite = () => {
-    setFormData({
-      ...formData,
-      prerequisites: [...formData.prerequisites, ''],
-    });
-  };
-
-  const updatePrerequisite = (index: number, value: string) => {
-    const newPrerequisites = [...formData.prerequisites];
-    newPrerequisites[index] = value;
-    setFormData({ ...formData, prerequisites: newPrerequisites });
-  };
-
-  const removePrerequisite = (index: number) => {
-    setFormData({
-      ...formData,
-      prerequisites: formData.prerequisites.filter((_, i) => i !== index),
-    });
-  };
-
   // Helper functions for managing array fields
   const addArrayItem = (field: keyof typeof formData, value: string = '') => {
     setFormData({
@@ -1862,7 +1838,19 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                     <TableRow key={plan.id}>
                       <TableCell>
                         <Box>
-                          <Typography variant="subtitle2">{plan.title}</Typography>
+                          <Typography
+                            variant="subtitle2"
+                            sx={{
+                              cursor: 'pointer',
+                              '&:hover': {
+                                color: 'primary.main',
+                                textDecoration: 'underline',
+                              },
+                            }}
+                            onClick={() => handleView(plan)}
+                          >
+                            {plan.title}
+                          </Typography>
                           <Typography variant="caption" color="text.secondary">
                             {plan.description.length > 100
                               ? `${plan.description.substring(0, 100)}...`
@@ -1949,7 +1937,19 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
               <Card>
                 <CardContent>
                   <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                    <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                    <Typography
+                      variant="h6"
+                      component="div"
+                      sx={{
+                        flexGrow: 1,
+                        cursor: 'pointer',
+                        '&:hover': {
+                          color: 'primary.main',
+                          textDecoration: 'underline',
+                        },
+                      }}
+                      onClick={() => handleView(plan)}
+                    >
                       {plan.title}
                     </Typography>
                     <Box>
