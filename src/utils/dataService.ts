@@ -341,6 +341,8 @@ export class DataService {
             likelihood: workflow.likelihood,
             impact: workflow.impact,
             automationRecommendation: workflow.automationRecommendation,
+            isNonAutomatable: workflow.isNonAutomatable,
+            nonAutomatableReason: workflow.nonAutomatableReason,
             testSteps: testSteps,
             expectedResult: scenario.then,
             notes: workflow.automationRationale,
