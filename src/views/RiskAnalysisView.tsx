@@ -1046,7 +1046,11 @@ Export Date: ${new Date().toLocaleString()}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenWorkflowDialog(false)}>Cancel</Button>
-          <Button onClick={handleSubmitWorkflow} variant="contained">
+          <Button 
+            onClick={handleSubmitWorkflow} 
+            variant="contained"
+            disabled={workflowFormData.isNonAutomatable && !workflowFormData.nonAutomatableReason?.trim()}
+          >
             {selectedWorkflow ? 'Update Workflow' : 'Create Workflow'}
           </Button>
         </DialogActions>
