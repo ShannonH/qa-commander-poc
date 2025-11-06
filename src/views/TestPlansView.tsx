@@ -281,7 +281,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
         // Create a workflow from the G/W/T scenario itself
         const workflow = {
           id: scenario.id, // Use scenario ID as workflow ID
-          workflowName: scenario.title || `G/W/T: ${scenario.given}`,
+          workflowName: scenario.title?.trim() || `G/W/T: ${scenario.given}`,
           description: `Given: ${scenario.given} | When: ${scenario.when} | Then: ${scenario.then}`,
           userStoryId: scenario.userStoryId, // Link to User Story ID
           blackboardFeature: testPlan.blackboardFeature,
