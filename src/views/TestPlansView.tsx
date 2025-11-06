@@ -1115,8 +1115,8 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                 5. Test Scenarios (Given/When/Then)
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Define test scenarios that will be used for risk analysis workflows. These form the
-                foundation for both test execution and risk analysis.
+                Define test scenarios in G/W/T format. Each scenario will become a workflow in Risk Analysis.
+                Scenarios are grouped by User Story ID for traceability to Azure DevOps.
               </Typography>
             </Grid>
             {formData.testScenarios.map((scenario, index) => (
@@ -1229,11 +1229,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                     {/* Acceptance Criteria Section */}
                     <Grid size={12}>
                       <Typography variant="h6" gutterBottom sx={{ mt: 2, mb: 1 }}>
-                        Acceptance Criteria (Workflows)
+                        Acceptance Criteria (Optional Documentation)
                       </Typography>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
-                        These acceptance criteria become the individual workflows in risk analysis.
-                        Each gets a unique ID for test automation.
+                        Optional: Add acceptance criteria from the user story for documentation purposes.
+                        Note: The G/W/T scenario itself becomes the workflow in risk analysis, not these individual criteria.
                       </Typography>
 
                       {(scenario.acceptanceCriteria || []).map((ac, acIndex) => (
