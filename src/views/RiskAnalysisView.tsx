@@ -1311,13 +1311,13 @@ Export Date: ${new Date().toLocaleString()}
                         </Box>
                       </AccordionSummary>
                       <AccordionDetails sx={{ p: 0 }}>
-                        {/* Assessment Unit: Acceptance Criteria (AC) - The atomic unit for risk */}
+                        {/* Assessment Unit: G/W/T Workflow - The atomic unit for risk */}
                         <TableContainer>
                           <Table size="small">
                             <TableHead>
                               <TableRow sx={{ bgcolor: 'action.hover' }}>
                                 <TableCell sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                                  Acceptance Criterion (AC) - Atomic Risk Unit
+                                  G/W/T Workflow - Atomic Risk Unit
                                 </TableCell>
                                 <TableCell
                                   align="center"

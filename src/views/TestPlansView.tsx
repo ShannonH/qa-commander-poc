@@ -263,7 +263,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   // Generate risk analysis from test plan
   const generateRiskAnalysis = (testPlan: TestPlan) => {
     try {
-      // Create workflows from acceptance criteria, not scenarios
+      // Create workflows from G/W/T scenarios directly, not from acceptance criteria
       const workflows: any[] = [];
 
       (testPlan.testScenarios || []).forEach(scenario => {
@@ -275,37 +275,37 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
           throw new Error('Missing User Story ID');
         }
 
-        (scenario.acceptanceCriteria || []).forEach(ac => {
-          const defaultRiskScore = 4; // Medium risk as starting point
-          const defaultTier = 'Tier 2: HIGH';
+        const defaultRiskScore = 4; // Medium risk as starting point
+        const defaultTier = 'Tier 2: HIGH';
 
-          const workflow = {
-            id: ac.id, // Use AC ID as workflow ID
-            workflowName: ac.description,
-            description: `Acceptance criteria from scenario: ${scenario.given} → ${scenario.when} → ${scenario.then}`,
-            userStoryId: scenario.userStoryId, // Link to User Story ID
-            userStory: `Given ${scenario.given}, when ${scenario.when}, then ${scenario.then}`,
-            blackboardFeature: testPlan.blackboardFeature,
-            likelihood: 2,
-            impact: 2,
-            riskScore: defaultRiskScore,
-            testingTier: defaultTier,
-            deliverables: 'UI Automation, Exploratory Testing',
-            automationReason: 'Generated from acceptance criteria - requires review and assessment',
-            sourceTestPlanId: testPlan.id,
-            sourceScenarioId: scenario.id,
-            sourceAcceptanceCriteriaId: ac.id,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          };
+        // Create a workflow from the G/W/T scenario itself
+        const workflow = {
+          id: scenario.id, // Use scenario ID as workflow ID
+          workflowName: scenario.title || `G/W/T: ${scenario.given}`,
+          description: `Given: ${scenario.given} | When: ${scenario.when} | Then: ${scenario.then}`,
+          userStoryId: scenario.userStoryId, // Link to User Story ID
+          blackboardFeature: testPlan.blackboardFeature,
+          riskStatement: `What if: ${scenario.then} does not occur as expected`,
+          businessImpact: `Business impact if this workflow fails: requires assessment`,
+          likelihood: 2,
+          impact: 2,
+          riskScore: defaultRiskScore,
+          testingTier: defaultTier,
+          deliverables: 'UI Automation, Exploratory Testing',
+          automationRecommendation: 'Automate',
+          automationRationale: 'Generated from G/W/T scenario - requires review and assessment',
+          sourceTestPlanId: testPlan.id,
+          sourceScenarioId: scenario.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
 
-          workflows.push(workflow);
-        });
+        workflows.push(workflow);
       });
 
       if (workflows.length === 0) {
         alert(
-          'No acceptance criteria found to generate risk analysis. Please add acceptance criteria to your test scenarios first.'
+          'No test scenarios found to generate risk analysis. Please add test scenarios to your test plan first.'
         );
         return;
       }
@@ -317,13 +317,13 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       const riskDocument = {
         id: `ra_${Date.now()}`,
         title: `Risk Analysis: ${testPlan.title}`,
-        description: `Generated risk analysis document based on acceptance criteria for ${testPlan.feature}`,
+        description: `Generated risk analysis document based on G/W/T scenarios for ${testPlan.feature}`,
         blackboardFeature: testPlan.blackboardFeature,
         workflows: workflows,
         overallRiskLevel: 'Medium' as const,
         totalRiskScore: workflows.reduce((sum, w) => sum + w.riskScore, 0),
         recommendations:
-          'Review and adjust impact/likelihood scores for each acceptance criteria workflow. Focus automation on high-frequency, stable workflows.',
+          'Review and adjust impact/likelihood scores for each G/W/T workflow. Focus automation on high-frequency, stable workflows.',
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -331,7 +331,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       DataService.saveRiskDocument(riskDocument);
 
       alert(
-        `Generated risk analysis with ${workflows.length} acceptance criteria workflows. Check the Risk Analysis section to review and adjust the scoring.`
+        `Generated risk analysis with ${workflows.length} G/W/T workflows. Check the Risk Analysis section to review and adjust the scoring.`
       );
     } catch (error) {
       console.error('Error generating risk analysis:', error);
