@@ -448,12 +448,20 @@ Export Date: ${new Date().toLocaleString()}
   const handleSaveStoryName = () => {
     if (!selectedDocument || !editingStoryNameId) return;
 
+    const trimmedValue = editingStoryNameValue.trim();
+    
+    // Create a copy of userStoryNames, removing empty values
+    const updatedUserStoryNames = { ...selectedDocument.userStoryNames };
+    if (trimmedValue) {
+      updatedUserStoryNames[editingStoryNameId] = trimmedValue;
+    } else {
+      // Remove the entry if the value is empty
+      delete updatedUserStoryNames[editingStoryNameId];
+    }
+
     const updatedDocument: RiskAnalysisDocument = {
       ...selectedDocument,
-      userStoryNames: {
-        ...selectedDocument.userStoryNames,
-        [editingStoryNameId]: editingStoryNameValue.trim(),
-      },
+      userStoryNames: updatedUserStoryNames,
       updatedAt: new Date(),
     };
 
@@ -461,7 +469,6 @@ Export Date: ${new Date().toLocaleString()}
     setSelectedDocument(updatedDocument);
     setEditingStoryNameId(null);
     setEditingStoryNameValue('');
-    loadData();
   };
 
   const handleCancelEditingStoryName = () => {
@@ -1305,6 +1312,10 @@ Export Date: ${new Date().toLocaleString()}
                               if (e.key === 'Enter') handleSaveStoryName();
                               if (e.key === 'Escape') handleCancelEditingStoryName();
                             }}
+                            aria-label="Edit user story name"
+                            inputProps={{
+                              'aria-describedby': 'story-name-help',
+                            }}
                             sx={{
                               '& .MuiInputBase-root': {
                                 color: 'primary.contrastText',
@@ -1320,6 +1331,7 @@ Export Date: ${new Date().toLocaleString()}
                             size="small"
                             onClick={handleSaveStoryName}
                             sx={{ color: 'primary.contrastText' }}
+                            aria-label="Save story name"
                           >
                             <SaveIcon />
                           </IconButton>
@@ -1327,6 +1339,7 @@ Export Date: ${new Date().toLocaleString()}
                             size="small"
                             onClick={handleCancelEditingStoryName}
                             sx={{ color: 'primary.contrastText' }}
+                            aria-label="Cancel editing story name"
                           >
                             <CloseIcon />
                           </IconButton>
@@ -1340,6 +1353,7 @@ Export Date: ${new Date().toLocaleString()}
                             size="small"
                             onClick={() => handleStartEditingStoryName(userStoryId)}
                             sx={{ color: 'primary.contrastText' }}
+                            aria-label="Edit user story name"
                           >
                             <EditIcon />
                           </IconButton>
