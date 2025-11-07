@@ -38,6 +38,7 @@ export interface RiskAnalysisDocument {
   overallRiskLevel: 'Low' | 'Medium' | 'High' | 'Critical';
   totalRiskScore: number;
   recommendations: string;
+  userStoryNames?: { [userStoryId: string]: string }; // Optional mapping of user story IDs to friendly names
   createdAt: Date;
   updatedAt: Date;
 }

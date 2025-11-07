@@ -51,6 +51,7 @@ import {
   Delete as DeleteIcon,
   Save as SaveIcon,
   Block as BlockIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import {
   UserWorkflow,
@@ -100,6 +101,8 @@ const RiskAnalysisView: React.FC = () => {
     impact: number;
     likelihood: number;
   } | null>(null);
+  const [editingStoryNameId, setEditingStoryNameId] = useState<string | null>(null);
+  const [editingStoryNameValue, setEditingStoryNameValue] = useState<string>('');
 
   const [workflowFormData, setWorkflowFormData] = useState({
     userStoryId: '', // User Story ID
@@ -435,6 +438,35 @@ Export Date: ${new Date().toLocaleString()}
     setEditingWorkflowId(null);
     setEditingWorkflowData(null);
     loadData();
+  };
+
+  const handleStartEditingStoryName = (userStoryId: string) => {
+    setEditingStoryNameId(userStoryId);
+    setEditingStoryNameValue(selectedDocument?.userStoryNames?.[userStoryId] || '');
+  };
+
+  const handleSaveStoryName = () => {
+    if (!selectedDocument || !editingStoryNameId) return;
+
+    const updatedDocument: RiskAnalysisDocument = {
+      ...selectedDocument,
+      userStoryNames: {
+        ...selectedDocument.userStoryNames,
+        [editingStoryNameId]: editingStoryNameValue.trim(),
+      },
+      updatedAt: new Date(),
+    };
+
+    DataService.saveRiskDocument(updatedDocument);
+    setSelectedDocument(updatedDocument);
+    setEditingStoryNameId(null);
+    setEditingStoryNameValue('');
+    loadData();
+  };
+
+  const handleCancelEditingStoryName = () => {
+    setEditingStoryNameId(null);
+    setEditingStoryNameValue('');
   };
 
   const getAutomationRecommendation = (score: number, isNonAutomatable?: boolean) => {
@@ -1249,17 +1281,71 @@ Export Date: ${new Date().toLocaleString()}
                   <Paper
                     sx={{ p: 2, mb: 2, bgcolor: 'primary.main', color: 'primary.contrastText' }}
                   >
-                    <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
-                      User Story:{' '}
-                      <Link
-                        href={getAdoUrl(userStoryId)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{ color: 'inherit', textDecoration: 'underline' }}
-                      >
-                        {userStoryId}
-                      </Link>
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 'bold', flexShrink: 0 }}>
+                        User Story:{' '}
+                        <Link
+                          href={getAdoUrl(userStoryId)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{ color: 'inherit', textDecoration: 'underline' }}
+                        >
+                          {userStoryId}
+                        </Link>
+                      </Typography>
+                      {editingStoryNameId === userStoryId ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+                          <TextField
+                            size="small"
+                            fullWidth
+                            placeholder="Add story name..."
+                            value={editingStoryNameValue}
+                            onChange={e => setEditingStoryNameValue(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') handleSaveStoryName();
+                              if (e.key === 'Escape') handleCancelEditingStoryName();
+                            }}
+                            sx={{
+                              '& .MuiInputBase-root': {
+                                color: 'primary.contrastText',
+                                bgcolor: 'rgba(255, 255, 255, 0.15)',
+                              },
+                              '& .MuiInputBase-input::placeholder': {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                opacity: 1,
+                              },
+                            }}
+                          />
+                          <IconButton
+                            size="small"
+                            onClick={handleSaveStoryName}
+                            sx={{ color: 'primary.contrastText' }}
+                          >
+                            <SaveIcon />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={handleCancelEditingStoryName}
+                            sx={{ color: 'primary.contrastText' }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </Box>
+                      ) : (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+                          <Typography variant="body1" sx={{ fontStyle: 'italic', opacity: 0.9 }}>
+                            {selectedDocument?.userStoryNames?.[userStoryId] || 'No story name'}
+                          </Typography>
+                          <IconButton
+                            size="small"
+                            onClick={() => handleStartEditingStoryName(userStoryId)}
+                            sx={{ color: 'primary.contrastText' }}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </Box>
                     <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
                       {Object.values(userStoryGroup.scenarios).reduce(
                         (sum, s) => sum + s.workflows.length,
