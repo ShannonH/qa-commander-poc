@@ -100,19 +100,18 @@ export interface StrategyChecklistItem {
 
 export interface AcceptanceCriteria {
   id: string; // Auto-generated ID in format TC-00001, TC-00002, etc. (not user-editable)
-  description: string;
+  given: string; // Given statement for this acceptance criteria
+  when: string; // When statement for this acceptance criteria
+  then: string; // Then statement for this acceptance criteria
   notes?: string;
 }
 
 export interface TestScenario {
   id: string;
-  title?: string; // Optional friendly title for the scenario (used in risk analysis)
   userStoryId: string; // User Story ID in format AB#1234567 - required for linkage (links to ADO work item)
-  given: string;
-  when: string;
-  then: string;
+  userStoryDescription?: string; // Editable description/name for the user story
   priority: 'Low' | 'Medium' | 'High' | 'Critical';
-  acceptanceCriteria: AcceptanceCriteria[]; // These become the workflows - each AC is the atomic unit for risk
+  acceptanceCriteria: AcceptanceCriteria[]; // These become the workflows - each AC with its G/W/T is the atomic unit for risk
   notes?: string;
 }
 
