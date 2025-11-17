@@ -263,35 +263,38 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   // Generate risk analysis from test plan
   const generateRiskAnalysis = (testPlan: TestPlan) => {
     try {
-      // Create workflows from acceptance criteria, not scenarios
+      // Create workflows from acceptance criteria (each AC has its own G/W/T)
       const workflows: any[] = [];
 
       (testPlan.testScenarios || []).forEach(scenario => {
         // Validate that scenario has userStoryId
         if (!scenario.userStoryId) {
           alert(
-            `Error: Scenario "${scenario.given}" is missing a User Story ID. Please add User Story IDs to all scenarios before generating risk analysis.`
+            `Error: Scenario is missing a User Story ID. Please add User Story IDs to all scenarios before generating risk analysis.`
           );
           throw new Error('Missing User Story ID');
         }
 
+        // Create a workflow for each acceptance criteria
         (scenario.acceptanceCriteria || []).forEach(ac => {
           const defaultRiskScore = 4; // Medium risk as starting point
           const defaultTier = 'Tier 2: HIGH';
 
           const workflow = {
             id: ac.id, // Use AC ID as workflow ID
-            workflowName: ac.description,
-            description: `Acceptance criteria from scenario: ${scenario.given} → ${scenario.when} → ${scenario.then}`,
+            workflowName: `G/W/T: ${ac.given}`,
+            description: `Given: ${ac.given} | When: ${ac.when} | Then: ${ac.then}`,
             userStoryId: scenario.userStoryId, // Link to User Story ID
-            userStory: `Given ${scenario.given}, when ${scenario.when}, then ${scenario.then}`,
             blackboardFeature: testPlan.blackboardFeature,
+            riskStatement: `What if: ${ac.then} does not occur as expected`,
+            businessImpact: `Business impact if this workflow fails: requires assessment`,
             likelihood: 2,
             impact: 2,
             riskScore: defaultRiskScore,
             testingTier: defaultTier,
             deliverables: 'UI Automation, Exploratory Testing',
-            automationReason: 'Generated from acceptance criteria - requires review and assessment',
+            automationRecommendation: 'Automate',
+            automationRationale: 'Generated from acceptance criteria G/W/T - requires review and assessment',
             sourceTestPlanId: testPlan.id,
             sourceScenarioId: scenario.id,
             sourceAcceptanceCriteriaId: ac.id,
@@ -305,7 +308,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
 
       if (workflows.length === 0) {
         alert(
-          'No acceptance criteria found to generate risk analysis. Please add acceptance criteria to your test scenarios first.'
+          'No acceptance criteria found to generate risk analysis. Please add acceptance criteria with G/W/T statements to your test scenarios first.'
         );
         return;
       }
@@ -313,17 +316,25 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       // Save all workflows
       workflows.forEach(workflow => DataService.saveUserWorkflow(workflow));
 
-      // Create risk analysis document
+      // Create risk analysis document with user story names from scenarios
+      const userStoryNames: { [key: string]: string } = {};
+      (testPlan.testScenarios || []).forEach(scenario => {
+        if (scenario.userStoryId && scenario.userStoryDescription) {
+          userStoryNames[scenario.userStoryId] = scenario.userStoryDescription;
+        }
+      });
+
       const riskDocument = {
         id: `ra_${Date.now()}`,
         title: `Risk Analysis: ${testPlan.title}`,
-        description: `Generated risk analysis document based on acceptance criteria for ${testPlan.feature}`,
+        description: `Generated risk analysis document based on acceptance criteria G/W/T statements for ${testPlan.feature}`,
         blackboardFeature: testPlan.blackboardFeature,
         workflows: workflows,
+        userStoryNames: userStoryNames,
         overallRiskLevel: 'Medium' as const,
         totalRiskScore: workflows.reduce((sum, w) => sum + w.riskScore, 0),
         recommendations:
-          'Review and adjust impact/likelihood scores for each acceptance criteria workflow. Focus automation on high-frequency, stable workflows.',
+          'Review and adjust impact/likelihood scores for each acceptance criteria G/W/T workflow. Focus automation on high-frequency, stable workflows.',
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -331,7 +342,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
       DataService.saveRiskDocument(riskDocument);
 
       alert(
-        `Generated risk analysis with ${workflows.length} acceptance criteria workflows. Check the Risk Analysis section to review and adjust the scoring.`
+        `Generated risk analysis with ${workflows.length} acceptance criteria G/W/T workflows. Check the Risk Analysis section to review and adjust the scoring.`
       );
     } catch (error) {
       console.error('Error generating risk analysis:', error);
@@ -549,7 +560,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
             <Accordion key={scenario.id}>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography>
-                  Scenario {index + 1}: {scenario.given}
+                  User Story {index + 1}: {scenario.userStoryId} - {scenario.userStoryDescription || 'No description'}
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
@@ -567,15 +578,11 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                       </Link>
                     </Typography>
                   )}
-                  <Typography variant="body2" gutterBottom>
-                    <strong>Given:</strong> {scenario.given}
-                  </Typography>
-                  <Typography variant="body2" gutterBottom>
-                    <strong>When:</strong> {scenario.when}
-                  </Typography>
-                  <Typography variant="body2" gutterBottom>
-                    <strong>Then:</strong> {scenario.then}
-                  </Typography>
+                  {scenario.userStoryDescription && (
+                    <Typography variant="body2" gutterBottom>
+                      <strong>Description:</strong> {scenario.userStoryDescription}
+                    </Typography>
+                  )}
                   <Typography variant="body2" gutterBottom>
                     <strong>Priority:</strong> {scenario.priority}
                   </Typography>
@@ -605,7 +612,13 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                             <strong>Test Case ID:</strong> {ac.id}
                           </Typography>
                           <Typography variant="body2" gutterBottom>
-                            <strong>Description:</strong> {ac.description}
+                            <strong>Given:</strong> {ac.given}
+                          </Typography>
+                          <Typography variant="body2" gutterBottom>
+                            <strong>When:</strong> {ac.when}
+                          </Typography>
+                          <Typography variant="body2" gutterBottom>
+                            <strong>Then:</strong> {ac.then}
                           </Typography>
                           {ac.notes && (
                             <Typography variant="body2" color="text.secondary">
@@ -1112,11 +1125,10 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
           <Grid container spacing={3}>
             <Grid size={12}>
               <Typography variant="h6" gutterBottom color="primary">
-                5. Test Scenarios (Given/When/Then)
+                5. Test Scenarios (User Stories with Acceptance Criteria)
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Define test scenarios that will be used for risk analysis workflows. These form the
-                foundation for both test execution and risk analysis.
+                Group acceptance criteria by User Story. Each acceptance criteria with its G/W/T statements will become a workflow in Risk Analysis.
               </Typography>
             </Grid>
             {formData.testScenarios.map((scenario, index) => (
@@ -1141,63 +1153,22 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                           updateTestScenario(index, 'userStoryId', e.target.value.toUpperCase())
                         }
                         disabled={viewMode === 'view'}
-                        helperText="Format: AB#1234567 (e.g., AB#1234567) - Required for linking to Risk Analysis"
+                        helperText="Format: AB#1234567 - Required for linking to Azure DevOps"
                         error={scenario.userStoryId && !/^AB#\d{7}$/.test(scenario.userStoryId)}
                       />
                     </Grid>
                     <Grid size={12}>
                       <TextField
                         fullWidth
-                        label="Given (Initial condition) *"
-                        placeholder="e.g., An instructor has entered a grade into the gradebook cell"
-                        value={scenario.given}
-                        onChange={e => updateTestScenario(index, 'given', e.target.value)}
+                        label="User Story Description *"
+                        placeholder="e.g., As an instructor, I want to manage grades efficiently"
+                        value={scenario.userStoryDescription || ''}
+                        onChange={e => updateTestScenario(index, 'userStoryDescription', e.target.value)}
                         disabled={viewMode === 'view'}
+                        helperText="Friendly name/description for this user story"
                         multiline
                         rows={2}
                       />
-                    </Grid>
-                    <Grid size={12}>
-                      <TextField
-                        fullWidth
-                        label="When (Action or trigger) *"
-                        placeholder="e.g., They hit enter or click away from the cell"
-                        value={scenario.when}
-                        onChange={e => updateTestScenario(index, 'when', e.target.value)}
-                        disabled={viewMode === 'view'}
-                        multiline
-                        rows={2}
-                      />
-                    </Grid>
-                    <Grid size={12}>
-                      <TextField
-                        fullWidth
-                        label="Then (Expected outcome) * - Single Assertion Only"
-                        placeholder="e.g., The grade is saved to the database and displayed correctly"
-                        value={scenario.then}
-                        onChange={e => updateTestScenario(index, 'then', e.target.value)}
-                        disabled={viewMode === 'view'}
-                        multiline
-                        rows={2}
-                        helperText="This is the atomic unit for risk assessment. Ensure it describes ONE clear, verifiable outcome."
-                        error={
-                          scenario.then &&
-                          (scenario.then.toLowerCase().includes(' and ') ||
-                            scenario.then.split(',').length > 2)
-                        }
-                      />
-                      {scenario.then &&
-                        (scenario.then.toLowerCase().includes(' and ') ||
-                          scenario.then.split(',').length > 2) && (
-                          <Typography
-                            variant="caption"
-                            color="error"
-                            sx={{ mt: 0.5, display: 'block' }}
-                          >
-                            Warning: 'Then' statement should contain a single assertion. Consider
-                            splitting into multiple acceptance criteria.
-                          </Typography>
-                        )}
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <FormControl fullWidth>
@@ -1226,14 +1197,13 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                       />
                     </Grid>
 
-                    {/* Acceptance Criteria Section */}
+                    {/* Acceptance Criteria Section - Each becomes a G/W/T workflow */}
                     <Grid size={12}>
                       <Typography variant="h6" gutterBottom sx={{ mt: 2, mb: 1 }}>
-                        Acceptance Criteria (Workflows)
+                        Acceptance Criteria (G/W/T Workflows)
                       </Typography>
                       <Typography variant="body2" color="text.secondary" gutterBottom>
-                        These acceptance criteria become the individual workflows in risk analysis.
-                        Each gets a unique ID for test automation.
+                        Each acceptance criteria becomes a workflow in risk analysis. Define Given/When/Then statements for each test case.
                       </Typography>
 
                       {(scenario.acceptanceCriteria || []).map((ac, acIndex) => (
@@ -1264,18 +1234,56 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
                             <Grid size={12}>
                               <TextField
                                 fullWidth
-                                label="Description *"
-                                value={ac.description}
+                                label="Given (Initial condition) *"
+                                value={ac.given || ''}
                                 onChange={e =>
                                   updateAcceptanceCriteria(
                                     index,
                                     acIndex,
-                                    'description',
+                                    'given',
                                     e.target.value
                                   )
                                 }
                                 disabled={viewMode === 'view'}
-                                placeholder="e.g., Folder icon changes state to indicate expanded/collapsed status"
+                                placeholder="e.g., An instructor has entered a grade"
+                                multiline
+                                rows={2}
+                              />
+                            </Grid>
+                            <Grid size={12}>
+                              <TextField
+                                fullWidth
+                                label="When (Action or trigger) *"
+                                value={ac.when || ''}
+                                onChange={e =>
+                                  updateAcceptanceCriteria(
+                                    index,
+                                    acIndex,
+                                    'when',
+                                    e.target.value
+                                  )
+                                }
+                                disabled={viewMode === 'view'}
+                                placeholder="e.g., They click save"
+                                multiline
+                                rows={2}
+                              />
+                            </Grid>
+                            <Grid size={12}>
+                              <TextField
+                                fullWidth
+                                label="Then (Expected outcome) *"
+                                value={ac.then || ''}
+                                onChange={e =>
+                                  updateAcceptanceCriteria(
+                                    index,
+                                    acIndex,
+                                    'then',
+                                    e.target.value
+                                  )
+                                }
+                                disabled={viewMode === 'view'}
+                                placeholder="e.g., The grade is saved to the database"
                                 multiline
                                 rows={2}
                               />
@@ -1658,9 +1666,7 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
     const newScenario: TestScenario = {
       id: Date.now().toString(),
       userStoryId: '', // Required field
-      given: '',
-      when: '',
-      then: '',
+      userStoryDescription: '', // User story description
       priority: 'Medium',
       acceptanceCriteria: [],
       notes: '',
@@ -1674,7 +1680,9 @@ ${(testPlan.successCriteria || []).map(item => `• ${item}`).join('\n')}
   const addAcceptanceCriteria = (scenarioIndex: number) => {
     const newAC: AcceptanceCriteria = {
       id: DataService.generateTestCaseId(),
-      description: '',
+      given: '',
+      when: '',
+      then: '',
       notes: '',
     };
 

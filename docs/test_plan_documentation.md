@@ -36,19 +36,24 @@ Detailed test cases derived from the Given/When/Then scenarios above.
 
 Each Given/When/Then scenario from this test plan will be imported into the Risk Analysis section where:
 
-1. The scenario becomes a "Workflow / AC Item" in the risk analysis table
-2. QA team assigns Impact scores (1-4, where 1 = Critical impact)
-3. QA team assigns Likelihood scores (1-4, where 1 = Most likely to fail)
-4. Risk Factor is calculated (Impact × Likelihood)
-5. Testing tier is determined based on risk factor
-6. Required deliverables are specified
+1. Each G/W/T scenario becomes a "Workflow" in the risk analysis
+2. Workflows are grouped by User Story ID for traceability
+3. QA team assigns Impact scores (1-4, where 1 = Critical impact)
+4. QA team assigns Likelihood scores (1-4, where 1 = Most likely to fail)
+5. Risk Factor is calculated (Impact × Likelihood)
+6. Testing tier is determined based on risk factor
+7. Required deliverables are specified
 
 ### Risk Analysis Table Format:
 
-| Workflow / AC Item | **I** Impact (1-4) | **L** Likelihood (1-4) | **Risk Factor (I x L)** | **Mandatory Testing Tier** | **Deliverables Commitment** |
+The Risk Analysis view displays workflows grouped by:
+- **Level 1**: User Story ID (for ADO traceability)
+- **Level 2**: Each G/W/T scenario becomes a separate workflow
+
+| G/W/T Workflow | **I** Impact (1-4) | **L** Likelihood (1-4) | **Risk Factor (I x L)** | **Mandatory Testing Tier** | **Deliverables Commitment** |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Example: Given an instructor has entered a grade into the pill when they hit enter or clickaway then the grade is saved to the database** | 1 (Critical) | 2 (High Prob) | **2** | **Tier 1: CRITICAL** | Unit Test, UIA, ET Notes |
-| **1. [Workflow Step Name/AC]** | [Manual Score] | [Manual Score] | [Manual Calculation] | [Tier 1 / 2 / 3] | [List required deliverables] |
+| **Given an instructor has entered a grade, When they hit enter, Then the grade is saved to the database** | 1 (Critical) | 2 (High Prob) | **2** | **Tier 1: CRITICAL** | Unit Test, UIA, ET Notes |
+| **1. [G/W/T Workflow]** | [Manual Score] | [Manual Score] | [Manual Calculation] | [Tier 1 / 2 / 3] | [List required deliverables] |
 | **2. ...** | ... | ... | ... | ... | ... |
 
 ### Testing Tiers:
@@ -71,6 +76,17 @@ Each Given/When/Then scenario from this test plan will be imported into the Risk
 
 This test plan template integrates with the QA Commander system as follows:
 
-1. **Test Plans Section**: Use this template to create structured test plans
-2. **Risk Analysis Section**: Import Given/When/Then scenarios to create workflows
-3. **Test Case Management**: Use the system as a central hub for test case tracking and execution
+1. **Test Plans Section**: Use this template to create structured test plans with G/W/T scenarios
+2. **Risk Analysis Section**: Import G/W/T scenarios directly as workflows (each scenario becomes one workflow)
+   - Workflows are grouped by User Story ID for traceability to ADO
+   - Each G/W/T workflow is the atomic unit for risk assessment
+3. **Test Case Management (TCM)**: Tier 1 and Tier 2 workflows automatically flow into TCM for execution
+   - TCM test cases preserve the G/W/T format from the original scenario
+   - Test cases include user story linkage for full traceability
+
+### Flow Summary:
+**Test Plan → Risk Analysis → TCM**
+- Test Plan creates G/W/T scenarios with User Story IDs
+- G/W/T scenarios transfer to Risk Analysis as workflows
+- Risk Analysis groups workflows by User Story, then displays G/W/T details
+- Tier 1/2 workflows transfer to TCM with full G/W/T context

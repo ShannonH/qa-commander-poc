@@ -150,7 +150,13 @@ export class DataService {
         testScenarios: (plan.testScenarios || []).map((scenario: any) => ({
           ...scenario,
           userStoryId: scenario.userStoryId || 'NO_USER_STORY', // Handle legacy data
-          acceptanceCriteria: scenario.acceptanceCriteria || [],
+          userStoryDescription: scenario.userStoryDescription || scenario.title || '', // Handle legacy title field
+          acceptanceCriteria: (scenario.acceptanceCriteria || []).map((ac: any) => ({
+            ...ac,
+            given: ac.given || ac.description || '', // Handle legacy description field
+            when: ac.when || '',
+            then: ac.then || '',
+          })),
         })),
         testEnvironmentRequirements: plan.testEnvironmentRequirements || [],
         testDataRequirements: plan.testDataRequirements || [],
